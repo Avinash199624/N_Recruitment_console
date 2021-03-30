@@ -20,34 +20,6 @@ from django.views.decorators.csrf import csrf_exempt
 from knox.views import LogoutView as KnoxLogoutView
 
 
-# class LoginTestView(APIView):
-#     permission_classes = [AllowAny,]
-#     # def get(self,request,*args,**kwargs):
-#     #     user_data = User.objects.filter()[0]
-#     #     serializer = UserSerializer(user_data)
-#     #     return JsonResponse(data=serializer.data,status=200,safe=False)
-#
-#     def post(self, request, *args, **kwargs):
-#
-#         username = self.request.data['username']
-#         password = self.request.data['password']
-#
-#
-#         if User.objects.filter(username = username).exists():
-#             user = auth.authenticate(username = username, password = password)
-#         elif User.objects.filter(email = username):
-#             user = User.objects.get(email = username)
-#             user = auth.authenticate(username = user.username, password = password )
-#         else:
-#             pass
-#
-#         a = User.objects.get(username=username)
-#         print("User==>",a)
-#
-#         serializer = UserSerializer(a)
-#         print('User',serializer.data)
-#         return JsonResponse(data=serializer.data, status=200, safe=False)
-
 class LoginResponseViewMixin:
 
     def get_post_response_data(self, request, token, instance):
@@ -93,18 +65,6 @@ class LoginView(KnoxLoginView,LoginResponseViewMixin):
         # return result
         return JsonResponse(serializer.data,status=200,safe=False)
 
-# class LoginAPIView(APIView):
-#
-#     permission_classes = [AllowAny,]
-#
-#     @csrf_exempt
-#     def post(self,request,*args,**kwargs):
-#         print('HELLO')
-#         obj = LoginView()
-#         user = obj.post(request)
-#         print('User',user)
-#         serializer = UserSerializer(user)
-#         return JsonResponse(data=serializer.data, status=200, safe=False)
 
 
 class UserRegistartionView(APIView):
