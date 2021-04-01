@@ -37,13 +37,15 @@ class User(AbstractUser):
     created_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL,related_name="create_user")
     updated_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL,related_name="modify_user")
     updated_at = models.DateTimeField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False, help_text="Used for Soft Delete")
+
     USERNAME_FIELD = "email"
 
     class Meta:
         verbose_name = 'user'
         verbose_name_plural = 'users'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.get_username()
 
     def get_email(self):
@@ -92,9 +94,10 @@ class UserProfile(models.Model):
     updated_by = models.ForeignKey('User',null=True, blank=True,on_delete=models.SET_NULL,related_name="modify_userprofile")
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False, help_text="Used for Soft Delete")
 
-    def __unicode__(self):
-        return self.id + self.user
+    def __str__(self):
+        return self.user.username
 
 class Location(models.Model):
     address1 = models.CharField(max_length=200, blank=True)
@@ -108,8 +111,9 @@ class Location(models.Model):
     updated_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL,related_name="modify_location")
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False, help_text="Used for Soft Delete")
 
-    def __unicode__(self):
+    def __str__(self):
         return u' '.join([self.address1, self.address2, self.address3 or '',
                           self.city or '', self.postcode or '',
                           self.country])

@@ -5,8 +5,8 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
-from user.models import User
-from user.serializer import UserSerializer,AuthTokenCustomSerializer
+from user.models import User,UserProfile
+from user.serializer import UserSerializer,AuthTokenCustomSerializer,UserProfileSerializer,CustomUserSerializer
 from django.contrib.auth.models import auth
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
@@ -18,7 +18,6 @@ from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.decorators import action
 from django.views.decorators.csrf import csrf_exempt
 from knox.views import LogoutView as KnoxLogoutView
-
 
 class LoginResponseViewMixin:
 
@@ -49,7 +48,7 @@ class LoginView(KnoxLoginView,LoginResponseViewMixin):
     permission_classes = [AllowAny, ]
 
     @csrf_exempt
-    def post(self, request, format=None):
+    def post(self, request, *args, **kwargs):
         serializer = AuthTokenCustomSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
@@ -62,8 +61,9 @@ class LoginView(KnoxLoginView,LoginResponseViewMixin):
 
         result = super(LoginView, self).post(request, format=None)
         serializer = UserSerializer(user)
+        result.data['user'] = serializer.data
         # return result
-        return JsonResponse(serializer.data,status=200,safe=False)
+        return Response(result.data,status=200)
 
 
 
@@ -84,9 +84,56 @@ class UserRegistartionView(APIView):
 class LogoutView(KnoxLogoutView):
 
     @csrf_exempt
-    def post(self, request, format=None):
+    def post(self, request, *args, **kwargs):
         print('Logged Out Successfully')
         request._auth.delete()
         logout(request)
+        return Response(data = {"messege":"Logged out successfully"}, status=200)
 
-        return Response(None, status=HTTP_204_NO_CONTENT)
+class UserListView(APIView):
+    def get(self,request,*args,**kwargs):
+        users = User.objects.filter(is_deleted = False)
+        serializer = UserSerializer(users,many=True)
+        return Response(serializer.data,status=200)
+
+class RetrievetUserView(APIView):
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(id=id)
+        print("HELLO");
+        serializer = CustomUserSerializer(user)
+        return Response(serializer.data, status=200)
+
+class CreateUserView(APIView):
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        username = data['username']
+        email = data['email']
+        user = User.objects.create_user(username=username,email=email)
+        serializer = CustomUserSerializer(user,data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(instance=user,validated_data=data)
+        return Response(serializer.data,status=200)
+
+class UpdateUserView(APIView):
+    def put(self, request, *args,**kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(id=id)
+        data = self.request.data
+        serializer = CustomUserSerializer(user,data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=user,validated_data=data)
+        return Response(serializer.data, status=200)
+
+class DeleteUserView(APIView):
+    def delete(self,request,*args,**kwargs):
+        try:
+            id = self.kwargs['id']
+            user = User.objects.get(id=id)
+            # user.delete()
+            user.is_deleted = True
+            user.save()
+            print(user.is_deleted)
+            return Response(data = {"messege":"User Deleted Successfully."}, status=200)
+        except:
+            return Response(data={"messege": "User Not Found."}, status=401)
