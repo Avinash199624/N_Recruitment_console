@@ -38,3 +38,5 @@ pytest==6.2.2
 toml==0.10.2
 typing-extensions==3.7.4.3
 zipp==3.4.1
+pytest-django==4.1.0
+coverage==5.5
