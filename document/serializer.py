@@ -1,4 +1,4 @@
-from user.models import User,UserProfile,Location,UserRoles
+from user.models import User,UserProfile,Location
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
