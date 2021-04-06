@@ -86,7 +86,7 @@ WSGI_APPLICATION = 'neeri_recruitment_portal.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'neeri-local',
+        'NAME': 'neeri-live',
         'USER': 'postgres',
         'PASSWORD': 'root',
         'HOST': 'localhost',
