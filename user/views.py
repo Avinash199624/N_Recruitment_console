@@ -137,3 +137,18 @@ class DeleteUserView(APIView):
             return Response(data = {"messege":"User Deleted Successfully."}, status=200)
         except:
             return Response(data={"messege": "User Not Found."}, status=401)
+
+class ForgotPassword(APIView):
+    
+    permission_classes = [AllowAny, ]
+
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        email = data['email']
+
+        try:
+            user = User.objects.get(email__exact = email)
+            if user:
+                return Response(data={"messege": "Mail sent to your registered Email."}, status=200)
+        except:
+            return Response(data={"messege": "Email not found, enter valid email."}, status=400)

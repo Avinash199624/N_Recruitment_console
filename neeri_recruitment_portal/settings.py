@@ -15,6 +15,7 @@ import os
 from decouple import Csv, config
 from rest_framework import ISO_8601
 from datetime import timedelta
+from corsheaders.defaults import default_headers
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'knox',
+    'corsheaders',
     'user',
     'document',
 ]
@@ -57,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'neeri_recruitment_portal.urls'
@@ -189,3 +192,16 @@ REST_KNOX = {
     "AUTO_REFRESH": False,
     "EXPIRY_DATETIME_FORMAT": ISO_8601,
 }
+CORS_ORIGIN_ALLOW_ALL = config("CORS_ORIGIN_ALLOW_ALL", default=True, cast=bool)
+CORS_REPLACE_HTTPS_REFERER = config(
+    "CORS_REPLACE_HTTPS_REFERER", default=False, cast=bool
+)
+CORS_ALLOW_CREDENTIALS = config("CORS_ALLOW_CREDENTIALS", default=False, cast=bool)
+CORS_ALLOW_HEADERS = list(default_headers) + config(
+    "CORS_ALLOW_HEADERS", default="", cast=Csv()
+)
+CORS_EXPOSE_HEADERS = config("CORS_EXPOSE_HEADERS", default="", cast=Csv())
+CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default="", cast=Csv())
+CORS_ORIGIN_REGEX_WHITELIST = config(
+    "CORS_ORIGIN_REGEX_WHITELIST", default="", cast=Csv()
+)
