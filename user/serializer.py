@@ -1,4 +1,4 @@
-from user.models import User,UserProfile,Location
+from user.models import User,UserProfile,Location,UserRoles,UserPermissions,RoleMaster
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
@@ -33,7 +33,15 @@ class LocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = '__all__'
+        fields = (
+            "address1",
+            "address2",
+            "address3",
+            "city",
+            "state",
+            "country",
+            "postcode",
+        )
 
 class UserProfileSerializer(serializers.ModelSerializer):
 
@@ -58,15 +66,55 @@ class UserProfileSerializer(serializers.ModelSerializer):
                     "updated_at",
                     "is_deleted",
                  ) + profile_names
+
+
+class UserRolesSerializer(serializers.ModelSerializer):
+
+    user_role = serializers.SerializerMethodField(
+        method_name="get_user_role", read_only=True
+    )
+
+    class Meta:
+        model = UserRoles
+        fields = (
+            "user_role",
+        )
+
+    def get_user_role(self,obj):
+        user_role = obj.role.role_name
+        return user_role
+
+class UserPermissionSerializer(serializers.ModelSerializer):
+
+    user_permission = serializers.SerializerMethodField(
+        method_name="get_user_permission", read_only=True
+    )
+
+    class Meta:
+        model = UserPermissions
+        fields = (
+            "user_permission",
+        )
+
+    def get_user_permission(self,obj):
+        user_permission = obj.permission.permission_name
+        return user_permission
+
+
 class UserSerializer(serializers.ModelSerializer):
 
     user_profile = UserProfileSerializer(required=False)
-    # user_roles = UserRolesSerializer(required=False,many=True)
+    user_roles = serializers.SerializerMethodField(
+        method_name="get_user_roles", read_only=True
+    )
+    user_permissions = serializers.SerializerMethodField(
+        method_name="get_user_permissions", read_only=True
+    )
 
     class Meta:
         model = User
 
-        profile_names = ("user_profile",)
+        profile_names = ("user_profile","user_roles","user_permissions")
 
         fields = (
                     "id",
@@ -74,7 +122,22 @@ class UserSerializer(serializers.ModelSerializer):
                      "email",
                      "created_at",
                      "is_deleted",
+                     "user_roles",
                  ) + profile_names
+
+
+    def get_user_roles(self,obj):
+        user_roles = UserRoles.objects.filter(user=obj)
+        serializer = UserRolesSerializer(user_roles,many=True)
+        return serializer.data
+
+    def get_user_permissions(self, obj):
+        user_roles = UserRoles.objects.filter(user=obj)
+        role_names = [role.role.role_name for role in user_roles]
+        roles = RoleMaster.objects.filter(role_name__in=role_names)
+        user_permissions = UserPermissions.objects.filter(role_name__in=roles).distinct('permission')
+        serializer = UserPermissionSerializer(user_permissions, many=True)
+        return serializer.data
 
 class CustomUserSerializer(serializers.ModelSerializer):
 
@@ -114,6 +177,14 @@ class CustomUserSerializer(serializers.ModelSerializer):
         method_name="get_permanent_address", read_only=True
     )
 
+    user_roles = serializers.SerializerMethodField(
+        method_name="get_user_roles", read_only=True
+    )
+
+    user_permissions = serializers.SerializerMethodField(
+        method_name="get_user_permissions", read_only=True
+    )
+
     class Meta:
         model = User
 
@@ -132,49 +203,90 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "local_address",
             "permanent_address",
             "is_deleted",
+            "user_roles",
+            "user_permissions",
         )
 
     def get_mobile_no(self,obj):
-        mobile_no = obj.user_profile.mobile_no
-        return mobile_no
+        try:
+            mobile_no = obj.user_profile.mobile_no
+            return mobile_no
+        except:
+            return None
 
     def get_phone_no(self,obj):
-        phone_no = obj.user_profile.phone_no
-        return phone_no
+        try:
+            phone_no = obj.user_profile.phone_no
+            return phone_no
+        except:
+            return None
 
     def get_gender(self,obj):
-        gender = obj.user_profile.gender
-        return gender
+        try:
+            gender = obj.user_profile.gender
+            return gender
+        except:
+            return None
 
     def get_date_of_birth(self,obj):
-        date_of_birth = obj.user_profile.date_of_birth
-        return date_of_birth
+        try:
+            date_of_birth = obj.user_profile.date_of_birth
+            return date_of_birth
+        except:
+            return None
 
     def get_age(self,obj):
-        age = obj.user_profile.age
-        return age
+        try:
+            age = obj.user_profile.age
+            return age
+        except:
+            return None
 
     def get_status(self,obj):
-        status = obj.user_profile.status
-        return status
+        try:
+            status = obj.user_profile.status
+            return status
+        except:
+            return None
 
     def get_higher_qualification(self,obj):
-        higher_qualification = obj.user_profile.higher_qualification
-        return higher_qualification
+        try:
+            higher_qualification = obj.user_profile.higher_qualification
+            return higher_qualification
+        except:
+            return None
 
     def get_local_address(self,obj):
-        local_address = obj.user_profile.local_address.all()
-        serializer = LocationSerializer(local_address,many=True)
-        return serializer.data
+        try:
+            local_address = obj.user_profile.local_address.all()
+            serializer = LocationSerializer(local_address,many=True)
+            return serializer.data
+        except:
+            return None
 
     def get_permanent_address(self,obj):
-        permanent_address = obj.user_profile.permanent_address.all()
-        serializer = LocationSerializer(permanent_address,many=True)
+        try:
+            permanent_address = obj.user_profile.permanent_address.all()
+            serializer = LocationSerializer(permanent_address,many=True)
+            return serializer.data
+        except:
+            return None
+
+    def get_user_roles(self,obj):
+        user_roles = UserRoles.objects.filter(user=obj)
+        serializer = UserRolesSerializer(user_roles,many=True)
+        return serializer.data
+
+    def get_user_permissions(self, obj):
+        user_roles = UserRoles.objects.filter(user=obj)
+        role_names = [role.role.role_name for role in user_roles]
+        roles = RoleMaster.objects.filter(role_name__in=role_names)
+        user_permissions = UserPermissions.objects.filter(role_name__in=roles).distinct('permission')
+        serializer = UserPermissionSerializer(user_permissions, many=True)
         return serializer.data
 
     def update(self, instance, validated_data):
 
-        user_profile = validated_data["user_profile"]
 
         instance.username = (
             validated_data["username"] if validated_data["username"] else instance.username
@@ -191,36 +303,36 @@ class CustomUserSerializer(serializers.ModelSerializer):
         try:
             local_address_instance = instance.user_profile.local_address.filter()
             permanent_address_instance = instance.user_profile.permanent_address.filter()
-            local_address_data = user_profile["local_address"][0]
-            permanent_address_data = user_profile["permanent_address"][0]
+            local_address_data = validated_data["local_address"][0]
+            permanent_address_data = validated_data["permanent_address"][0]
 
             if instance.user_profile:
                 instance.user_profile.phone_no = (
-                    user_profile["phone_no"] if user_profile["phone_no"] else instance.user_profile.phone_no
+                    validated_data["phone_no"] if validated_data["phone_no"] else instance.user_profile.phone_no
                 )
 
                 instance.user_profile.mobile_no = (
-                    user_profile["mobile_no"] if user_profile["mobile_no"] else instance.user_profile.mobile_no
+                    validated_data["mobile_no"] if validated_data["mobile_no"] else instance.user_profile.mobile_no
                 )
 
                 instance.user_profile.gender = (
-                    user_profile["gender"] if user_profile["gender"] else instance.user_profile.gender
+                    validated_data["gender"] if validated_data["gender"] else instance.user_profile.gender
                 )
 
                 instance.user_profile.date_of_birth = (
-                    user_profile["date_of_birth"] if user_profile["date_of_birth"] else instance.user_profile.date_of_birth
+                    validated_data["date_of_birth"] if validated_data["date_of_birth"] else instance.user_profile.date_of_birth
                 )
 
                 instance.user_profile.age = (
-                    user_profile["age"] if user_profile["age"] else instance.user_profile.age
+                    validated_data["age"] if validated_data["age"] else instance.user_profile.age
                 )
 
                 instance.user_profile.status = (
-                    user_profile["status"] if user_profile["status"] else instance.user_profile.status
+                    validated_data["status"] if validated_data["status"] else instance.user_profile.status
                 )
 
                 instance.user_profile.higher_qualification = (
-                    user_profile["higher_qualification"] if user_profile["higher_qualification"] else instance.user_profile.higher_qualification
+                    validated_data["higher_qualification"] if validated_data["higher_qualification"] else instance.user_profile.higher_qualification
                 )
 
             if local_address_instance:
@@ -299,8 +411,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
             instance.user_profile.save()
             instance.save()
         except:
-            user_profile_local_address = validated_data['user_profile']['local_address']
-            user_profile_permanent_address = validated_data['user_profile']['permanent_address']
+            user_profile_local_address = validated_data['local_address']
+            user_profile_permanent_address = validated_data['permanent_address']
 
             local_address = Location.objects.create(
                 address1=user_profile_local_address[0]['address1'],
@@ -322,17 +434,16 @@ class CustomUserSerializer(serializers.ModelSerializer):
                 postcode=user_profile_permanent_address[0]['postcode'],
             )
 
-            user_profile_data = validated_data['user_profile']
 
             user_profile = UserProfile.objects.create(
                 user=instance,
-                gender=user_profile_data['gender'],
-                phone_no=user_profile_data['phone_no'],
-                mobile_no=user_profile_data['mobile_no'],
-                date_of_birth=user_profile_data['date_of_birth'],
-                age=user_profile_data['age'],
-                status=user_profile_data['status'],
-                higher_qualification=user_profile_data['higher_qualification'],
+                gender=validated_data['gender'],
+                phone_no=validated_data['phone_no'],
+                mobile_no=validated_data['mobile_no'],
+                date_of_birth=validated_data['date_of_birth'],
+                age=validated_data['age'],
+                status=validated_data['status'],
+                higher_qualification=validated_data['higher_qualification'],
             )
             user_profile.local_address.add(local_address)
             user_profile.permanent_address.add(permanent_address)
@@ -347,40 +458,38 @@ class CustomUserSerializer(serializers.ModelSerializer):
             if instance.user_profile:
                 pass
         except:
-            user_profile_local_address = validated_data['user_profile']['local_address']
-            user_profile_permanent_address = validated_data['user_profile']['permanent_address']
-
-            local_address = Location.objects.create(
-                address1 = user_profile_local_address[0]['address1'],
-                address2 = user_profile_local_address[0]['address2'],
-                address3 = user_profile_local_address[0]['address3'],
-                city = user_profile_local_address[0]['city'],
-                state = user_profile_local_address[0]['state'],
-                country = user_profile_local_address[0]['country'],
-                postcode = user_profile_local_address[0]['postcode'],
-            )
-
-            permanent_address = Location.objects.create(
-                address1=user_profile_permanent_address[0]['address1'],
-                address2=user_profile_permanent_address[0]['address2'],
-                address3=user_profile_permanent_address[0]['address3'],
-                city=user_profile_permanent_address[0]['city'],
-                state=user_profile_permanent_address[0]['state'],
-                country=user_profile_permanent_address[0]['country'],
-                postcode=user_profile_permanent_address[0]['postcode'],
-            )
-
-            user_profile_data = validated_data['user_profile']
+            if 'local_address' in validated_data:
+                user_profile_local_address = validated_data['local_address']
+                local_address = Location.objects.create(
+                    address1=user_profile_local_address[0]['address1'],
+                    address2=user_profile_local_address[0]['address2'],
+                    address3=user_profile_local_address[0]['address3'],
+                    city=user_profile_local_address[0]['city'],
+                    state=user_profile_local_address[0]['state'],
+                    country=user_profile_local_address[0]['country'],
+                    postcode=user_profile_local_address[0]['postcode'],
+                )
+            if 'permanent_address' in validated_data:
+                user_profile_permanent_address = validated_data['permanent_address']
+                permanent_address = Location.objects.create(
+                    address1=user_profile_permanent_address[0]['address1'],
+                    address2=user_profile_permanent_address[0]['address2'],
+                    address3=user_profile_permanent_address[0]['address3'],
+                    city=user_profile_permanent_address[0]['city'],
+                    state=user_profile_permanent_address[0]['state'],
+                    country=user_profile_permanent_address[0]['country'],
+                    postcode=user_profile_permanent_address[0]['postcode'],
+                )
 
             user_profile = UserProfile.objects.create(
                 user = instance,
-                gender = user_profile_data['gender'],
-                phone_no = user_profile_data['phone_no'],
-                mobile_no = user_profile_data['mobile_no'],
-                date_of_birth = user_profile_data['date_of_birth'],
-                age = user_profile_data['age'],
-                status = user_profile_data['status'],
-                higher_qualification = user_profile_data['higher_qualification'],
+                gender = validated_data['gender'] if 'gender' in validated_data else None,
+                phone_no = validated_data['phone_no'] if 'phone_no' in validated_data else None,
+                mobile_no = validated_data['mobile_no'] if 'mobile_no' in validated_data else None,
+                date_of_birth = validated_data['date_of_birth'] if 'date_of_birth' in validated_data else None,
+                age = validated_data['age'] if 'age' in validated_data else None,
+                status = validated_data['status'] if 'status' in validated_data else None,
+                higher_qualification = validated_data['higher_qualification'] if 'higher_qualification' in validated_data else None,
             )
             user_profile.local_address.add(local_address)
             user_profile.permanent_address.add(permanent_address)

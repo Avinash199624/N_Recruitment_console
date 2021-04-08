@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from document.models import DocumentMaster
 from document.serializer import DocumentMasterSerializer
 
-class RetrievetDocumentView(APIView):
+class RetrieveDocumentView(APIView):
     def get(self,request,*args,**kwargs):
         id = self.kwargs['id']
         doc = DocumentMaster.objects.get(id=id)

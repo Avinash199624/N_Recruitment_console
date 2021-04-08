@@ -118,3 +118,63 @@ class Location(models.Model):
                           self.city or '', self.postcode or '',
                           self.country])
 
+
+class RoleMaster(models.Model):
+
+    role_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    role_name = models.CharField(max_length=30,null=True, blank=True)
+    created_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name="create_role")
+    updated_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name="modify_role")
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.role_name
+
+class UserRoles(models.Model):
+    role = models.ForeignKey('RoleMaster', null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name="create_userrole")
+    user = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name="create_userrole")
+    created_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name="create_user_role")
+    updated_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name="modify_user_role")
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return ' '.join([self.user.username,self.role.role_name])
+
+
+class PermissionMaster(models.Model):
+
+    permission_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    permission_name = models.CharField(max_length=30, null=True, blank=True)
+    created_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name="create_permission")
+    updated_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name="modify_permission")
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.permission_name
+
+
+class UserPermissions(models.Model):
+    permission = models.ForeignKey('PermissionMaster', null=True, blank=True, on_delete=models.SET_NULL,
+                             related_name="permission")
+    role_name = models.ForeignKey('RoleMaster', null=True, blank=True, on_delete=models.SET_NULL,
+                             related_name="user")
+    created_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name="create_user_permission")
+    updated_by = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL,
+                                   related_name="modify_user_permission")
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return ' '.join([self.role_name.role_name,self.permission.permission_name])

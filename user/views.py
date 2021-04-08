@@ -5,8 +5,8 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
-from user.models import User,UserProfile
-from user.serializer import UserSerializer,AuthTokenCustomSerializer,UserProfileSerializer,CustomUserSerializer
+from user.models import User,RoleMaster,UserRoles,UserProfile
+from user.serializer import UserSerializer,AuthTokenCustomSerializer,UserProfileSerializer,UserRolesSerializer,CustomUserSerializer
 from django.contrib.auth.models import auth
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
@@ -66,7 +66,6 @@ class LoginView(KnoxLoginView,LoginResponseViewMixin):
         return Response(result.data,status=200)
 
 
-
 class UserRegistartionView(APIView):
     permission_classes = [AllowAny, ]
 
@@ -74,10 +73,14 @@ class UserRegistartionView(APIView):
         username = self.request.data['fullname']
         email = self.request.data['email']
         password = self.request.data['password']
+        role = RoleMaster.objects.get(role_name__exact='applicant')
         if User.objects.filter(email=email).exists():
             return JsonResponse(data={"messege":"User Already Exist"},status=401)
+        elif User.objects.filter(username=username).exists():
+            return JsonResponse(data={"messege": "User Already Exist"}, status=401)
         else:
             user = User.objects.create_user(username, email, password)
+            UserRoles.objects.create(role=role,user=user)
             serializer = UserSerializer(user)
             return JsonResponse(data=serializer.data, status=200, safe=False)
 
