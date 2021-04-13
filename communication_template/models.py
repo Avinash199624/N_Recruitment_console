@@ -1,11 +1,9 @@
 from django.db import models
 import uuid
 from django.db.models import Q, UniqueConstraint
+from user.models import BaseModel
 
-
-# Create your models here.
-
-class TemplateType(models.Model):
+class TemplateType(BaseModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     temp_type = models.CharField(max_length=100,null=True,blank=True)
@@ -14,7 +12,7 @@ class TemplateType(models.Model):
     def __str__(self):
         return self.temp_type
 
-class TemplateMaster(models.Model):
+class TemplateMaster(BaseModel):
 
     template_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     template_name = models.CharField(max_length=100,null=True,blank=True)

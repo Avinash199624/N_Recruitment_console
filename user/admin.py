@@ -1,8 +1,21 @@
 from django.contrib import admin
 from django.contrib.admin import register
-from user.models import User,UserProfile,RoleMaster,UserRoles,Location,PermissionMaster,UserPermissions
+from user.models import User,UserProfile,RoleMaster,UserRoles,Location,PermissionMaster,\
+    UserPermissions,NeeriUserProfile,NeeriRelation,UserEducationDetails
 
 # Register your models here.
+
+@register(UserEducationDetails)
+class UserEducationDetailsAdmin(admin.ModelAdmin):
+    list_display = ['exam_name','university','college_name','passing_year','score','score_unit','specialization']
+
+@register(NeeriRelation)
+class NeeriRelationAdmin(admin.ModelAdmin):
+    list_display = ['name','designation']
+
+@register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ['user_id','first_name','last_name','email']
 
 @register(PermissionMaster)
 class PermissionMasterAdmin(admin.ModelAdmin):
@@ -10,15 +23,15 @@ class PermissionMasterAdmin(admin.ModelAdmin):
 
 @register(UserPermissions)
 class UserPermissionsAdmin(admin.ModelAdmin):
-    list_display = ['role_name','permission']
-
-@register(User)
-class UserAdmin(admin.ModelAdmin):
-    list_display = ['id','username','email','created_at']
+    list_display = ['permission','role']
 
 @register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ['user','gender','phone_no','mobile_no','status','higher_qualification' ]
+    list_display = ['user','gender','mobile_no','status' ]
+
+@register(NeeriUserProfile)
+class NeeriUserProfileAdmin(admin.ModelAdmin):
+    list_display = ['user','gender','mobile_no']
 
 @register(RoleMaster)
 class RoleMasterAdmin(admin.ModelAdmin):

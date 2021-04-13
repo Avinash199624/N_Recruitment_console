@@ -4,5 +4,5 @@ from document.models import DocumentMaster
 
 @register(DocumentMaster)
 class DocumentMasterAdmin(admin.ModelAdmin):
-    list_display = ['id','doc_type','doc_name','file_size']
+    list_display = ['doc_id','doc_name','description']
 

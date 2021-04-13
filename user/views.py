@@ -5,8 +5,9 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
-from user.models import User,RoleMaster,UserRoles,UserProfile
-from user.serializer import UserSerializer,AuthTokenCustomSerializer,UserProfileSerializer,UserRolesSerializer,CustomUserSerializer
+from user.models import User,RoleMaster,UserRoles,UserProfile,Location
+from user.serializer import UserSerializer,AuthTokenCustomSerializer,UserProfileSerializer,UserRolesSerializer,\
+    CustomUserSerializer,ApplicantUserPersonalInformationSerializer,LocationSerializer
 from django.contrib.auth.models import auth
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
@@ -65,6 +66,14 @@ class LoginView(KnoxLoginView,LoginResponseViewMixin):
         # return result
         return Response(result.data,status=200)
 
+class LogoutView(KnoxLogoutView):
+
+    @csrf_exempt
+    def post(self, request, *args, **kwargs):
+        print('Logged Out Successfully')
+        request._auth.delete()
+        logout(request)
+        return Response(data = {"messege":"Logged out successfully"}, status=200)
 
 class UserRegistartionView(APIView):
     permission_classes = [AllowAny, ]
@@ -84,15 +93,6 @@ class UserRegistartionView(APIView):
             serializer = UserSerializer(user)
             return JsonResponse(data=serializer.data, status=200, safe=False)
 
-class LogoutView(KnoxLogoutView):
-
-    @csrf_exempt
-    def post(self, request, *args, **kwargs):
-        print('Logged Out Successfully')
-        request._auth.delete()
-        logout(request)
-        return Response(data = {"messege":"Logged out successfully"}, status=200)
-
 class UserListView(APIView):
     def get(self,request,*args,**kwargs):
         users = User.objects.filter(is_deleted = False)
@@ -102,8 +102,7 @@ class UserListView(APIView):
 class RetrievetUserView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
-        user = User.objects.get(id=id)
-        print("HELLO");
+        user = User.objects.get(user_id=id)
         serializer = CustomUserSerializer(user)
         return Response(serializer.data, status=200)
 
@@ -112,16 +111,21 @@ class CreateUserView(APIView):
         data = self.request.data
         username = data['username']
         email = data['email']
-        user = User.objects.create_user(username=username,email=email)
-        serializer = CustomUserSerializer(user,data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(instance=user,validated_data=data)
-        return Response(serializer.data,status=200)
+        if User.objects.filter(email=email).exists():
+            return JsonResponse(data={"messege":"User Already Exist"},status=401)
+        elif User.objects.filter(username=username).exists():
+            return JsonResponse(data={"messege": "User Already Exist"}, status=401)
+        else:
+            user = User.objects.create_user(username=username,email=email)
+            serializer = CustomUserSerializer(user,data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(instance=user,validated_data=data)
+            return Response(serializer.data,status=200)
 
 class UpdateUserView(APIView):
     def put(self, request, *args,**kwargs):
         id = self.kwargs['id']
-        user = User.objects.get(id=id)
+        user = User.objects.get(user_id=id)
         data = self.request.data
         serializer = CustomUserSerializer(user,data=data)
         serializer.is_valid(raise_exception=True)
@@ -132,7 +136,7 @@ class DeleteUserView(APIView):
     def delete(self,request,*args,**kwargs):
         try:
             id = self.kwargs['id']
-            user = User.objects.get(id=id)
+            user = User.objects.get(user_id=id)
             # user.delete()
             user.is_deleted = True
             user.save()
@@ -155,3 +159,118 @@ class ForgotPassword(APIView):
                 return Response(data={"messege": "Mail sent to your registered Email."}, status=200)
         except:
             return Response(data={"messege": "Email not found, enter valid email."}, status=400)
+
+
+class ApplicantPersonalInformationView(APIView):
+
+    def get(self,request,*args,**kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        user_profile = user.user_profile
+        serializer = ApplicantUserPersonalInformationSerializer(user_profile)
+        return Response(serializer.data,status=200)
+
+class ApplicantPersonalInformationUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        data = self.request.data
+        try:
+            user_profile = user.user_profile
+        except:
+            return Response(data={"messege": "UserProfile does not exist for the given user,create UserProfile first."}, status=401)
+        serializer = ApplicantUserPersonalInformationSerializer(user_profile, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=user_profile, validated_data=data)
+        return Response(serializer.data, status=200)
+
+
+class ApplicantPersonalInformationCreateView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        try:
+            if user.user_profile :
+                return Response(data={"messege":"UserProfile for Given User Already Exist"},status=401)
+        except:
+            data = self.request.data
+            serializer = ApplicantUserPersonalInformationSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=data)
+            user_profile = UserProfile.objects.get(user__username=result)
+            serializer = ApplicantUserPersonalInformationSerializer(user_profile)
+            return Response(serializer.data,status=200)
+
+class ApplicantAddressView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id = id)
+        address_type = self.request.GET['address_type']
+        if address_type == 'local_address':
+            location = user.user_profile.local_address
+        elif address_type == 'permanent_address':
+            location = user.user_profile.permanent_address
+        else:
+            location = user.user_profile.father_address
+
+        serializer = LocationSerializer(location)
+        return Response(serializer.data,status=200)
+
+class ApplicantAddressUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        data = self.request.data
+        address_type = self.request.GET['address_type']
+        if address_type == 'local_address':
+            location = user.user_profile.local_address
+            serializer = LocationSerializer(location, data=data)
+        elif address_type == 'permanent_address':
+            location = user.user_profile.permanent_address
+            serializer = LocationSerializer(location, data=data)
+        else:
+            location = user.user_profile.father_address
+            serializer = LocationSerializer(location, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=location, validated_data=data)
+        return Response(serializer.data, status=200)
+
+class ApplicantAddressCreateView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        data = self.request.data
+        serializer = LocationSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save(validated_data=data)
+        location = Location.objects.get(id=result)
+        address_type = self.request.GET['address_type']
+        if address_type == 'local_address':
+            if user.user_profile.local_address:
+                Location.objects.get(id=result).delete()
+                return Response(data={"messege":"Local Address for Given User Already Exist"},status=401)
+            else:
+                user.user_profile.local_address = location
+                user.user_profile.save()
+        elif address_type == 'permanent_address':
+            if user.user_profile.permanent_address:
+                Location.objects.get(id=result).delete()
+                return Response(data={"messege":"Permanent Address for Given User Already Exist"},status=401)
+            else:
+                user.user_profile.permanent_address = location
+                user.user_profile.save()
+        else:
+            if user.user_profile.father_address:
+                Location.objects.get(id=result).delete()
+                return Response(data={"messege":"Father Address for Given User Already Exist"},status=401)
+            else:
+                user.user_profile.father_address = location
+                user.user_profile.save()
+
+        serializer = LocationSerializer(location)
+        return Response(serializer.data, status=200)
