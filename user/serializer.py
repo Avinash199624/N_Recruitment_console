@@ -98,19 +98,19 @@ class LocationSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
 
-    local_address = LocationSerializer(required=False,many=True)
-    permanent_address = LocationSerializer(required=False,many=True)
+    local_address = LocationSerializer(required=False)
+    permanent_address = LocationSerializer(required=False)
+    father_address = LocationSerializer(required=False)
 
     class Meta:
         model = UserProfile
 
-        profile_names = ("local_address","permanent_address",)
+        profile_names = ("local_address","permanent_address","father_address",)
         fields = (
                     "gender",
                     "mobile_no",
                     "date_of_birth",
                     "status",
-                    "higher_qualification",
                     "created_by",
                     "updated_by",
                     "created_at",
@@ -208,16 +208,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
         method_name="get_date_of_birth", read_only=True
     )
 
-    age = serializers.SerializerMethodField(
-        method_name="get_age", read_only=True
-    )
-
     status = serializers.SerializerMethodField(
         method_name="get_status", read_only=True
-    )
-
-    higher_qualification = serializers.SerializerMethodField(
-        method_name="get_higher_qualification", read_only=True
     )
 
     local_address = serializers.SerializerMethodField(
@@ -247,10 +239,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "status",
             "gender",
             "date_of_birth",
-            "age",
             "mobile_no",
             "phone_no",
-            "higher_qualification",
             "local_address",
             "permanent_address",
             "is_deleted",
@@ -286,12 +276,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
         except:
             return None
 
-    def get_age(self,obj):
-        try:
-            age = obj.user_profile.age
-            return age
-        except:
-            return None
 
     def get_status(self,obj):
         try:
@@ -300,12 +284,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
         except:
             return None
 
-    def get_higher_qualification(self,obj):
-        try:
-            higher_qualification = obj.user_profile.higher_qualification
-            return higher_qualification
-        except:
-            return None
 
     def get_local_address(self,obj):
         try:
@@ -373,17 +351,11 @@ class CustomUserSerializer(serializers.ModelSerializer):
                     validated_data["date_of_birth"] if validated_data["date_of_birth"] else instance.user_profile.date_of_birth
                 )
 
-                instance.user_profile.age = (
-                    validated_data["age"] if validated_data["age"] else instance.user_profile.age
-                )
 
                 instance.user_profile.status = (
                     validated_data["status"] if validated_data["status"] else instance.user_profile.status
                 )
 
-                instance.user_profile.higher_qualification = (
-                    validated_data["higher_qualification"] if validated_data["higher_qualification"] else instance.user_profile.higher_qualification
-                )
 
             if local_address_instance:
                 local_address_instance[0].address1 = (
@@ -491,9 +463,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
                 phone_no=validated_data['phone_no'],
                 mobile_no=validated_data['mobile_no'],
                 date_of_birth=validated_data['date_of_birth'],
-                age=validated_data['age'],
                 status=validated_data['status'],
-                higher_qualification=validated_data['higher_qualification'],
             )
             user_profile.local_address.add(local_address)
             user_profile.permanent_address.add(permanent_address)
@@ -537,9 +507,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
                 phone_no = validated_data['phone_no'] if 'phone_no' in validated_data else None,
                 mobile_no = validated_data['mobile_no'] if 'mobile_no' in validated_data else None,
                 date_of_birth = validated_data['date_of_birth'] if 'date_of_birth' in validated_data else None,
-                age = validated_data['age'] if 'age' in validated_data else None,
                 status = validated_data['status'] if 'status' in validated_data else None,
-                higher_qualification = validated_data['higher_qualification'] if 'higher_qualification' in validated_data else None,
             )
             user_profile.local_address.add(local_address)
             user_profile.permanent_address.add(permanent_address)
