@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.admin import register
 from user.models import User,UserProfile,RoleMaster,UserRoles,Location,PermissionMaster,\
-    UserPermissions,NeeriUserProfile,NeeriRelation,UserEducationDetails
+    UserPermissions,NeeriUserProfile,NeeriRelation,UserEducationDetails,UserExperienceDetails,\
+    UserDocuments,UserLanguages,UserReference,OverseasVisits
 
 # Register your models here.
 
@@ -9,9 +10,28 @@ from user.models import User,UserProfile,RoleMaster,UserRoles,Location,Permissio
 class UserEducationDetailsAdmin(admin.ModelAdmin):
     list_display = ['exam_name','university','college_name','passing_year','score','score_unit','specialization']
 
+@register(UserExperienceDetails)
+class UserExperienceDetailsAdmin(admin.ModelAdmin):
+    list_display = ['employer_name','post','employed_from','employed_to','employment_type','salary','grade']
+
+@register(UserDocuments)
+class UserDocumentsAdmin(admin.ModelAdmin):
+    list_display = ['doc_id','doc_file_path','doc_name']
+
+@register(UserLanguages)
+class UserLanguagesAdmin(admin.ModelAdmin):
+    list_display = ['name','read_level','write_level','speak_level','exam_passed']
+
+@register(UserReference)
+class UserReferenceAdmin(admin.ModelAdmin):
+    list_display = ['reference_name','position','address']
+
+@register(OverseasVisits)
+class OverseasVisitsAdmin(admin.ModelAdmin):
+    list_display = ['country_visited','date_of_visit','duration_of_visit','purpose_of_visit']
 @register(NeeriRelation)
 class NeeriRelationAdmin(admin.ModelAdmin):
-    list_display = ['name','designation']
+    list_display = ['relation_name','designation','center_name','relation']
 
 @register(User)
 class UserAdmin(admin.ModelAdmin):

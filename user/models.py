@@ -222,7 +222,7 @@ class UserPermissions(BaseModel):
                              related_name="user")
 
     def __str__(self):
-        return ' '.join([self.role_id.role_name,self.permission_id.permission_name])
+        return ' '.join([self.role.role_name,self.permission.permission_name])
 
 class UserDocuments(BaseModel):
 
@@ -231,7 +231,7 @@ class UserDocuments(BaseModel):
     doc_name = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return ' '.join([self.document.doc_name,self.user.username])
+        return self.doc_name
 
 
 class OverseasVisits(BaseModel):
@@ -246,7 +246,7 @@ class OverseasVisits(BaseModel):
 
     country_visited = models.CharField(max_length=50,choices=COUNTRY_CHOICES, null=True, blank=True)
     date_of_visit = models.DateField(null=True,blank=True)
-    duration_of_visit = models.DateField()
+    duration_of_visit = models.CharField(max_length=50, null=True, blank=True)
     purpose_of_visit = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
@@ -259,18 +259,18 @@ class UserReference(BaseModel):
     address = models.OneToOneField('Location',on_delete=models.CASCADE, related_name="referee_address")
 
     def __str__(self):
-        return ' '.join([self.name])
+        return self.reference_name
 
 
 class NeeriRelation(BaseModel):
 
-    name = models.CharField(max_length=50, null=True, blank=True)
+    relation_name = models.CharField(max_length=50, null=True, blank=True)
     designation =models.CharField(max_length=50, null=True, blank=True)
-    working_location = models.CharField(max_length=50, null=True, blank=True)
+    center_name = models.CharField(max_length=50, null=True, blank=True)
     relation = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.relation_name
 
 class UserEducationDetails(BaseModel):
 
@@ -304,24 +304,22 @@ class UserExperienceDetails(BaseModel):
         (PERMANENT,'PERMANENT'),
         (TEMPORARY,'TEMPORARY'),
     ]
-    company = models.CharField(max_length=50, null=True, blank=True)
-    address = models.OneToOneField('Location',on_delete=models.CASCADE, related_name="company_address")
-    designation = models.CharField(max_length=30, null=True, blank=True)
-    experience_in_years = models.IntegerField(null=True, blank=True)
-    joining_date = models.DateField(null=True, blank=True)
-    leaving_date = models.DateField(null=True, blank=True)
+    employer_name = models.CharField(max_length=50, null=True, blank=True)
+    post = models.CharField(max_length=30, null=True, blank=True)
+    employed_from = models.DateField(null=True, blank=True)
+    employed_to = models.DateField(null=True, blank=True)
     employment_type = models.CharField(max_length=30,choices=EMPLOYMENT_TYPE_CHOICES, null=True, blank=True)
     salary = models.IntegerField(null=True, blank=True)
     grade = models.CharField(max_length=30, null=True, blank=True)
 
     def __str__(self):
-        return ' - '.join([self.user.username,self.company])
+        return self.employer_name
 
 
 class PublishedPapers(BaseModel):
 
     paper_title = models.CharField(max_length=30, null=True, blank=True)
-    attachments = models.ManyToManyField('document.DocumentMaster',blank=True,related_name="attachments")
+    attachments = models.ManyToManyField('user.UserDocuments',blank=True,related_name="attachments")
 
     def __str__(self):
         return self.paper_title
@@ -343,6 +341,9 @@ class UserLanguages(BaseModel):
     write_level = models.CharField(max_length=20,choices=LEVEL_CHOICES, null=True, blank=True)
     speak_level = models.CharField(max_length=20,choices=LEVEL_CHOICES, null=True, blank=True)
     exam_passed = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
 
 class OtherInfo(BaseModel):
     bond_details = models.CharField(max_length=100, null=True, blank=True)

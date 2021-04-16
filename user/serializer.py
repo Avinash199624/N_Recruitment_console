@@ -1,4 +1,5 @@
-from user.models import User,UserProfile,Location,UserRoles,UserPermissions,RoleMaster
+from user.models import User,UserProfile,Location,UserRoles,UserPermissions,RoleMaster,UserEducationDetails,\
+    UserExperienceDetails,NeeriRelation,UserReference,OverseasVisits,UserLanguages,UserDocuments
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
@@ -1114,3 +1115,349 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         )
         return user_profile
 
+class UserEducationDetailsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserEducationDetails
+        fields = (
+            "id",
+            "exam_name",
+            "university",
+            "college_name",
+            "passing_year",
+            "score",
+            "score_unit",
+            "specialization",
+        )
+
+    def update(self, instance, validated_data):
+
+        instance.exam_name = (
+            validated_data["exam_name"] if validated_data["exam_name"] else instance.exam_name
+        )
+
+        instance.university = (
+            validated_data["university"] if validated_data["university"] else instance.university
+        )
+
+        instance.college_name = (
+            validated_data["college_name"] if validated_data["college_name"] else instance.college_name
+        )
+
+        instance.score = (
+            validated_data["score"] if validated_data["score"] else instance.score
+        )
+
+        instance.score_unit = (
+            validated_data["score_unit"] if validated_data["score_unit"] else instance.score_unit
+        )
+
+        instance.specialization = (
+            validated_data["specialization"] if validated_data["specialization"] else instance.specialization
+        )
+
+        instance.save()
+
+    def save(self, validated_data):
+
+        user_education = UserEducationDetails.objects.create(
+            exam_name = validated_data['exam_name'] if 'exam_name' in validated_data else None,
+            university = validated_data['university'] if 'university' in validated_data else None,
+            college_name = validated_data['college_name'] if 'college_name' in validated_data else None,
+            score = validated_data['score'] if 'score' in validated_data else None,
+            score_unit = validated_data['score_unit'] if 'score_unit' in validated_data else None,
+            specialization = validated_data['specialization'] if 'specialization' in validated_data else None,
+        )
+
+        return user_education.id
+
+class UserExperienceDetailsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserExperienceDetails
+        fields = (
+            "id",
+            "employer_name",
+            "post",
+            "employed_from",
+            "employed_to",
+            "employment_type",
+            "salary",
+            "grade",
+        )
+
+    def save(self, validated_data):
+
+        user_experience = UserExperienceDetails.objects.create(
+            employer_name = validated_data['employer_name'] if 'employer_name' in validated_data else None,
+            post = validated_data['post'] if 'post' in validated_data else None,
+            employed_from = validated_data['employed_from'] if 'employed_from' in validated_data else None,
+            employed_to = validated_data['employed_to'] if 'employed_to' in validated_data else None,
+            employment_type = validated_data['employment_type'] if 'employment_type' in validated_data else None,
+            salary = validated_data['salary'] if 'salary' in validated_data else None,
+            grade = validated_data['grade'] if 'grade' in validated_data else None,
+        )
+
+        return user_experience.id
+
+    def update(self, instance, validated_data):
+
+        instance.employer_name = (
+            validated_data["employer_name"] if validated_data["employer_name"] else instance.employer_name
+        )
+
+        instance.post = (
+            validated_data["post"] if validated_data["post"] else instance.post
+        )
+
+        instance.employed_from = (
+            validated_data["employed_from"] if validated_data["employed_from"] else instance.employed_from
+        )
+
+        instance.employed_to = (
+            validated_data["employed_to"] if validated_data["employed_to"] else instance.employed_to
+        )
+
+        instance.employment_type = (
+            validated_data["employment_type"] if validated_data["employment_type"] else instance.employment_type
+        )
+
+        instance.salary = (
+            validated_data["salary"] if validated_data["salary"] else instance.salary
+        )
+
+        instance.grade = (
+            validated_data["grade"] if validated_data["grade"] else instance.grade
+        )
+
+        instance.save()
+
+class NeeriRelationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = NeeriRelation
+
+        fields = (
+            "id",
+            "relation_name",
+            "designation",
+            "center_name",
+            "relation",
+        )
+
+    def save(self, validated_data):
+
+        neeri_relation = NeeriRelation.objects.create(
+            relation_name = validated_data['relation_name'] if 'relation_name' in validated_data else None,
+            designation = validated_data['designation'] if 'designation' in validated_data else None,
+            center_name = validated_data['center_name'] if 'center_name' in validated_data else None,
+            relation = validated_data['relation'] if 'relation' in validated_data else None,
+        )
+
+        return neeri_relation.id
+
+    def update(self, instance, validated_data):
+
+        instance.relation_name = (
+            validated_data["relation_name"] if validated_data["relation_name"] else instance.relation_name
+        )
+
+        instance.designation = (
+            validated_data["designation"] if validated_data["designation"] else instance.designation
+        )
+
+        instance.center_name = (
+            validated_data["center_name"] if validated_data["center_name"] else instance.center_name
+        )
+
+        instance.relation = (
+            validated_data["relation"] if validated_data["relation"] else instance.relation
+        )
+
+        instance.save()
+
+class ReferencesSerializer(serializers.ModelSerializer):
+
+    address = LocationSerializer()
+
+    class Meta:
+        model = UserReference
+        fields = (
+            "id",
+            "reference_name",
+            "position",
+            "address",
+        )
+
+    def save(self, validated_data):
+
+        address = Location.objects.create(
+            address1 = validated_data['address']['address1'],
+            address2 = validated_data['address']['address2'],
+            address3 = validated_data['address']['address3'],
+            city = validated_data['address']['city'],
+            state = validated_data['address']['state'],
+            country = validated_data['address']['country'],
+            postcode = validated_data['address']['postcode'],
+            telephone_no = validated_data['address']['telephone_no'],
+        )
+
+        reference = UserReference.objects.create(
+            reference_name = validated_data['reference_name'] if 'reference_name' in validated_data else None,
+            position = validated_data['position'] if 'position' in validated_data else None,
+            address = address,
+        )
+
+        return reference.id
+
+    def update(self, instance, validated_data):
+
+        instance.reference_name = (
+            validated_data["reference_name"] if validated_data["reference_name"] else instance.reference_name
+        )
+
+        instance.position = (
+            validated_data["position"] if validated_data["position"] else instance.position
+        )
+
+        if validated_data['address']:
+            address_data = instance.address
+            validated_address_data = validated_data['address']
+
+            print("AddressData",address_data)
+            print("ValidatedData",validated_address_data)
+
+            address_data.address1 = (
+                validated_address_data["address1"] if validated_address_data["address1"] else address_data.address1
+            )
+
+            address_data.address2 = (
+                validated_address_data["address2"] if validated_address_data["address2"] else address_data.address2
+            )
+
+            address_data.address3 = (
+                validated_address_data["address3"] if validated_address_data["address3"] else address_data.address3
+            )
+
+            address_data.city = (
+                validated_address_data["city"] if validated_address_data["city"] else address_data.city
+            )
+
+            address_data.state = (
+                validated_address_data["state"] if validated_address_data["state"] else address_data.state
+            )
+
+            address_data.country = (
+                validated_address_data["country"] if validated_address_data["country"] else address_data.country
+            )
+
+            address_data.postcode = (
+                validated_address_data["postcode"] if validated_address_data["postcode"] else address_data.postcode
+            )
+
+            address_data.telephone_no = (
+                validated_address_data["telephone_no"] if validated_address_data["telephone_no"] else address_data.telephone_no
+            )
+            address_data.save()
+        instance.save()
+
+class LanguagesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserLanguages
+        fields = (
+            "id",
+            "name",
+            "read_level",
+            "write_level",
+            "speak_level",
+            "exam_passed",
+        )
+
+    def save(self, validated_data):
+
+        language = UserLanguages.objects.create(
+            name = validated_data['name'] if 'name' in validated_data else None,
+            read_level = validated_data['read_level'] if 'read_level' in validated_data else None,
+            write_level = validated_data['write_level'] if 'write_level' in validated_data else None,
+            speak_level = validated_data['speak_level'] if 'speak_level' in validated_data else None,
+            exam_passed = validated_data['exam_passed'] if 'exam_passed' in validated_data else None,
+        )
+
+        return language.id
+
+    def update(self, instance, validated_data):
+
+        instance.name = (
+            validated_data["name"] if validated_data["name"] else instance.name
+        )
+
+        instance.read_level = (
+            validated_data["read_level"] if validated_data["read_level"] else instance.read_level
+        )
+
+        instance.write_level = (
+            validated_data["write_level"] if validated_data["write_level"] else instance.write_level
+        )
+
+        instance.speak_level = (
+            validated_data["speak_level"] if validated_data["speak_level"] else instance.speak_level
+        )
+
+        instance.exam_passed = (
+            validated_data["exam_passed"] if validated_data["exam_passed"] else instance.exam_passed
+        )
+
+        instance.save()
+
+class OverseasVisitsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OverseasVisits
+        fields = (
+            "id",
+            "country_visited",
+            "date_of_visit",
+            "duration_of_visit",
+            "purpose_of_visit",
+        )
+
+    def save(self, validated_data):
+
+        visit = OverseasVisits.objects.create(
+            country_visited = validated_data['country_visited'] if 'country_visited' in validated_data else None,
+            date_of_visit = validated_data['date_of_visit'] if 'date_of_visit' in validated_data else None,
+            duration_of_visit = validated_data['duration_of_visit'] if 'duration_of_visit' in validated_data else None,
+            purpose_of_visit = validated_data['purpose_of_visit'] if 'purpose_of_visit' in validated_data else None,
+        )
+
+        return visit.id
+
+    def update(self, instance, validated_data):
+
+        instance.country_visited = (
+            validated_data["country_visited"] if validated_data["country_visited"] else instance.country_visited
+        )
+
+        instance.date_of_visit = (
+            validated_data["date_of_visit"] if validated_data["date_of_visit"] else instance.date_of_visit
+        )
+
+        instance.duration_of_visit = (
+            validated_data["duration_of_visit"] if validated_data["duration_of_visit"] else instance.duration_of_visit
+        )
+
+        instance.purpose_of_visit = (
+            validated_data["purpose_of_visit"] if validated_data["purpose_of_visit"] else instance.purpose_of_visit
+        )
+
+        instance.save()
+
+class UserDocumentsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserDocuments
+        fields = (
+            "doc_id",
+            "doc_file_path",
+            "doc_name",
+        )

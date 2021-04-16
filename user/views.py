@@ -5,9 +5,12 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
-from user.models import User,RoleMaster,UserRoles,UserProfile,Location
+from user.models import User,RoleMaster,UserRoles,UserProfile,Location,UserEducationDetails,UserExperienceDetails,\
+    UserLanguages,UserReference,NeeriRelation,OverseasVisits
 from user.serializer import UserSerializer,AuthTokenCustomSerializer,UserProfileSerializer,UserRolesSerializer,\
-    CustomUserSerializer,ApplicantUserPersonalInformationSerializer,LocationSerializer
+    CustomUserSerializer,ApplicantUserPersonalInformationSerializer,LocationSerializer,\
+    UserEducationDetailsSerializer,UserExperienceDetailsSerializer,NeeriRelationSerializer,\
+    OverseasVisitsSerializer,LanguagesSerializer,ReferencesSerializer
 from django.contrib.auth.models import auth
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
@@ -273,4 +276,272 @@ class ApplicantAddressCreateView(APIView):
                 user.user_profile.save()
 
         serializer = LocationSerializer(location)
+        return Response(serializer.data, status=200)
+class ApplicantQualificationsListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        if user.user_profile.education_details.filter().count() > 0:
+            qualifications = user.user_profile.education_details.filter()
+            serializer = UserExperienceDetailsSerializer(qualifications,many=True)
+            return Response(serializer.data, status=200)
+        else:
+            return Response(data={"messege": "No Records found"}, status=401)
+
+class ApplicantQualificationUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        qualifications = user.user_profile.education_details.filter()
+        for qualification_data in data:
+            qualification = user.user_profile.education_details.get(id = qualification_data['id'])
+            serializer = UserEducationDetailsSerializer(qualification,data=qualification_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.update(instance=qualification, validated_data=qualification_data)
+        serializer = UserEducationDetailsSerializer(qualifications,many=True)
+        return Response(serializer.data, status=200)
+
+class ApplicantQualificationCreateView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        for qualification_data in data:
+            serializer = UserEducationDetailsSerializer(data=qualification_data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=qualification_data)
+            qualification = UserEducationDetails.objects.get(id=result)
+            user.user_profile.education_details.add(qualification)
+            user.user_profile.save()
+        qualifications = user.user_profile.education_details.filter()
+        serializer = UserEducationDetailsSerializer(qualifications,many=True)
+        return Response(serializer.data, status=200)
+
+
+class ApplicantExperiencesListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        if user.user_profile.experiences.filter().count() > 0:
+            experiences = user.user_profile.experiences.filter()
+            serializer = UserExperienceDetailsSerializer(experiences, many=True)
+            return Response(serializer.data, status=200)
+        else:
+            return Response(data={"messege": "No Records found"}, status=401)
+
+
+
+class ApplicantExperienceUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        experiences = user.user_profile.experiences.filter()
+        for experience_data in data:
+            experience = user.user_profile.experiences.get(id=experience_data['id'])
+            serializer = UserExperienceDetailsSerializer(experience, data=experience_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.update(instance=experience, validated_data=experience_data)
+        serializer = UserExperienceDetailsSerializer(experiences, many=True)
+        return Response(serializer.data, status=200)
+
+
+class ApplicantExperienceCreateView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        for experience_data in data:
+            serializer = UserExperienceDetailsSerializer(data=experience_data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=experience_data)
+            experience = UserExperienceDetails.objects.get(id=result)
+            user.user_profile.experiences.add(experience)
+            user.user_profile.save()
+        experiences = user.user_profile.experiences.filter()
+        serializer = UserExperienceDetailsSerializer(experiences, many=True)
+        return Response(serializer.data, status=200)
+
+class NeeriRelationsListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        if user.user_profile.neeri_relation.filter().count() > 0:
+            neeri_relations = user.user_profile.neeri_relation.filter()
+            serializer = NeeriRelationSerializer(neeri_relations, many=True)
+            return Response(serializer.data, status=200)
+        else:
+            return Response(data={"messege": "No Records found"}, status=401)
+
+
+class NeeriRelationUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        neeri_relations = user.user_profile.neeri_relation.filter()
+        for relation_data in data:
+            relation = user.user_profile.neeri_relation.get(id=relation_data['id'])
+            serializer = NeeriRelationSerializer(relation, data=relation_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.update(instance=relation, validated_data=relation_data)
+        serializer = NeeriRelationSerializer(neeri_relations, many=True)
+        return Response(serializer.data, status=200)
+
+class NeeriRelationCreateView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        for relation_data in data:
+            serializer = NeeriRelationSerializer(data=relation_data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=relation_data)
+            relation = NeeriRelation.objects.get(id=result)
+            user.user_profile.neeri_relation.add(relation)
+            user.user_profile.save()
+        experiences = user.user_profile.neeri_relation.filter()
+        serializer = NeeriRelationSerializer(experiences, many=True)
+        return Response(serializer.data, status=200)
+
+class OverseasVisitsListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        if user.user_profile.overseas_visits.filter().count() > 0:
+            visits = user.user_profile.overseas_visits.filter()
+            serializer = OverseasVisitsSerializer(visits, many=True)
+            return Response(serializer.data, status=200)
+        else:
+            return Response(data={"messege": "No Records found"}, status=401)
+
+class OverseasVisitsCreateView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        for visits_data in data:
+            serializer = OverseasVisitsSerializer(data=visits_data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=visits_data)
+            visit = OverseasVisits.objects.get(id=result)
+            user.user_profile.overseas_visits.add(visit)
+            user.user_profile.save()
+        visits = user.user_profile.overseas_visits.filter()
+        serializer = OverseasVisitsSerializer(visits, many=True)
+        return Response(serializer.data, status=200)
+
+class OverseasVisitsUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        visits = user.user_profile.overseas_visits.filter()
+        for visits_data in data:
+            visit = user.user_profile.overseas_visits.get(id=visits_data['id'])
+            serializer = OverseasVisitsSerializer(visit, data=visits_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.update(instance=visit, validated_data=visits_data)
+        serializer = OverseasVisitsSerializer(visits, many=True)
+        return Response(serializer.data, status=200)
+
+class ApplicantReferencesListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        if user.user_profile.references.filter().count() > 0:
+            references = user.user_profile.references.filter()
+            serializer = ReferencesSerializer(references, many=True)
+            return Response(serializer.data, status=200)
+        else:
+            return Response(data={"messege":"No Records found"},status=401)
+
+class ApplicantReferencesCreateView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        for reference_data in data:
+            serializer = ReferencesSerializer(data=reference_data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=reference_data)
+            reference = UserReference.objects.get(id=result)
+            user.user_profile.references.add(reference)
+            user.user_profile.save()
+        references = user.user_profile.references.filter()
+        serializer = ReferencesSerializer(references, many=True)
+        return Response(serializer.data, status=200)
+
+class ApplicantReferencesUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        references = user.user_profile.references.filter()
+        for reference_data in data:
+            reference = user.user_profile.references.get(id=reference_data['id'])
+            serializer = ReferencesSerializer(reference, data=reference_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.update(instance=reference, validated_data=reference_data)
+        serializer = ReferencesSerializer(references, many=True)
+        return Response(serializer.data, status=200)
+
+class ApplicantLanguagesListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        if user.user_profile.languages.filter().count() > 0:
+            languages = user.user_profile.languages.filter()
+            serializer = LanguagesSerializer(languages, many=True)
+            return Response(serializer.data, status=200)
+        else:
+            return Response(data={"messege":"No Records found"},status=401)
+
+class ApplicantLanguagesCreateView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        for language_data in data:
+            serializer = LanguagesSerializer(data=language_data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=language_data)
+            language = UserLanguages.objects.get(id=result)
+            user.user_profile.languages.add(language)
+            user.user_profile.save()
+        languages = user.user_profile.languages.filter()
+        serializer = LanguagesSerializer(languages, many=True)
+        return Response(serializer.data, status=200)
+
+class ApplicantLanguagesUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        languages = user.user_profile.languages.filter()
+        for language_data in data:
+            language = user.user_profile.languages.get(id=language_data['id'])
+            serializer = LanguagesSerializer(language, data=language_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.update(instance=language, validated_data=language_data)
+        serializer = LanguagesSerializer(languages, many=True)
         return Response(serializer.data, status=200)
