@@ -17,10 +17,12 @@ from rest_framework import ISO_8601
 from datetime import timedelta
 from corsheaders.defaults import default_headers
 
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+def absolute(*relative):\
+    return os.path.join(BASE_DIR, *relative)
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
@@ -140,7 +142,11 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+STATICFILES_DIRS = (
+    absolute('static'),
+)
+
+# STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 # Session settings
 # https://docs.djangoproject.com/en/2.2/ref/settings/#sessions
