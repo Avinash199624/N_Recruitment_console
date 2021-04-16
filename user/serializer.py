@@ -81,7 +81,7 @@ class LocationSerializer(serializers.ModelSerializer):
         instance.save()
 
     def save(self, validated_data):
-        print("New Location Created")
+
         location = Location.objects.create(
             address1 = validated_data['address1'] if 'address1' in validated_data else None,
             address2 = validated_data['address2'] if 'address2' in validated_data else None,
@@ -603,10 +603,25 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         method_name="get_is_indian_citizen", read_only=True
     )
 
+    middle_name = serializers.SerializerMethodField(
+        method_name="get_middle_name", read_only=True
+    )
+
+    last_name = serializers.SerializerMethodField(
+        method_name="get_last_name", read_only=True
+    )
+
+    first_name = serializers.SerializerMethodField(
+        method_name="get_first_name", read_only=True
+    )
+
     class Meta:
         model = UserProfile
         fields = (
             "user_id",
+            "first_name",
+            "middle_name",
+            "last_name",
             "status",
             "gender",
             "mobile_no",
@@ -640,6 +655,27 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         try:
             fax_number = obj.fax_number
             return fax_number
+        except:
+            return None
+
+    def get_first_name(self,obj):
+        try:
+            first_name = obj.user.first_name
+            return first_name
+        except:
+            return None
+
+    def get_last_name(self,obj):
+        try:
+            last_name = obj.user.last_name
+            return last_name
+        except:
+            return None
+
+    def get_middle_name(self,obj):
+        try:
+            middle_name = obj.user.middle_name
+            return middle_name
         except:
             return None
 
@@ -785,9 +821,6 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
 
-        print("Instance",instance.is_indian_citizen)
-        print("validated_data",validated_data)
-
         instance.status = (
             validated_data["status"] if validated_data["status"] else instance.status
         )
@@ -855,6 +888,19 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         instance.is_indian_citizen = (
             validated_data["is_indian_citizen"] if validated_data["is_indian_citizen"] else instance.is_indian_citizen
         )
+
+        instance.user.first_name = (
+            validated_data["first_name"] if validated_data["first_name"] else instance.user.first_name
+        )
+
+        instance.user.last_name = (
+            validated_data["last_name"] if validated_data["last_name"] else instance.user.last_name
+        )
+
+        instance.user.middle_name = (
+            validated_data["middle_name"] if validated_data["middle_name"] else instance.user.middle_name
+        )
+        instance.user.save()
         instance.save()
 
         if instance.local_address:
