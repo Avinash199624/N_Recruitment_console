@@ -277,6 +277,7 @@ class ApplicantAddressCreateView(APIView):
 
         serializer = LocationSerializer(location)
         return Response(serializer.data, status=200)
+
 class ApplicantQualificationsListView(APIView):
 
     def get(self, request, *args, **kwargs):
@@ -284,7 +285,7 @@ class ApplicantQualificationsListView(APIView):
         user = User.objects.get(user_id=id)
         if user.user_profile.education_details.filter().count() > 0:
             qualifications = user.user_profile.education_details.filter()
-            serializer = UserExperienceDetailsSerializer(qualifications,many=True)
+            serializer = UserEducationDetailsSerializer(qualifications,many=True)
             return Response(serializer.data, status=200)
         else:
             return Response(data={"messege": "No Records found"}, status=401)
