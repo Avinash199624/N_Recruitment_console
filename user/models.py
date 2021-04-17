@@ -130,6 +130,102 @@ class UserProfile(BaseModel):
     languages = models.ManyToManyField('user.UserLanguages', blank=True, null=True, related_name="languages")
     published_papers = models.ManyToManyField('user.PublishedPapers', blank=True, null=True, related_name="published_papers")
 
+    @property
+    def profile_percentage(self):
+
+        percent = {'gender': 2, 'mobile_no': 5, 'date_of_birth': 5, 'local_address': 5,
+                   'permanent_address': 5, 'father_address': 5,'date_of_birth_in_words' : 2,
+                   'place_of_birth': 2, 'father_name': 2, 'father_occupation': 2, 'religion': 2,
+                   'caste': 2, 'passport_number': 2, 'passport_expiry': 2, 'profile_photo': 5,
+                   'fax_number': 1, 'is_indian_citizen': 1, 'whatsapp_id': 5, 'skype_id': 5,
+                   'neeri_relation': 5, 'documents': 5, 'education_details': 5, 'experiences': 5,
+                   'references': 5, 'overseas_visits': 5, 'languages': 5, 'published_papers': 5,
+                    }
+
+        total = 0
+        if self.gender:
+            total += percent.get('gender', 0)
+
+        if self.mobile_no:
+            total += percent.get('mobile_no', 0)
+
+        if self.date_of_birth:
+            total += percent.get('date_of_birth', 0)
+
+        if self.local_address:
+            total += percent.get('local_address', 0)
+
+        if self.permanent_address:
+            total += percent.get('permanent_address', 0)
+
+        if self.father_address:
+            total += percent.get('father_address', 0)
+
+        if self.date_of_birth_in_words:
+            total += percent.get('date_of_birth_in_words', 0)
+
+        if self.place_of_birth:
+            total += percent.get('place_of_birth', 0)
+
+        if self.father_name:
+            total += percent.get('father_name', 0)
+
+        if self.father_occupation:
+            total += percent.get('father_occupation', 0)
+
+        if self.religion:
+            total += percent.get('religion', 0)
+
+        if self.caste:
+            total += percent.get('caste', 0)
+
+        if self.passport_number:
+            total += percent.get('passport_number', 0)
+
+        if self.passport_expiry:
+            total += percent.get('passport_expiry', 0)
+
+        if self.profile_photo:
+            total += percent.get('profile_photo', 0)
+
+        if self.fax_number:
+            total += percent.get('fax_number', 0)
+
+        if self.is_indian_citizen:
+            total += percent.get('is_indian_citizen', 0)
+
+        if self.whatsapp_id:
+            total += percent.get('whatsapp_id', 0)
+
+        if self.skype_id:
+            total += percent.get('skype_id', 0)
+
+        if self.neeri_relation:
+            total += percent.get('neeri_relation', 0)
+
+        if self.documents:
+            total += percent.get('documents', 0)
+
+        if self.education_details:
+            total += percent.get('education_details', 0)
+
+        if self.experiences:
+            total += percent.get('experiences', 0)
+
+        if self.references:
+            total += percent.get('references', 0)
+
+        if self.overseas_visits:
+            total += percent.get('overseas_visits', 0)
+
+        if self.languages:
+            total += percent.get('languages', 0)
+
+        if self.published_papers:
+            total += percent.get('published_papers', 0)
+
+        return str(total) + " %"
+
     def __str__(self):
         return self.user.username
 

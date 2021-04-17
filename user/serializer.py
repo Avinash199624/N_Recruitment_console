@@ -1,5 +1,5 @@
 from user.models import User,UserProfile,Location,UserRoles,UserPermissions,RoleMaster,UserEducationDetails,\
-    UserExperienceDetails,NeeriRelation,UserReference,OverseasVisits,UserLanguages,UserDocuments
+    UserExperienceDetails,NeeriRelation,UserReference,OverseasVisits,UserLanguages,UserDocuments,PublishedPapers
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
@@ -1461,3 +1461,62 @@ class UserDocumentsSerializer(serializers.ModelSerializer):
             "doc_file_path",
             "doc_name",
         )
+
+
+class PublishedPapersSerializer(serializers.ModelSerializer):
+
+    attachments = serializers.SerializerMethodField(
+        method_name="get_attachments", read_only=True
+    )
+
+    class Meta:
+        model = PublishedPapers
+        fields = (
+            "id",
+            "paper_title",
+            "attachments",
+        )
+
+    def get_attachments(self,obj):
+        attachments = obj.attachments.filter()
+        serializer = UserDocumentsSerializer(attachments,many=True)
+        return serializer.data
+
+    def save(self, validated_data):
+
+        user = User.objects.get(user_id = validated_data['user_id'])
+        user_profile = user.user_profile
+
+        paper = PublishedPapers.objects.create(
+            paper_title = validated_data['paper_title'] if 'paper_title' in validated_data else None,
+        )
+
+        for attachment_data in validated_data['attachments']:
+            attachment = UserDocuments.objects.create(
+                doc_file_path = attachment_data['doc_file_path'],
+                doc_name = attachment_data['doc_name'],
+            )
+            paper.attachments.add(attachment)
+
+        user_profile.published_papers.add(paper)
+
+        return paper.id
+
+    def update(self, instance, validated_data):
+
+        instance.paper_title = (
+            validated_data['paper_title'] if 'paper_title' in validated_data else instance.paper_title
+        )
+
+        for attachment_data in validated_data['attachments']:
+            doc = UserDocuments.objects.get(doc_id = attachment_data['doc_id'])
+            doc.file_path_name = (
+                attachment_data['doc_file_path'] if 'doc_file_path' in attachment_data else doc.file_path_name
+            )
+
+            doc.doc_name = (
+                attachment_data['doc_name'] if 'doc_name' in attachment_data else doc.doc_name
+            )
+            doc.save()
+
+        instance.save()

@@ -6,20 +6,19 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
 from user.models import User,RoleMaster,UserRoles,UserProfile,Location,UserEducationDetails,UserExperienceDetails,\
-    UserLanguages,UserReference,NeeriRelation,OverseasVisits
+    UserLanguages,UserReference,NeeriRelation,OverseasVisits,PublishedPapers
+from job_posting.models import UserJobPositions
 from user.serializer import UserSerializer,AuthTokenCustomSerializer,UserProfileSerializer,UserRolesSerializer,\
     CustomUserSerializer,ApplicantUserPersonalInformationSerializer,LocationSerializer,\
     UserEducationDetailsSerializer,UserExperienceDetailsSerializer,NeeriRelationSerializer,\
-    OverseasVisitsSerializer,LanguagesSerializer,ReferencesSerializer
-from django.contrib.auth.models import auth
+    OverseasVisitsSerializer,LanguagesSerializer,ReferencesSerializer,PublishedPapersSerializer
+from job_posting.serializer import ApplicantJobPositionsSerializer
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
 from neeri_recruitment_portal.messeges import INACTIVE_ACCOUNT_ERROR
 from django.contrib.auth import login, logout
 from rest_framework.response import Response
-from rest_framework.status import HTTP_204_NO_CONTENT
-from rest_framework.decorators import action
 from django.views.decorators.csrf import csrf_exempt
 from knox.views import LogoutView as KnoxLogoutView
 
@@ -546,3 +545,74 @@ class ApplicantLanguagesUpdateView(APIView):
             serializer.update(instance=language, validated_data=language_data)
         serializer = LanguagesSerializer(languages, many=True)
         return Response(serializer.data, status=200)
+
+class PublishedPapersListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        if user.user_profile.published_papers.filter().count() >0:
+            papers = user.user_profile.published_papers.filter()
+            serializer = PublishedPapersSerializer(papers, many=True)
+            return Response(serializer.data, status=200)
+        else:
+            return Response(data={"messege": "No Records found"}, status=401)
+
+class PublishedPapersCreateView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        for paper_data in data:
+            temp_paper_data = paper_data
+            temp_paper_data['user_id'] = id
+            serializer = PublishedPapersSerializer(data=temp_paper_data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=temp_paper_data)
+            paper = PublishedPapers.objects.get(id=result)
+            user.user_profile.published_papers.add(paper)
+            user.user_profile.save()
+        papers = user.user_profile.published_papers.filter()
+        serializer = PublishedPapersSerializer(papers, many=True)
+        return Response(serializer.data, status=200)
+
+class PublishedPapersUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        for paper_data in data:
+            paper = user.user_profile.published_papers.get(id=paper_data['id'])
+            serializer = PublishedPapersSerializer(paper, data=paper_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.update(instance=paper, validated_data=paper_data)
+        papers = user.user_profile.published_papers.filter()
+        response_data = PublishedPapersSerializer(papers, many=True)
+        return Response(response_data.data, status=200)
+
+class ApplicantAppliedJobListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        if UserJobPositions.objects.filter(user=user).count() >0:
+            user_job_positions = UserJobPositions.objects.filter(user=user)
+            serializer = ApplicantJobPositionsSerializer(user_job_positions, many=True)
+            return Response(serializer.data, status=200)
+        else:
+            return Response(data={"messege": "No Records found"}, status=401)
+
+##While creating new entry of UserJobPositions set closing_date to a closing_date og JobPosting
+
+class ApplicantProfilePercentageView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        try:
+            percentage = user.user_profile.profile_percentage
+            return Response(data={"percentage": percentage}, status=200)
+        except:
+            return Response(data={"messsege": "UserProfile not found"}, status=401)

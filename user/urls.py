@@ -9,7 +9,8 @@ from user.views import LoginView,LogoutView,UserListView,RetrievetUserView,Updat
     ApplicantExperienceUpdateView,NeeriRelationsListView,NeeriRelationCreateView,NeeriRelationUpdateView,\
     ApplicantLanguagesListView,ApplicantLanguagesCreateView,ApplicantLanguagesUpdateView,\
     ApplicantReferencesListView,ApplicantReferencesCreateView,ApplicantReferencesUpdateView,\
-    OverseasVisitsListView,OverseasVisitsCreateView,OverseasVisitsUpdateView
+    OverseasVisitsListView,OverseasVisitsCreateView,OverseasVisitsUpdateView,PublishedPapersListView,\
+    PublishedPapersCreateView,PublishedPapersUpdateView,ApplicantAppliedJobListView,ApplicantProfilePercentageView
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
@@ -43,6 +44,11 @@ urlpatterns = [
     path('public/neeri_relations/<uuid:id>/', NeeriRelationsListView.as_view(), name="get-neeri-relations"),
     path('public/neeri_relation_create/<uuid:id>/', NeeriRelationCreateView.as_view(), name="create-neeri-relation"),
     path('public/neeri_relation_update/<uuid:id>/', NeeriRelationUpdateView.as_view(), name="update-neeri-relation"),
+
+    path('public/published_papers/<uuid:id>/', PublishedPapersListView.as_view(), name="get-applicant-papers"),
+    path('public/published_paper_create/<uuid:id>/', PublishedPapersCreateView.as_view(), name="create-neeri-relation"),
+    path('public/published_paper_update/<uuid:id>/', PublishedPapersUpdateView.as_view(), name="update-neeri-relation"),
+
     path('public/overseas_visits/<uuid:id>/', OverseasVisitsListView.as_view(), name="get-overseas-visits"),
     path('public/overseas_visit_create/<uuid:id>/', OverseasVisitsCreateView.as_view(), name="create-overseas-visit"),
     path('public/overseas_visit_update/<uuid:id>/', OverseasVisitsUpdateView.as_view(), name="update-overseas-visit"),
@@ -54,4 +60,7 @@ urlpatterns = [
     path('public/applicant_languages/<uuid:id>/', ApplicantLanguagesListView.as_view(), name="get-applicant-languages"),
     path('public/applicant_language_create/<uuid:id>/', ApplicantLanguagesCreateView.as_view(), name="create-applicant-language"),
     path('public/applicant_language_update/<uuid:id>/', ApplicantLanguagesUpdateView.as_view(), name="update-applicant-language"),
+
+    path('public/applicant_job_list/<uuid:id>/', ApplicantAppliedJobListView.as_view(), name="applicant-applied-job-list"),
+    path('public/applicant_profile_percentage/<uuid:id>/', ApplicantProfilePercentageView.as_view(), name="applicant-profile-percentage"),
 ]

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import register
 from user.models import User,UserProfile,RoleMaster,UserRoles,Location,PermissionMaster,\
     UserPermissions,NeeriUserProfile,NeeriRelation,UserEducationDetails,UserExperienceDetails,\
-    UserDocuments,UserLanguages,UserReference,OverseasVisits
+    UserDocuments,UserLanguages,UserReference,OverseasVisits,PublishedPapers
 
 # Register your models here.
 
@@ -29,6 +29,11 @@ class UserReferenceAdmin(admin.ModelAdmin):
 @register(OverseasVisits)
 class OverseasVisitsAdmin(admin.ModelAdmin):
     list_display = ['country_visited','date_of_visit','duration_of_visit','purpose_of_visit']
+
+@register(PublishedPapers)
+class PublishedPapersAdmin(admin.ModelAdmin):
+    list_display = ['paper_title']
+
 @register(NeeriRelation)
 class NeeriRelationAdmin(admin.ModelAdmin):
     list_display = ['relation_name','designation','center_name','relation']
