@@ -8,4 +8,4 @@ class DocumentMaster(BaseModel):
     description = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
-        return ' '.join([self.doc_type,self.doc_name])
+        return self.doc_name
