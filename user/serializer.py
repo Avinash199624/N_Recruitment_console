@@ -544,21 +544,21 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         method_name="get_place_of_birth", read_only=True
     )
 
-    local_address = serializers.SerializerMethodField(
-        method_name="get_local_address", read_only=True
-    )
-
-    permanent_address = serializers.SerializerMethodField(
-        method_name="get_permanent_address", read_only=True
-    )
+    # local_address = serializers.SerializerMethodField(
+    #     method_name="get_local_address", read_only=True
+    # )
+    #
+    # permanent_address = serializers.SerializerMethodField(
+    #     method_name="get_permanent_address", read_only=True
+    # )
 
     father_name = serializers.SerializerMethodField(
         method_name="get_father_name", read_only=True
     )
 
-    father_address = serializers.SerializerMethodField(
-        method_name="get_father_address", read_only=True
-    )
+    # father_address = serializers.SerializerMethodField(
+    #     method_name="get_father_address", read_only=True
+    # )
 
     father_occupation = serializers.SerializerMethodField(
         method_name="get_father_occupation", read_only=True
@@ -629,10 +629,10 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             "date_of_birth",
             "date_of_birth_in_words",
             "place_of_birth",
-            "local_address",
-            "permanent_address",
+            # "local_address",
+            # "permanent_address",
             "father_name",
-            "father_address",
+            # "father_address",
             "father_occupation",
             "religion",
             "caste",
@@ -729,13 +729,13 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         except:
             return None
 
-    def get_father_address(self,obj):
-        try:
-            father_address = obj.father_address
-            serializer = LocationSerializer(father_address)
-            return serializer.data
-        except:
-            return None
+    # def get_father_address(self,obj):
+    #     try:
+    #         father_address = obj.father_address
+    #         serializer = LocationSerializer(father_address)
+    #         return serializer.data
+    #     except:
+    #         return None
 
 
     def get_father_occupation(self,obj):
@@ -754,21 +754,21 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             return None
 
 
-    def get_local_address(self,obj):
-        try:
-            local_address = obj.local_address
-            serializer = LocationSerializer(local_address)
-            return serializer.data
-        except:
-            return None
+    # def get_local_address(self,obj):
+    #     try:
+    #         local_address = obj.local_address
+    #         serializer = LocationSerializer(local_address)
+    #         return serializer.data
+    #     except:
+    #         return None
 
-    def get_permanent_address(self,obj):
-        try:
-            permanent_address = obj.permanent_address
-            serializer = LocationSerializer(permanent_address)
-            return serializer.data
-        except:
-            return None
+    # def get_permanent_address(self,obj):
+    #     try:
+    #         permanent_address = obj.permanent_address
+    #         serializer = LocationSerializer(permanent_address)
+    #         return serializer.data
+    #     except:
+    #         return None
 
 
     def get_religion(self,obj):
@@ -904,189 +904,189 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         instance.user.save()
         instance.save()
 
-        if instance.local_address:
-            local_address_instance = instance.local_address
-            validated_local_address = validated_data['local_address']
-
-            local_address_instance.address1 = (
-                validated_local_address['address1'] if validated_local_address['address1'] else local_address_instance.address1
-            )
-
-            local_address_instance.address2 = (
-                validated_local_address['address2'] if validated_local_address[
-                    'address2'] else local_address_instance.address2
-            )
-
-            local_address_instance.address3 = (
-                validated_local_address['address3'] if validated_local_address[
-                    'address3'] else local_address_instance.address3
-            )
-
-            local_address_instance.city = (
-                validated_local_address['city'] if validated_local_address[
-                    'city'] else local_address_instance.city
-            )
-
-            local_address_instance.state = (
-                validated_local_address['state'] if validated_local_address[
-                    'state'] else local_address_instance.state
-            )
-
-            local_address_instance.country = (
-                validated_local_address['country'] if validated_local_address[
-                    'country'] else local_address_instance.country
-            )
-
-            local_address_instance.postcode = (
-                validated_local_address['postcode'] if validated_local_address[
-                    'postcode'] else local_address_instance.postcode
-            )
-
-            local_address_instance.telephone_no = (
-                validated_local_address['telephone_no'] if validated_local_address[
-                    'telephone_no'] else local_address_instance.telephone_no
-            )
-
-            local_address_instance.save()
-
-        if instance.permanent_address:
-            permanent_address_instance = instance.permanent_address
-            validated_permanent_address = validated_data['permanent_address']
-
-            permanent_address_instance.address1 = (
-                validated_permanent_address['address1'] if validated_permanent_address['address1'] else permanent_address_instance.address1
-            )
-
-            permanent_address_instance.address2 = (
-                validated_permanent_address['address2'] if validated_permanent_address[
-                    'address2'] else permanent_address_instance.address2
-            )
-
-            permanent_address_instance.address3 = (
-                validated_permanent_address['address3'] if validated_permanent_address[
-                    'address3'] else permanent_address_instance.address3
-            )
-
-            permanent_address_instance.city = (
-                validated_permanent_address['city'] if validated_permanent_address[
-                    'city'] else permanent_address_instance.city
-            )
-
-            permanent_address_instance.state = (
-                validated_permanent_address['state'] if validated_permanent_address[
-                    'state'] else permanent_address_instance.state
-            )
-
-            permanent_address_instance.country = (
-                validated_permanent_address['country'] if validated_permanent_address[
-                    'country'] else permanent_address_instance.country
-            )
-
-            permanent_address_instance.postcode = (
-                validated_permanent_address['postcode'] if validated_permanent_address[
-                    'postcode'] else permanent_address_instance.postcode
-            )
-
-            permanent_address_instance.telephone_no = (
-                validated_permanent_address['telephone_no'] if validated_permanent_address[
-                    'telephone_no'] else permanent_address_instance.telephone_no
-            )
-
-            permanent_address_instance.save()
-
-        if instance.father_address:
-            father_address_instance = instance.father_address
-            validated_father_address = validated_data['father_address']
-
-            father_address_instance.address1 = (
-                validated_father_address['address1'] if validated_father_address['address1'] else father_address_instance.address1
-            )
-
-            father_address_instance.address2 = (
-                validated_father_address['address2'] if validated_father_address[
-                    'address2'] else father_address_instance.address2
-            )
-
-            father_address_instance.address3 = (
-                validated_father_address['address3'] if validated_father_address[
-                    'address3'] else father_address_instance.address3
-            )
-
-            father_address_instance.city = (
-                validated_father_address['city'] if validated_father_address[
-                    'city'] else father_address_instance.city
-            )
-
-            father_address_instance.state = (
-                validated_father_address['state'] if validated_father_address[
-                    'state'] else father_address_instance.state
-            )
-
-            father_address_instance.country = (
-                validated_father_address['country'] if validated_father_address[
-                    'country'] else father_address_instance.country
-            )
-
-            father_address_instance.postcode = (
-                validated_father_address['postcode'] if validated_father_address[
-                    'postcode'] else father_address_instance.postcode
-            )
-
-            father_address_instance.telephone_no = (
-                validated_father_address['telephone_no'] if validated_father_address[
-                    'telephone_no'] else father_address_instance.telephone_no
-            )
-
-            father_address_instance.save()
+        # if instance.local_address:
+        #     local_address_instance = instance.local_address
+        #     validated_local_address = validated_data['local_address']
+        #
+        #     local_address_instance.address1 = (
+        #         validated_local_address['address1'] if validated_local_address['address1'] else local_address_instance.address1
+        #     )
+        #
+        #     local_address_instance.address2 = (
+        #         validated_local_address['address2'] if validated_local_address[
+        #             'address2'] else local_address_instance.address2
+        #     )
+        #
+        #     local_address_instance.address3 = (
+        #         validated_local_address['address3'] if validated_local_address[
+        #             'address3'] else local_address_instance.address3
+        #     )
+        #
+        #     local_address_instance.city = (
+        #         validated_local_address['city'] if validated_local_address[
+        #             'city'] else local_address_instance.city
+        #     )
+        #
+        #     local_address_instance.state = (
+        #         validated_local_address['state'] if validated_local_address[
+        #             'state'] else local_address_instance.state
+        #     )
+        #
+        #     local_address_instance.country = (
+        #         validated_local_address['country'] if validated_local_address[
+        #             'country'] else local_address_instance.country
+        #     )
+        #
+        #     local_address_instance.postcode = (
+        #         validated_local_address['postcode'] if validated_local_address[
+        #             'postcode'] else local_address_instance.postcode
+        #     )
+        #
+        #     local_address_instance.telephone_no = (
+        #         validated_local_address['telephone_no'] if validated_local_address[
+        #             'telephone_no'] else local_address_instance.telephone_no
+        #     )
+        #
+        #     local_address_instance.save()
+        #
+        # if instance.permanent_address:
+        #     permanent_address_instance = instance.permanent_address
+        #     validated_permanent_address = validated_data['permanent_address']
+        #
+        #     permanent_address_instance.address1 = (
+        #         validated_permanent_address['address1'] if validated_permanent_address['address1'] else permanent_address_instance.address1
+        #     )
+        #
+        #     permanent_address_instance.address2 = (
+        #         validated_permanent_address['address2'] if validated_permanent_address[
+        #             'address2'] else permanent_address_instance.address2
+        #     )
+        #
+        #     permanent_address_instance.address3 = (
+        #         validated_permanent_address['address3'] if validated_permanent_address[
+        #             'address3'] else permanent_address_instance.address3
+        #     )
+        #
+        #     permanent_address_instance.city = (
+        #         validated_permanent_address['city'] if validated_permanent_address[
+        #             'city'] else permanent_address_instance.city
+        #     )
+        #
+        #     permanent_address_instance.state = (
+        #         validated_permanent_address['state'] if validated_permanent_address[
+        #             'state'] else permanent_address_instance.state
+        #     )
+        #
+        #     permanent_address_instance.country = (
+        #         validated_permanent_address['country'] if validated_permanent_address[
+        #             'country'] else permanent_address_instance.country
+        #     )
+        #
+        #     permanent_address_instance.postcode = (
+        #         validated_permanent_address['postcode'] if validated_permanent_address[
+        #             'postcode'] else permanent_address_instance.postcode
+        #     )
+        #
+        #     permanent_address_instance.telephone_no = (
+        #         validated_permanent_address['telephone_no'] if validated_permanent_address[
+        #             'telephone_no'] else permanent_address_instance.telephone_no
+        #     )
+        #
+        #     permanent_address_instance.save()
+        #
+        # if instance.father_address:
+        #     father_address_instance = instance.father_address
+        #     validated_father_address = validated_data['father_address']
+        #
+        #     father_address_instance.address1 = (
+        #         validated_father_address['address1'] if validated_father_address['address1'] else father_address_instance.address1
+        #     )
+        #
+        #     father_address_instance.address2 = (
+        #         validated_father_address['address2'] if validated_father_address[
+        #             'address2'] else father_address_instance.address2
+        #     )
+        #
+        #     father_address_instance.address3 = (
+        #         validated_father_address['address3'] if validated_father_address[
+        #             'address3'] else father_address_instance.address3
+        #     )
+        #
+        #     father_address_instance.city = (
+        #         validated_father_address['city'] if validated_father_address[
+        #             'city'] else father_address_instance.city
+        #     )
+        #
+        #     father_address_instance.state = (
+        #         validated_father_address['state'] if validated_father_address[
+        #             'state'] else father_address_instance.state
+        #     )
+        #
+        #     father_address_instance.country = (
+        #         validated_father_address['country'] if validated_father_address[
+        #             'country'] else father_address_instance.country
+        #     )
+        #
+        #     father_address_instance.postcode = (
+        #         validated_father_address['postcode'] if validated_father_address[
+        #             'postcode'] else father_address_instance.postcode
+        #     )
+        #
+        #     father_address_instance.telephone_no = (
+        #         validated_father_address['telephone_no'] if validated_father_address[
+        #             'telephone_no'] else father_address_instance.telephone_no
+        #     )
+        #
+        #     father_address_instance.save()
 
         instance.save()
 
     def save(self, validated_data):
 
-        if 'local_address' in validated_data:
-            local_address_data = validated_data['local_address']
-            local_address = Location.objects.create(
-                address1=local_address_data['address1'] if 'address1' in local_address_data else None,
-                address2=local_address_data['address2'] if 'address2' in local_address_data else None,
-                address3=local_address_data['address3'] if 'address3' in local_address_data else None,
-                city=local_address_data['city'] if 'city' in local_address_data else None,
-                state=local_address_data['state'] if 'state' in local_address_data else None,
-                country=local_address_data['country'] if 'country' in local_address_data else None,
-                postcode=local_address_data['postcode'] if 'postcode' in local_address_data else None,
-                telephone_no=local_address_data['telephone_no'] if 'telepone_no' in local_address_data else None,
-            )
-        else:
-            local_address = None
-
-        if 'permanent_address' in validated_data:
-            permanent_address_data = validated_data['permanent_address']
-            permanent_address = Location.objects.create(
-                address1=permanent_address_data['address1'] if 'address1' in local_address_data else None,
-                address2=permanent_address_data['address2'] if 'address2' in local_address_data else None,
-                address3=permanent_address_data['address3'] if 'address3' in local_address_data else None,
-                city=permanent_address_data['city'] if 'city' in local_address_data else None,
-                state=permanent_address_data['state'] if 'state' in local_address_data else None,
-                country=permanent_address_data['country'] if 'country' in local_address_data else None,
-                postcode=permanent_address_data['postcode'] if 'postcode' in local_address_data else None,
-                telephone_no=permanent_address_data['telephone_no'] if 'telephone_no' in local_address_data else None,
-            )
-        else:
-            permanent_address = None
-
-        if 'father_address' in validated_data:
-            father_address_data = validated_data['father_address']
-            father_address = Location.objects.create(
-                address1=father_address_data['address1'] if 'address1' in local_address_data else None,
-                address2=father_address_data['address2'] if 'address2' in local_address_data else None,
-                address3=father_address_data['address3'] if 'address3' in local_address_data else None,
-                city=father_address_data['city'] if 'city' in local_address_data else None,
-                state=father_address_data['state'] if 'state' in local_address_data else None,
-                country=father_address_data['country'] if 'country' in local_address_data else None,
-                postcode=father_address_data['postcode'] if 'postcode' in local_address_data else None,
-                telephone_no=father_address_data['telephone_no'] if 'telephone_no' in local_address_data else None,
-            )
-        else:
-            father_address = None
+        # if 'local_address' in validated_data:
+        #     local_address_data = validated_data['local_address']
+        #     local_address = Location.objects.create(
+        #         address1=local_address_data['address1'] if 'address1' in local_address_data else None,
+        #         address2=local_address_data['address2'] if 'address2' in local_address_data else None,
+        #         address3=local_address_data['address3'] if 'address3' in local_address_data else None,
+        #         city=local_address_data['city'] if 'city' in local_address_data else None,
+        #         state=local_address_data['state'] if 'state' in local_address_data else None,
+        #         country=local_address_data['country'] if 'country' in local_address_data else None,
+        #         postcode=local_address_data['postcode'] if 'postcode' in local_address_data else None,
+        #         telephone_no=local_address_data['telephone_no'] if 'telepone_no' in local_address_data else None,
+        #     )
+        # else:
+        #     local_address = None
+        #
+        # if 'permanent_address' in validated_data:
+        #     permanent_address_data = validated_data['permanent_address']
+        #     permanent_address = Location.objects.create(
+        #         address1=permanent_address_data['address1'] if 'address1' in local_address_data else None,
+        #         address2=permanent_address_data['address2'] if 'address2' in local_address_data else None,
+        #         address3=permanent_address_data['address3'] if 'address3' in local_address_data else None,
+        #         city=permanent_address_data['city'] if 'city' in local_address_data else None,
+        #         state=permanent_address_data['state'] if 'state' in local_address_data else None,
+        #         country=permanent_address_data['country'] if 'country' in local_address_data else None,
+        #         postcode=permanent_address_data['postcode'] if 'postcode' in local_address_data else None,
+        #         telephone_no=permanent_address_data['telephone_no'] if 'telephone_no' in local_address_data else None,
+        #     )
+        # else:
+        #     permanent_address = None
+        #
+        # if 'father_address' in validated_data:
+        #     father_address_data = validated_data['father_address']
+        #     father_address = Location.objects.create(
+        #         address1=father_address_data['address1'] if 'address1' in local_address_data else None,
+        #         address2=father_address_data['address2'] if 'address2' in local_address_data else None,
+        #         address3=father_address_data['address3'] if 'address3' in local_address_data else None,
+        #         city=father_address_data['city'] if 'city' in local_address_data else None,
+        #         state=father_address_data['state'] if 'state' in local_address_data else None,
+        #         country=father_address_data['country'] if 'country' in local_address_data else None,
+        #         postcode=father_address_data['postcode'] if 'postcode' in local_address_data else None,
+        #         telephone_no=father_address_data['telephone_no'] if 'telephone_no' in local_address_data else None,
+        #     )
+        # else:
+        #     father_address = None
 
         user = User.objects.get(user_id = validated_data['user_id'])
 
@@ -1109,9 +1109,9 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             is_indian_citizen = validated_data['is_indian_citizen'] if 'is_indian_citizen' in validated_data else None,
             whatsapp_id = validated_data['whatsapp_id'] if 'whatsapp_id' in validated_data else None,
             skype_id = validated_data['skype_id'] if 'skype_id' in validated_data else None,
-            local_address = local_address if local_address else None,
-            permanent_address = permanent_address if local_address else None,
-            father_address = father_address if local_address else None,
+            # local_address = local_address if local_address else None,
+            # permanent_address = permanent_address if local_address else None,
+            # father_address = father_address if local_address else None,
         )
         return user_profile
 
