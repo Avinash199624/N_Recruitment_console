@@ -65,14 +65,12 @@ class LoginView(KnoxLoginView,LoginResponseViewMixin):
         result = super(LoginView, self).post(request, format=None)
         serializer = UserSerializer(user)
         result.data['user'] = serializer.data
-        # return result
         return Response(result.data,status=200)
 
 class LogoutView(KnoxLogoutView):
 
     @csrf_exempt
     def post(self, request, *args, **kwargs):
-        print('Logged Out Successfully')
         request._auth.delete()
         logout(request)
         return Response(data = {"messege":"Logged out successfully"}, status=200)
@@ -86,9 +84,9 @@ class UserRegistartionView(APIView):
         password = self.request.data['password']
         role = RoleMaster.objects.get(role_name__exact='applicant')
         if User.objects.filter(email=email).exists():
-            return JsonResponse(data={"messege":"User Already Exist"},status=401)
+            return JsonResponse(data={"messege":"User Already Exist"},status=200)
         elif User.objects.filter(username=username).exists():
-            return JsonResponse(data={"messege": "User Already Exist"}, status=401)
+            return JsonResponse(data={"messege": "User Already Exist"}, status=200)
         else:
             user = User.objects.create_user(username, email, password)
             UserRoles.objects.create(role=role,user=user)
@@ -114,9 +112,9 @@ class CreateUserView(APIView):
         username = data['username']
         email = data['email']
         if User.objects.filter(email=email).exists():
-            return JsonResponse(data={"messege":"User Already Exist"},status=401)
+            return JsonResponse(data={"messege":"User Already Exist"},status=200)
         elif User.objects.filter(username=username).exists():
-            return JsonResponse(data={"messege": "User Already Exist"}, status=401)
+            return JsonResponse(data={"messege": "User Already Exist"}, status=200)
         else:
             user = User.objects.create_user(username=username,email=email)
             serializer = CustomUserSerializer(user,data=data)
@@ -145,7 +143,7 @@ class DeleteUserView(APIView):
             print(user.is_deleted)
             return Response(data = {"messege":"User Deleted Successfully."}, status=200)
         except:
-            return Response(data={"messege": "User Not Found."}, status=401)
+            return Response(data={"messege": "User Not Found."}, status=404)
 
 class ForgotPassword(APIView):
     
@@ -160,7 +158,7 @@ class ForgotPassword(APIView):
             if user:
                 return Response(data={"messege": "Mail sent to your registered Email."}, status=200)
         except:
-            return Response(data={"messege": "Email not found, enter valid email."}, status=400)
+            return Response(data={"messege": "Email not found, enter valid email."}, status=404)
 
 
 class ApplicantPersonalInformationView(APIView):
@@ -181,7 +179,7 @@ class ApplicantPersonalInformationUpdateView(APIView):
         try:
             user_profile = user.user_profile
         except:
-            return Response(data={"messege": "UserProfile does not exist for the given user,create UserProfile first."}, status=401)
+            return Response(data={"messege": "UserProfile does not exist for the given user,create UserProfile first."}, status=200)
         serializer = ApplicantUserPersonalInformationSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=user_profile, validated_data=data)
@@ -195,7 +193,7 @@ class ApplicantPersonalInformationCreateView(APIView):
         user = User.objects.get(user_id=id)
         try:
             if user.user_profile :
-                return Response(data={"messege":"UserProfile for Given User Already Exist"},status=401)
+                return Response(data={"messege":"UserProfile for Given User Already Exist"},status=200)
         except:
             data = self.request.data
             serializer = ApplicantUserPersonalInformationSerializer(data=data)
@@ -255,21 +253,21 @@ class ApplicantAddressCreateView(APIView):
         if address_type == 'local_address':
             if user.user_profile.local_address:
                 Location.objects.get(id=result).delete()
-                return Response(data={"messege":"Local Address for Given User Already Exist"},status=401)
+                return Response(data={"messege":"Local Address for Given User Already Exist"},status=200)
             else:
                 user.user_profile.local_address = location
                 user.user_profile.save()
         elif address_type == 'permanent_address':
             if user.user_profile.permanent_address:
                 Location.objects.get(id=result).delete()
-                return Response(data={"messege":"Permanent Address for Given User Already Exist"},status=401)
+                return Response(data={"messege":"Permanent Address for Given User Already Exist"},status=200)
             else:
                 user.user_profile.permanent_address = location
                 user.user_profile.save()
         else:
             if user.user_profile.father_address:
                 Location.objects.get(id=result).delete()
-                return Response(data={"messege":"Father Address for Given User Already Exist"},status=401)
+                return Response(data={"messege":"Father Address for Given User Already Exist"},status=200)
             else:
                 user.user_profile.father_address = location
                 user.user_profile.save()
@@ -287,7 +285,7 @@ class ApplicantQualificationsListView(APIView):
             serializer = UserEducationDetailsSerializer(qualifications,many=True)
             return Response(serializer.data, status=200)
         else:
-            return Response(data={"messege": "No Records found"}, status=401)
+            return Response(data={"messege": "No Records found"}, status=404)
 
 class ApplicantQualificationUpdateView(APIView):
 
@@ -332,7 +330,7 @@ class ApplicantExperiencesListView(APIView):
             serializer = UserExperienceDetailsSerializer(experiences, many=True)
             return Response(serializer.data, status=200)
         else:
-            return Response(data={"messege": "No Records found"}, status=401)
+            return Response(data={"messege": "No Records found"}, status=404)
 
 
 
@@ -379,7 +377,7 @@ class NeeriRelationsListView(APIView):
             serializer = NeeriRelationSerializer(neeri_relations, many=True)
             return Response(serializer.data, status=200)
         else:
-            return Response(data={"messege": "No Records found"}, status=401)
+            return Response(data={"messege": "No Records found"}, status=404)
 
 
 class NeeriRelationUpdateView(APIView):
@@ -424,7 +422,7 @@ class OverseasVisitsListView(APIView):
             serializer = OverseasVisitsSerializer(visits, many=True)
             return Response(serializer.data, status=200)
         else:
-            return Response(data={"messege": "No Records found"}, status=401)
+            return Response(data={"messege": "No Records found"}, status=404)
 
 class OverseasVisitsCreateView(APIView):
 
@@ -468,7 +466,7 @@ class ApplicantReferencesListView(APIView):
             serializer = ReferencesSerializer(references, many=True)
             return Response(serializer.data, status=200)
         else:
-            return Response(data={"messege":"No Records found"},status=401)
+            return Response(data={"messege":"No Records found"},status=404)
 
 class ApplicantReferencesCreateView(APIView):
 
@@ -512,7 +510,7 @@ class ApplicantLanguagesListView(APIView):
             serializer = LanguagesSerializer(languages, many=True)
             return Response(serializer.data, status=200)
         else:
-            return Response(data={"messege":"No Records found"},status=401)
+            return Response(data={"messege":"No Records found"},status=404)
 
 class ApplicantLanguagesCreateView(APIView):
 
@@ -556,7 +554,7 @@ class PublishedPapersListView(APIView):
             serializer = PublishedPapersSerializer(papers, many=True)
             return Response(serializer.data, status=200)
         else:
-            return Response(data={"messege": "No Records found"}, status=401)
+            return Response(data={"messege": "No Records found"}, status=404)
 
 class PublishedPapersCreateView(APIView):
 
@@ -602,7 +600,7 @@ class ApplicantAppliedJobListView(APIView):
             serializer = ApplicantJobPositionsSerializer(user_job_positions, many=True)
             return Response(serializer.data, status=200)
         else:
-            return Response(data={"messege": "No Records found"}, status=401)
+            return Response(data={"messege": "No Records found"}, status=404)
 
 ##While creating new entry of UserJobPositions set closing_date to a closing_date og JobPosting
 
