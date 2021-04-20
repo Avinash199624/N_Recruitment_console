@@ -1,6 +1,11 @@
 from django.db import models
 import uuid
+
+from django.db.models import CharField
+
 from user.models import BaseModel
+from django.contrib.postgres.fields import ArrayField
+
 
 class Department(BaseModel):
     dept_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -28,18 +33,22 @@ class ZonalLab(BaseModel):
 
 class QualificationMaster(BaseModel):
     qualification_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    qualification_name = models.CharField(max_length=300,null=True,blank=True)
+    qualification = models.CharField(max_length=300,null=True,blank=True)
+    short_code = ArrayField(CharField(max_length=300,blank=True))
 
     def __str__(self):
-        return self.qualification_name
+        return self.qualification
 
 
 class PositionMaster(BaseModel):
     position_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     position_name = models.CharField(max_length=300,null=True,blank=True)
+    position_desc = models.CharField(max_length=300, null=True, blank=True)
+    salary = models.FloatField()
 
     def __str__(self):
         return self.position_name
+
 
 class PositionQualificationMapping(BaseModel):
 
@@ -53,7 +62,7 @@ class PositionQualificationMapping(BaseModel):
 
     position = models.ForeignKey('PositionMaster',null=True, blank=True, on_delete=models.SET_NULL,
                                    related_name="postion")
-    qualification = models.ManyToManyField('QualificationMaster', blank=True, related_name="qualification")
+    qualification = models.ManyToManyField('QualificationMaster', blank=True, related_name="qualification_name")
     min_age = models.IntegerField(blank=True,null=True)
     max_age = models.IntegerField(blank=True,null=True)
     number_of_vacancies = models.IntegerField(null=True, blank=True, help_text="total number of vacancies for post")

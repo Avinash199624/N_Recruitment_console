@@ -1,5 +1,6 @@
-from job_posting.models import UserJobPositions
+from job_posting.models import UserJobPositions, QualificationMaster, PositionMaster
 from rest_framework import serializers
+
 
 class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
 
@@ -53,3 +54,24 @@ class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
     def get_hiring_status(self,obj):
         hiring_status = obj.applied_job_status
         return hiring_status
+
+
+class QualificationMasterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QualificationMaster
+        fields = (
+            "qualification_id",
+            "qualification",
+            "short_code",
+        )
+
+
+class PositionMasterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PositionMaster
+        fields = (
+            "position_id",
+            "position_name",
+            "position_desc",
+            "salary",
+        )

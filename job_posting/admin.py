@@ -17,11 +17,11 @@ class ZonalLabAdmin(admin.ModelAdmin):
 
 @register(QualificationMaster)
 class QualificationMasterAdmin(admin.ModelAdmin):
-    list_display = ['qualification_id','qualification_name']
+    list_display = ['qualification_id', 'qualification', 'short_code']
 
 @register(PositionMaster)
 class PositionMasterAdmin(admin.ModelAdmin):
-    list_display = ['position_id','position_name']
+    list_display = ['position_id', 'position_name', 'position_desc', 'salary']
 
 @register(PositionQualificationMapping)
 class PositionQualificationMappingAdmin(admin.ModelAdmin):
