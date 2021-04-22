@@ -166,9 +166,14 @@ class ApplicantPersonalInformationView(APIView):
     def get(self,request,*args,**kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
-        user_profile = user.user_profile
-        serializer = ApplicantUserPersonalInformationSerializer(user_profile)
-        return Response(serializer.data,status=200)
+        try:
+            if user.user_profile:
+                user_profile = user.user_profile
+                serializer = ApplicantUserPersonalInformationSerializer(user_profile)
+                return Response(serializer.data,status=200)
+        except:
+            return Response(data={"messege": "UserProfile not created","isEmpty":"true"}, status=200)
+
 
 class ApplicantPersonalInformationUpdateView(APIView):
 

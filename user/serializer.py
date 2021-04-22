@@ -901,6 +901,8 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         instance.user.middle_name = (
             validated_data["middle_name"] if validated_data["middle_name"] else instance.user.middle_name
         )
+
+        instance.is_indian_citizen = validated_data["is_indian_citizen"]
         instance.user.save()
         instance.save()
 
@@ -1089,6 +1091,10 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         #     father_address = None
 
         user = User.objects.get(user_id = validated_data['user_id'])
+        user.first_name = validated_data['first_name'] if 'first_name' in validated_data else None
+        user.middle_name = validated_data['middle_name'] if 'middle_name' in validated_data else None
+        user.last_name = validated_data['last_name'] if 'last_name' in validated_data else None
+        user.save()
 
         user_profile = UserProfile.objects.create(
             user = user,
