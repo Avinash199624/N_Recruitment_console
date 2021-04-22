@@ -46,6 +46,13 @@ class CreateQualificationMasterView(APIView):
         return Response(serializer.data, status=200)
 
 
+class QualificationMasterListView(APIView):
+    def get(self, request, *args, **kwargs):
+        docs = QualificationMaster.objects.all()
+        serializer = QualificationMasterSerializer(docs, many=True)
+        return Response(serializer.data, status=200)
+
+
 # PositionMaster
 class RetrievePositionMasterView(APIView):
     def get(self, request, *args, **kwargs):
@@ -84,5 +91,12 @@ class CreatePositionMasterView(APIView):
         serializer = PositionMasterSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        return Response(serializer.data, status=200)
+
+
+class PositionMasterListView(APIView):
+    def get(self, request, *args, **kwargs):
+        docs = PositionMaster.objects.all()
+        serializer = PositionMasterSerializer(docs, many=True)
         return Response(serializer.data, status=200)
 
