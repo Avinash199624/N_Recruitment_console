@@ -214,15 +214,18 @@ class ApplicantAddressView(APIView):
         id = self.kwargs['id']
         user = User.objects.get(user_id = id)
         address_type = self.request.GET['address_type']
-        if address_type == 'local_address':
-            location = user.user_profile.local_address
-        elif address_type == 'permanent_address':
-            location = user.user_profile.permanent_address
-        else:
-            location = user.user_profile.father_address
+        try:
+            if address_type == 'local_address':
+                location = user.user_profile.local_address
+            elif address_type == 'permanent_address':
+                location = user.user_profile.permanent_address
+            else:
+                location = user.user_profile.father_address
 
-        serializer = LocationSerializer(location)
-        return Response(serializer.data,status=200)
+            serializer = LocationSerializer(location)
+            return Response(serializer.data,status=200)
+        except:
+            return Response(data={"messege": "Address not created","isEmpty":"true"}, status=200)
 
 class ApplicantAddressUpdateView(APIView):
 
@@ -285,12 +288,16 @@ class ApplicantQualificationsListView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
-        if user.user_profile.education_details.filter().count() > 0:
-            qualifications = user.user_profile.education_details.filter()
-            serializer = UserEducationDetailsSerializer(qualifications,many=True)
-            return Response(serializer.data, status=200)
-        else:
-            return Response(data={"messege": "No Records found"}, status=404)
+        try:
+            if user.user_profile.education_details.filter().count() > 0:
+                qualifications = user.user_profile.education_details.filter()
+                serializer = UserEducationDetailsSerializer(qualifications,many=True)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"messege": "No Records found"}, status=404)
+        except:
+            return Response(data={"messege": "User Qualifications not found","isEmpty":"true"}, status=200)
+
 
 class ApplicantQualificationUpdateView(APIView):
 
@@ -330,13 +337,15 @@ class ApplicantExperiencesListView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
-        if user.user_profile.experiences.filter().count() > 0:
-            experiences = user.user_profile.experiences.filter()
-            serializer = UserExperienceDetailsSerializer(experiences, many=True)
-            return Response(serializer.data, status=200)
-        else:
-            return Response(data={"messege": "No Records found"}, status=404)
-
+        try:
+            if user.user_profile.experiences.filter().count() > 0:
+                experiences = user.user_profile.experiences.filter()
+                serializer = UserExperienceDetailsSerializer(experiences, many=True)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"messege": "No Records found"}, status=404)
+        except:
+            return Response(data={"messege": "User Experiences not found","isEmpty":"true"}, status=200)
 
 
 class ApplicantExperienceUpdateView(APIView):
@@ -377,13 +386,15 @@ class NeeriRelationsListView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
-        if user.user_profile.neeri_relation.filter().count() > 0:
-            neeri_relations = user.user_profile.neeri_relation.filter()
-            serializer = NeeriRelationSerializer(neeri_relations, many=True)
-            return Response(serializer.data, status=200)
-        else:
-            return Response(data={"messege": "No Records found"}, status=404)
-
+        try:
+            if user.user_profile.neeri_relation.filter().count() > 0:
+                neeri_relations = user.user_profile.neeri_relation.filter()
+                serializer = NeeriRelationSerializer(neeri_relations, many=True)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"messege": "No Records found"}, status=404)
+        except:
+            return Response(data={"messege": "Neeri Relations not found","isEmpty":"true"}, status=200)
 
 class NeeriRelationUpdateView(APIView):
 
@@ -422,12 +433,15 @@ class OverseasVisitsListView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
-        if user.user_profile.overseas_visits.filter().count() > 0:
-            visits = user.user_profile.overseas_visits.filter()
-            serializer = OverseasVisitsSerializer(visits, many=True)
-            return Response(serializer.data, status=200)
-        else:
-            return Response(data={"messege": "No Records found"}, status=404)
+        try:
+            if user.user_profile.overseas_visits.filter().count() > 0:
+                visits = user.user_profile.overseas_visits.filter()
+                serializer = OverseasVisitsSerializer(visits, many=True)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"messege": "No Records found"}, status=404)
+        except:
+            return Response(data={"messege": "Overseas Visits not found","isEmpty":"true"}, status=200)
 
 class OverseasVisitsCreateView(APIView):
 
@@ -466,12 +480,15 @@ class ApplicantReferencesListView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
-        if user.user_profile.references.filter().count() > 0:
-            references = user.user_profile.references.filter()
-            serializer = ReferencesSerializer(references, many=True)
-            return Response(serializer.data, status=200)
-        else:
-            return Response(data={"messege":"No Records found"},status=404)
+        try:
+            if user.user_profile.references.filter().count() > 0:
+                references = user.user_profile.references.filter()
+                serializer = ReferencesSerializer(references, many=True)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"messege":"No Records found"},status=404)
+        except:
+            return Response(data={"messege": "References not found","isEmpty":"true"}, status=200)
 
 class ApplicantReferencesCreateView(APIView):
 
@@ -510,12 +527,15 @@ class ApplicantLanguagesListView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
-        if user.user_profile.languages.filter().count() > 0:
-            languages = user.user_profile.languages.filter()
-            serializer = LanguagesSerializer(languages, many=True)
-            return Response(serializer.data, status=200)
-        else:
-            return Response(data={"messege":"No Records found"},status=404)
+        try:
+            if user.user_profile.languages.filter().count() > 0:
+                languages = user.user_profile.languages.filter()
+                serializer = LanguagesSerializer(languages, many=True)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"messege":"No Records found"},status=404)
+        except:
+            return Response(data={"messege": "Languages not found","isEmpty":"true"}, status=200)
 
 class ApplicantLanguagesCreateView(APIView):
 
@@ -554,12 +574,15 @@ class PublishedPapersListView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
-        if user.user_profile.published_papers.filter().count() >0:
-            papers = user.user_profile.published_papers.filter()
-            serializer = PublishedPapersSerializer(papers, many=True)
-            return Response(serializer.data, status=200)
-        else:
-            return Response(data={"messege": "No Records found"}, status=404)
+        try:
+            if user.user_profile.published_papers.filter().count() >0:
+                papers = user.user_profile.published_papers.filter()
+                serializer = PublishedPapersSerializer(papers, many=True)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"messege": "No Records found"}, status=404)
+        except:
+            return Response(data={"messege": "Published Papers not found","isEmpty":"true"}, status=200)
 
 class PublishedPapersCreateView(APIView):
 
