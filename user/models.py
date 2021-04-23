@@ -323,8 +323,8 @@ class UserPermissions(BaseModel):
 class UserDocuments(BaseModel):
 
     doc_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    doc_file_path = models.CharField(max_length=50, null=True, blank=True,help_text="path to document")
-    doc_name = models.CharField(max_length=50, null=True, blank=True)
+    doc_file_path = models.CharField(max_length=200, null=True, blank=True,help_text="path to document")
+    doc_name = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         return self.doc_name
