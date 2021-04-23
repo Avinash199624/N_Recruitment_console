@@ -285,6 +285,7 @@ class ApplicantAddressCreateView(APIView):
 
 class ApplicantQualificationsListView(APIView):
 
+
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
@@ -294,7 +295,7 @@ class ApplicantQualificationsListView(APIView):
                 serializer = UserEducationDetailsSerializer(qualifications,many=True)
                 return Response(serializer.data, status=200)
             else:
-                return Response(data={"messege": "No Records found"}, status=404)
+                return Response(data={"messege": "User Qualifications not found","isEmpty":"true"}, status=200)
         except:
             return Response(data={"messege": "User Qualifications not found","isEmpty":"true"}, status=200)
 
@@ -343,7 +344,7 @@ class ApplicantExperiencesListView(APIView):
                 serializer = UserExperienceDetailsSerializer(experiences, many=True)
                 return Response(serializer.data, status=200)
             else:
-                return Response(data={"messege": "No Records found"}, status=404)
+                return Response(data={"messege": "User Experiences not found","isEmpty":"true"}, status=200)
         except:
             return Response(data={"messege": "User Experiences not found","isEmpty":"true"}, status=200)
 
@@ -392,7 +393,7 @@ class NeeriRelationsListView(APIView):
                 serializer = NeeriRelationSerializer(neeri_relations, many=True)
                 return Response(serializer.data, status=200)
             else:
-                return Response(data={"messege": "No Records found"}, status=404)
+                return Response(data={"messege": "Neeri Relations not found","isEmpty":"true"}, status=200)
         except:
             return Response(data={"messege": "Neeri Relations not found","isEmpty":"true"}, status=200)
 
@@ -439,7 +440,7 @@ class OverseasVisitsListView(APIView):
                 serializer = OverseasVisitsSerializer(visits, many=True)
                 return Response(serializer.data, status=200)
             else:
-                return Response(data={"messege": "No Records found"}, status=404)
+                return Response(data={"messege": "Overseas Visits not found","isEmpty":"true"}, status=200)
         except:
             return Response(data={"messege": "Overseas Visits not found","isEmpty":"true"}, status=200)
 
@@ -486,7 +487,7 @@ class ApplicantReferencesListView(APIView):
                 serializer = ReferencesSerializer(references, many=True)
                 return Response(serializer.data, status=200)
             else:
-                return Response(data={"messege":"No Records found"},status=404)
+                return Response(data={"messege": "References not found","isEmpty":"true"}, status=200)
         except:
             return Response(data={"messege": "References not found","isEmpty":"true"}, status=200)
 
@@ -533,7 +534,7 @@ class ApplicantLanguagesListView(APIView):
                 serializer = LanguagesSerializer(languages, many=True)
                 return Response(serializer.data, status=200)
             else:
-                return Response(data={"messege":"No Records found"},status=404)
+                return Response(data={"messege": "Languages not found","isEmpty":"true"}, status=200)
         except:
             return Response(data={"messege": "Languages not found","isEmpty":"true"}, status=200)
 
@@ -580,7 +581,7 @@ class PublishedPapersListView(APIView):
                 serializer = PublishedPapersSerializer(papers, many=True)
                 return Response(serializer.data, status=200)
             else:
-                return Response(data={"messege": "No Records found"}, status=404)
+                return Response(data={"messege": "Published Papers not found","isEmpty":"true"}, status=200)
         except:
             return Response(data={"messege": "Published Papers not found","isEmpty":"true"}, status=200)
 
@@ -628,7 +629,7 @@ class ApplicantAppliedJobListView(APIView):
             serializer = ApplicantJobPositionsSerializer(user_job_positions, many=True)
             return Response(serializer.data, status=200)
         else:
-            return Response(data={"messege": "No Records found"}, status=404)
+            return Response(data={"messege": "Applied job list not found","isEmpty":"true"}, status=200)
 
 ##While creating new entry of UserJobPositions set closing_date to a closing_date og JobPosting
 
