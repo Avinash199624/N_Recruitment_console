@@ -1499,7 +1499,7 @@ class PublishedPapersSerializer(serializers.ModelSerializer):
 
         for attachment_data in validated_data['attachments']:
             attachment = UserDocuments.objects.create(
-                doc_file_path = attachment_data['doc_file_path'],
+                # doc_file_path = attachment_data['doc_file_path'],
                 doc_name = attachment_data['doc_name'],
             )
             paper.attachments.add(attachment)
