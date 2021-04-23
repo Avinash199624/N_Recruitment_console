@@ -1,11 +1,16 @@
 from django.contrib import admin
 from django.contrib.admin import register
 from job_posting.models import Department,Division,ZonalLab,PositionMaster,QualificationMaster,\
-    PositionQualificationMapping,JobPosting,JobTemplate,UserJobPositions
+    PositionQualificationMapping,JobPosting,JobTemplate,UserJobPositions,JobPostingRequirement,\
+    JobPostingRequirementPositions,JobDocuments
 
 @register(Department)
 class DepartmentAdmin(admin.ModelAdmin):
     list_display = ['dept_id','dept_name']
+
+@register(JobDocuments)
+class JobDocumentsAdmin(admin.ModelAdmin):
+    list_display = ['doc_id','doc_file_path','doc_name']
 
 @register(Division)
 class DivisionAdmin(admin.ModelAdmin):
@@ -42,3 +47,13 @@ class JobPostingAdmin(admin.ModelAdmin):
 class UserJobPositionsAdmin(admin.ModelAdmin):
     list_display = ['user','job_posting','position','applied_job_status','appealed','date_of_application',
                     'date_of_closing']
+
+class JobPostingRequirementPositionsAdmin(admin.TabularInline):
+    model = JobPostingRequirementPositions
+
+@register(JobPostingRequirement)
+class JobPostingRequirementAdmin(admin.ModelAdmin):
+    list_display = ['division_name','zonal_lab','project_title','project_number']
+    inlines = [JobPostingRequirementPositionsAdmin,]
+
+

@@ -1,9 +1,14 @@
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from job_posting.models import Department,Division,ZonalLab,QualificationMaster,PositionMaster,\
+    PositionQualificationMapping,JobPostingRequirement,JobTemplate,JobPosting
+from job_posting.serializer import DepartmentSerializer,DivisionSerializer,ZonalLabSerializer,\
+    PositionMasterSerializer,QualificationMasterSerializer,ProjectApprovalListSerializer,\
+    PositionQualificationMappingSerializer,JobTemplateSerializer,JobPostingSerializer
+
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
-from job_posting.models import QualificationMaster, PositionMaster
-from job_posting.serializer import QualificationMasterSerializer, PositionMasterSerializer
 
 
 class RetrieveQualificationMasterView(APIView):
@@ -100,3 +105,55 @@ class PositionMasterListView(APIView):
         serializer = PositionMasterSerializer(docs, many=True)
         return Response(serializer.data, status=200)
 
+class DepartmentListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        if Department.objects.filter().count() >0:
+            departments = Department.objects.filter()
+            serializer = DepartmentSerializer(departments,many=True)
+            return Response(serializer.data,status=200)
+        else:
+            return Response(data={"messege": "No Records found"}, status=404)
+
+class DivisionListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        if Division.objects.filter().count() > 0:
+            divisions = Division.objects.filter()
+            serializer = DivisionSerializer(divisions,many=True)
+            return Response(serializer.data,status=200)
+        else:
+            return Response(data={"messege": "No Records found"}, status=404)
+
+class ZonalLabListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        if ZonalLab.objects.filter().count() > 0:
+            labs = ZonalLab.objects.filter()
+            serializer = ZonalLabSerializer(labs,many=True)
+            return Response(serializer.data,status=200)
+        else:
+            return Response(data={"messege": "No Records found"}, status=404)
+class ProjectApprovalListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        projects = JobPostingRequirement.objects.filter()
+        serializer = ProjectApprovalListSerializer(projects,many=True)
+        return Response(serializer.data,status=200)
+
+class PositionQualificationMappingListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        projects = PositionQualificationMapping.objects.filter()
+        serializer = PositionQualificationMappingSerializer(projects,many=True)
+        return Response(serializer.data,status=200)
+
+class JobTemplateCreateView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        for template_data in data:
+            serializer = JobTemplateSerializer(data=template_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save(validated_data=template_data)
+        return Response(data={"messege": "Template Saved Successfully"}, status=200)

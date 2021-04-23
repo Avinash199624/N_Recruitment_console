@@ -34,7 +34,7 @@ class ZonalLab(BaseModel):
 class QualificationMaster(BaseModel):
     qualification_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     qualification = models.CharField(max_length=300,null=True,blank=True)
-    short_code = ArrayField(CharField(max_length=300,blank=True))
+    short_code = ArrayField(CharField(max_length=300,blank=True,null=True),null=True,blank=True)
 
     def __str__(self):
         return self.qualification
@@ -44,11 +44,10 @@ class PositionMaster(BaseModel):
     position_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     position_name = models.CharField(max_length=300,null=True,blank=True)
     position_desc = models.CharField(max_length=300, null=True, blank=True)
-    salary = models.FloatField()
+    salary = models.FloatField(null=True,blank=True)
 
     def __str__(self):
         return self.position_name
-
 
 class PositionQualificationMapping(BaseModel):
 
@@ -103,7 +102,16 @@ class JobTemplate(BaseModel):
     extra_note = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return ' '.join(["Template - ",self.id])
+        return self.template_name
+
+class JobDocuments(BaseModel):
+
+    doc_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    doc_file_path = models.CharField(max_length=200, null=True, blank=True,help_text="path to document")
+    doc_name = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return self.doc_name
 
 class JobPosting(BaseModel):
 
@@ -135,14 +143,17 @@ class JobPosting(BaseModel):
     notification_id = models.CharField(max_length=100, null=True, blank=True)
     notification_title = models.CharField(max_length=50, null=True, blank=True)
     description = models.CharField(max_length=50, null=True, blank=True)
-    project_number = models.CharField(max_length=50, null=True, blank=True)
-    department = models.OneToOneField('Department',on_delete=models.CASCADE,null=True,blank=True, related_name="department")
-    division = models.OneToOneField('Division',on_delete=models.CASCADE,null=True,blank=True, related_name="division")
-    zonal_lab = models.OneToOneField('ZonalLab',on_delete=models.CASCADE,null=True,blank=True, related_name="zonal_lab")
+    project_number = models.ForeignKey('JobPostingRequirement',null=True, blank=True, on_delete=models.SET_NULL,related_name="job_posting_project_number")
+    department = models.ForeignKey('Department',on_delete=models.CASCADE,null=True,blank=True, related_name="job_posting_department")
+    division = models.ForeignKey('Division',on_delete=models.CASCADE,null=True,blank=True, related_name="division")
+    zonal_lab = models.ForeignKey('ZonalLab',on_delete=models.CASCADE,null=True,blank=True, related_name="zonal_lab")
     publication_date = models.DateTimeField(null=True, blank=True,help_text="start date of job notification")
     end_date = models.DateTimeField(null=True, blank=True,help_text="end date of job notification")
     documents_required = models.ManyToManyField('document.DocumentMaster', blank=True,
                                                 related_name="required_documents")
+    documents_uploaded = models.ManyToManyField('JobDocuments', blank=True, null=True, related_name="documents")
+    office_memorandum = models.ForeignKey('JobDocuments',on_delete=models.CASCADE, blank=True, null=True, related_name="office_memo")
+    #documents will be the attached documents(Office Memorandum,Appendices)
     status = models.CharField(null=True, blank=True, choices=STATUS_CHOICES, max_length=30)
     job_type = models.CharField(null=True, blank=True, choices=JOB_TYPE_CHOICES, max_length=30)
     manpower_positions = models.ManyToManyField('PositionQualificationMapping',blank=True,related_name="job_positions")
@@ -187,3 +198,34 @@ class UserJobPositions(BaseModel):
 
     def __str__(self):
         return self.user.email
+
+class JobPostingRequirementPositions(models.Model):
+
+    position = models.ForeignKey('PositionMaster',on_delete=models.SET_NULL, null=True, blank=True)
+    job_posting_requirement = models.ForeignKey('JobPostingRequirement',on_delete=models.SET_NULL, null=True, blank=True)
+    count = models.IntegerField(blank=True,null=True)
+
+    def __str__(self):
+        return self.position.position_name
+
+class JobPostingRequirement(models.Model):
+
+    division_name = models.ForeignKey('Division',on_delete=models.SET_NULL, null=True, blank=True,related_name="job_posting_requirement_division")
+    zonal_lab = models.ForeignKey('ZonalLab',on_delete=models.SET_NULL, null=True, blank=True,related_name="job_posting_requirement_zonal_lab")
+    project_title = models.CharField(max_length=200,null=True,blank=True)
+    project_number = models.CharField(max_length=30,null=True,blank=True)
+    project_start_date = models.DateField(blank=True,null=True,help_text='Starting date of project')
+    project_end_date = models.DateField(blank=True,null=True,help_text='Closing date of project')
+    manpower_positions = models.ManyToManyField('PositionMaster', through=JobPostingRequirementPositions,blank=True,related_name="job_positions")
+    provisions_made =  models.BooleanField(blank=True,null=True)
+    total_estimated_amount = models.IntegerField(null=True,blank=True)
+    min_essential_qualification = models.CharField(max_length=200,null=True,blank=True)
+    job_requirements = models.CharField(max_length=200,null=True,blank=True)
+    desired_qualification = models.CharField(max_length=200,null=True,blank=True)
+
+    def __str__(self):
+        return self.project_number
+
+class SelectionProcessContent(models.Model):
+
+    pass

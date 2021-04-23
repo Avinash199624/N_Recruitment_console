@@ -1,6 +1,7 @@
-from django.contrib import admin
 from django.urls import path
-from job_posting.views import RetrieveQualificationMasterView, CreateQualificationMasterView, \
+from job_posting.views import DepartmentListView,DivisionListView,ZonalLabListView,\
+    ProjectApprovalListView,PositionQualificationMappingListView,JobTemplateCreateView,\
+    RetrieveQualificationMasterView, CreateQualificationMasterView, \
     UpdateQualificationMasterView, DeleteQualificationMasterView, \
     RetrievePositionMasterView, DeletePositionMasterView, UpdatePositionMasterView, CreatePositionMasterView, \
     QualificationMasterListView, PositionMasterListView
@@ -20,4 +21,13 @@ urlpatterns = [
     path('create_position/', CreatePositionMasterView.as_view(), name="create-position"),
     path('position_list/', PositionMasterListView.as_view(), name="position-list"),
 
+    path('department_list/', DepartmentListView.as_view(), name="user-list"),
+    path('division_list/', DivisionListView.as_view(), name="user-list"),
+    path('zonal_lab_list/', ZonalLabListView.as_view(), name="user-list"),
+    path('position_list/', PositionMasterListView.as_view(), name="user-list"),
+    path('qualification_list/', QualificationMasterListView.as_view(), name="user-list"),
+    path('project_approval_list/', ProjectApprovalListView.as_view(), name="project-approval-list"),
+    path('position_qualification_mapping_list/', PositionQualificationMappingListView.as_view(),
+         name="position-qualification-mapping-list"),
+    path('save_template/', JobTemplateCreateView.as_view(), name="save-as-template"),
 ]
