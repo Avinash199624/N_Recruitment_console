@@ -5,7 +5,7 @@ from communication_template.serializer import CommunicationMasterSerializer
 
 class CommunicationTemplateListView(APIView):
     def get(self, request, *args, **kwargs):
-        docs = CommunicationMaster.objects.filter()
+        docs = CommunicationMaster.objects.filter(is_deleted=False)
         serializer = CommunicationMasterSerializer(docs, many=True)
         return Response(serializer.data, status=200)
 
@@ -24,7 +24,7 @@ class CreateCommunicationTemplateView(APIView):
 class RetrievetCommunicationTemplateView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
-        template = CommunicationMaster.objects.get(communication_id=id)
+        template = CommunicationMaster.objects.get(communication_id=id, is_deleted=False)
         serializer = CommunicationMasterSerializer(template)
         return Response(serializer.data, status=200)
 

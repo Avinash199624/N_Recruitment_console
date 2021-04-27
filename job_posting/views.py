@@ -14,7 +14,7 @@ from rest_framework.response import Response
 class RetrieveQualificationMasterView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
-        qual = QualificationMaster.objects.get(qualification_id=id)
+        qual = QualificationMaster.objects.get(qualification_id=id, is_deleted=False)
         serializer = QualificationMasterSerializer(qual)
         return Response(serializer.data, status=200)
 
@@ -53,7 +53,7 @@ class CreateQualificationMasterView(APIView):
 
 class QualificationMasterListView(APIView):
     def get(self, request, *args, **kwargs):
-        docs = QualificationMaster.objects.all()
+        docs = QualificationMaster.objects.filter(is_deleted=False)
         serializer = QualificationMasterSerializer(docs, many=True)
         return Response(serializer.data, status=200)
 
@@ -62,7 +62,7 @@ class QualificationMasterListView(APIView):
 class RetrievePositionMasterView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
-        position = PositionMaster.objects.get(position_id=id)
+        position = PositionMaster.objects.get(position_id=id, is_deleted=False)
         serializer = PositionMasterSerializer(position)
         return Response(serializer.data, status=200)
 
@@ -101,9 +101,10 @@ class CreatePositionMasterView(APIView):
 
 class PositionMasterListView(APIView):
     def get(self, request, *args, **kwargs):
-        docs = PositionMaster.objects.all()
+        docs = PositionMaster.objects.filter(is_deleted=False)
         serializer = PositionMasterSerializer(docs, many=True)
         return Response(serializer.data, status=200)
+
 
 class DepartmentListView(APIView):
 
