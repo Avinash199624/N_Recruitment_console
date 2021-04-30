@@ -223,7 +223,11 @@ class ApplicantAddressView(APIView):
                 location = user.user_profile.father_address
 
             serializer = LocationSerializer(location)
-            return Response(serializer.data,status=200)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.data
+            result['is_permenant_address_same_as_local'] = user.user_profile.is_permenant_address_same_as_local
+            result['is_father_address_same_as_local'] = user.user_profile.is_father_address_same_as_local
+            return Response(result,status=200)
         except:
             return Response(data={"messege": "Address not created","isEmpty":"true"}, status=200)
 
@@ -238,50 +242,112 @@ class ApplicantAddressUpdateView(APIView):
             location = user.user_profile.local_address
             serializer = LocationSerializer(location, data=data)
         elif address_type == 'permanent_address':
-            location = user.user_profile.permanent_address
-            serializer = LocationSerializer(location, data=data)
+            if 'is_permenant_address_same_as_local' in self.request.GET:
+                is_permenant_address_same_as_local = self.request.GET['is_permenant_address_same_as_local']
+                if is_permenant_address_same_as_local == True or is_permenant_address_same_as_local == 'true':
+                    user.user_profile.permanent_address = user.user_profile.local_address
+                    user.user_profile.is_permenant_address_same_as_local = True
+                    user.user_profile.save()
+                    location = user.user_profile.permanent_address
+                    serializer = LocationSerializer(location, data=data)
+                    serializer.is_valid(raise_exception=True)
+                    result = serializer.data
+                    result['is_permenant_address_same_as_local'] = user.user_profile.is_permenant_address_same_as_local
+                    result['is_father_address_same_as_local'] = user.user_profile.is_father_address_same_as_local
+                    return Response(result, status=200)
+            else:
+                location = user.user_profile.permanent_address
+                serializer = LocationSerializer(location, data=data)
         else:
-            location = user.user_profile.father_address
-            serializer = LocationSerializer(location, data=data)
+            if 'is_father_address_same_as_local' in self.request.GET:
+                is_father_address_same_as_local = self.request.GET['is_father_address_same_as_local']
+                if is_father_address_same_as_local == True or is_father_address_same_as_local == 'true':
+                    user.user_profile.father_address = user.user_profile.local_address
+                    user.user_profile.is_father_address_same_as_local = True
+                    user.user_profile.save()
+                    location = user.user_profile.father_address
+                    serializer = LocationSerializer(location, data=data)
+                    serializer.is_valid(raise_exception=True)
+                    result = serializer.data
+                    result['is_permenant_address_same_as_local'] = user.user_profile.is_permenant_address_same_as_local
+                    result['is_father_address_same_as_local'] = user.user_profile.is_father_address_same_as_local
+                    return Response(result, status=200)
+            else:
+                location = user.user_profile.father_address
+                serializer = LocationSerializer(location, data=data)
+
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=location, validated_data=data)
-        return Response(serializer.data, status=200)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.data
+        result['is_permenant_address_same_as_local'] = user.user_profile.is_permenant_address_same_as_local
+        result['is_father_address_same_as_local'] = user.user_profile.is_father_address_same_as_local
+        return Response(result, status=200)
 
 class ApplicantAddressCreateView(APIView):
 
     def post(self, request, *args, **kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
-        data = self.request.data
-        serializer = LocationSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        result = serializer.save(validated_data=data)
-        location = Location.objects.get(id=result)
         address_type = self.request.GET['address_type']
-        if address_type == 'local_address':
-            if user.user_profile.local_address:
-                Location.objects.get(id=result).delete()
-                return Response(data={"messege":"Local Address for Given User Already Exist"},status=200)
-            else:
-                user.user_profile.local_address = location
+        if 'is_permenant_address_same_as_local' in self.request.GET:
+            is_permenant_address_same_as_local = self.request.GET['is_permenant_address_same_as_local']
+            if address_type == 'permanent_address' and is_permenant_address_same_as_local == True or is_permenant_address_same_as_local == 'true':
+                permanent_address = user.user_profile.local_address
+                user.user_profile.permanent_address = permanent_address
+                user.user_profile.is_permenant_address_same_as_local = True
                 user.user_profile.save()
-        elif address_type == 'permanent_address':
-            if user.user_profile.permanent_address:
-                Location.objects.get(id=result).delete()
-                return Response(data={"messege":"Permanent Address for Given User Already Exist"},status=200)
-            else:
-                user.user_profile.permanent_address = location
+                serializer = LocationSerializer(permanent_address)
+                result = serializer.data
+                result['is_permenant_address_same_as_local'] = user.user_profile.is_permenant_address_same_as_local
+                result['is_father_address_same_as_local'] = user.user_profile.is_father_address_same_as_local
+                return Response(result, status=200)
+        elif 'is_father_address_same_as_local' in self.request.GET:
+            is_father_address_same_as_local = self.request.GET['is_father_address_same_as_local']
+            if address_type == 'father_address' and is_father_address_same_as_local == True or is_father_address_same_as_local == 'true':
+                father_address = user.user_profile.local_address
+                user.user_profile.father_address = father_address
+                user.user_profile.is_father_address_same_as_local = True
                 user.user_profile.save()
+                serializer = LocationSerializer(father_address)
+                result = serializer.data
+                result['is_permenant_address_same_as_local'] = user.user_profile.is_permenant_address_same_as_local
+                result['is_father_address_same_as_local'] = user.user_profile.is_father_address_same_as_local
+                return Response(result, status=200)
         else:
-            if user.user_profile.father_address:
-                Location.objects.get(id=result).delete()
-                return Response(data={"messege":"Father Address for Given User Already Exist"},status=200)
+            data = self.request.data
+            serializer = LocationSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=data)
+            location = Location.objects.get(id=result)
+            if address_type == 'local_address':
+                if user.user_profile.local_address:
+                    Location.objects.get(id=result).delete()
+                    return Response(data={"messege":"Local Address for Given User Already Exist"},status=200)
+                else:
+                    user.user_profile.local_address = location
+                    user.user_profile.save()
+            elif address_type == 'permanent_address':
+                if user.user_profile.permanent_address:
+                    Location.objects.get(id=result).delete()
+                    return Response(data={"messege":"Permanent Address for Given User Already Exist"},status=200)
+                else:
+                    user.user_profile.permanent_address = location
+                    user.user_profile.save()
             else:
-                user.user_profile.father_address = location
-                user.user_profile.save()
+                if user.user_profile.father_address:
+                    Location.objects.get(id=result).delete()
+                    return Response(data={"messege":"Father Address for Given User Already Exist"},status=200)
+                else:
+                    user.user_profile.father_address = location
+                    user.user_profile.save()
 
-        serializer = LocationSerializer(location)
-        return Response(serializer.data, status=200)
+            serializer = LocationSerializer(location)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.data
+            result['is_permenant_address_same_as_local'] = user.user_profile.is_permenant_address_same_as_local
+            result['is_father_address_same_as_local'] = user.user_profile.is_father_address_same_as_local
+            return Response(result, status=200)
 
 class ApplicantQualificationsListView(APIView):
 
