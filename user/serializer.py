@@ -1150,6 +1150,10 @@ class UserEducationDetailsSerializer(serializers.ModelSerializer):
             validated_data["college_name"] if validated_data["college_name"] else instance.college_name
         )
 
+        instance.passing_year = (
+            validated_data["passing_year"] if validated_data["passing_year"] else instance.passing_year
+        )
+
         instance.score = (
             validated_data["score"] if validated_data["score"] else instance.score
         )
@@ -1170,6 +1174,7 @@ class UserEducationDetailsSerializer(serializers.ModelSerializer):
             exam_name = validated_data['exam_name'] if 'exam_name' in validated_data else None,
             university = validated_data['university'] if 'university' in validated_data else None,
             college_name = validated_data['college_name'] if 'college_name' in validated_data else None,
+            passing_year = validated_data['passing_year'] if 'passing_year' in validated_data else None,
             score = validated_data['score'] if 'score' in validated_data else None,
             score_unit = validated_data['score_unit'] if 'score_unit' in validated_data else None,
             specialization = validated_data['specialization'] if 'specialization' in validated_data else None,
