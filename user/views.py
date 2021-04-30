@@ -223,7 +223,7 @@ class ApplicantAddressView(APIView):
                 location = user.user_profile.father_address
 
             serializer = LocationSerializer(location)
-            serializer.is_valid(raise_exception=True)
+            # serializer.is_valid(raise_exception=True)
             result = serializer.data
             result['is_permenant_address_same_as_local'] = user.user_profile.is_permenant_address_same_as_local
             result['is_father_address_same_as_local'] = user.user_profile.is_father_address_same_as_local
@@ -343,7 +343,7 @@ class ApplicantAddressCreateView(APIView):
                     user.user_profile.save()
 
             serializer = LocationSerializer(location)
-            serializer.is_valid(raise_exception=True)
+            # serializer.is_valid(raise_exception=True)
             result = serializer.data
             result['is_permenant_address_same_as_local'] = user.user_profile.is_permenant_address_same_as_local
             result['is_father_address_same_as_local'] = user.user_profile.is_father_address_same_as_local
