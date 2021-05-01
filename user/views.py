@@ -216,11 +216,11 @@ class ApplicantAddressView(APIView):
         user = User.objects.get(user_id = id)
         address_type = self.request.GET['address_type']
         try:
-            if address_type == 'local_address':
+            if address_type == 'local_address' and user.user_profile.local_address:
                 location = user.user_profile.local_address
-            elif address_type == 'permanent_address':
+            elif address_type == 'permanent_address' and user.user_profile.permanent_address:
                 location = user.user_profile.permanent_address
-            else:
+            elif address_type == 'father_address' and user.user_profile.father_address:
                 location = user.user_profile.father_address
 
             serializer = LocationSerializer(location)
