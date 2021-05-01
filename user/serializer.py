@@ -1,5 +1,6 @@
 from user.models import User,UserProfile,Location,UserRoles,UserPermissions,RoleMaster,UserEducationDetails,\
-    UserExperienceDetails,NeeriRelation,UserReference,OverseasVisits,UserLanguages,UserDocuments,PublishedPapers
+    UserExperienceDetails,NeeriRelation,UserReference,OverseasVisits,UserLanguages,UserDocuments,\
+    PublishedPapers,ProfessionalTraining
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
@@ -1531,3 +1532,47 @@ class PublishedPapersSerializer(serializers.ModelSerializer):
             doc.save()
 
         instance.save()
+
+class ProfessionalTrainingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProfessionalTraining
+        fields = (
+            "id",
+            "title",
+            "description",
+            "from_date",
+            "to_date",
+        )
+
+    def save(self, validated_data):
+
+        professional_training = ProfessionalTraining.objects.create(
+            title = validated_data['title'] if 'title' in validated_data else None,
+            description = validated_data['description'] if 'description' in validated_data else None,
+            from_date = validated_data['from_date'] if 'from_date' in validated_data else None,
+            to_date = validated_data['to_date'] if 'to_date' in validated_data else None,
+        )
+
+        return professional_training.id
+
+    def update(self, instance, validated_data):
+
+        instance.title = (
+            validated_data["title"] if validated_data["title"] else instance.title
+        )
+
+        instance.description = (
+            validated_data["description"] if validated_data["description"] else instance.description
+        )
+
+        instance.from_date = (
+            validated_data["from_date"] if validated_data["from_date"] else instance.from_date
+        )
+
+        instance.to_date = (
+            validated_data["to_date"] if validated_data["to_date"] else instance.to_date
+        )
+
+        instance.save()
+

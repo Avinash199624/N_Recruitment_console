@@ -131,6 +131,7 @@ class UserProfile(BaseModel):
     overseas_visits = models.ManyToManyField('user.OverseasVisits', blank=True, null=True, related_name="overseas_visits")
     languages = models.ManyToManyField('user.UserLanguages', blank=True, null=True, related_name="languages")
     published_papers = models.ManyToManyField('user.PublishedPapers', blank=True, null=True, related_name="published_papers")
+    professional_trainings = models.ManyToManyField('user.ProfessionalTraining', blank=True, null=True, related_name="professional_tarinings")
 
     @property
     def profile_percentage(self):
@@ -442,6 +443,15 @@ class UserLanguages(BaseModel):
 
     def __str__(self):
         return self.name
+
+class ProfessionalTraining(BaseModel):
+    title =  models.CharField(max_length=200, null=True, blank=True)
+    description =  models.CharField(max_length=200, null=True, blank=True)
+    from_date = models.DateField(null=True, blank=True)
+    to_date = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return self.title
 
 class OtherInfo(BaseModel):
     bond_details = models.CharField(max_length=100, null=True, blank=True)

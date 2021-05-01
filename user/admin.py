@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import register
 from user.models import User,UserProfile,RoleMaster,UserRoles,Location,PermissionMaster,\
     UserPermissions,NeeriUserProfile,NeeriRelation,UserEducationDetails,UserExperienceDetails,\
-    UserDocuments,UserLanguages,UserReference,OverseasVisits,PublishedPapers
+    UserDocuments,UserLanguages,UserReference,OverseasVisits,PublishedPapers,ProfessionalTraining
 
 # Register your models here.
 
@@ -21,6 +21,10 @@ class UserDocumentsAdmin(admin.ModelAdmin):
 @register(UserLanguages)
 class UserLanguagesAdmin(admin.ModelAdmin):
     list_display = ['name','read_level','write_level','speak_level','exam_passed']
+
+@register(ProfessionalTraining)
+class ProfessionalTrainingAdmin(admin.ModelAdmin):
+    list_display = ['title','description','from_date','to_date']
 
 @register(UserReference)
 class UserReferenceAdmin(admin.ModelAdmin):

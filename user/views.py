@@ -6,12 +6,13 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
 from user.models import User,RoleMaster,UserRoles,UserProfile,Location,UserEducationDetails,UserExperienceDetails,\
-    UserLanguages,UserReference,NeeriRelation,OverseasVisits,PublishedPapers
+    UserLanguages,UserReference,NeeriRelation,OverseasVisits,PublishedPapers,ProfessionalTraining
 from job_posting.models import UserJobPositions
 from user.serializer import UserSerializer,AuthTokenCustomSerializer,UserProfileSerializer,UserRolesSerializer,\
     CustomUserSerializer,ApplicantUserPersonalInformationSerializer,LocationSerializer,\
     UserEducationDetailsSerializer,UserExperienceDetailsSerializer,NeeriRelationSerializer,\
-    OverseasVisitsSerializer,LanguagesSerializer,ReferencesSerializer,PublishedPapersSerializer
+    OverseasVisitsSerializer,LanguagesSerializer,ReferencesSerializer,PublishedPapersSerializer,\
+    ProfessionalTrainingSerializer
 from job_posting.serializer import ApplicantJobPositionsSerializer
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
@@ -356,8 +357,8 @@ class ApplicantQualificationsListView(APIView):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
         try:
-            if user.user_profile.education_details.filter().count() > 0:
-                qualifications = user.user_profile.education_details.filter()
+            if user.user_profile.education_details.filter(is_deleted=False).count() > 0:
+                qualifications = user.user_profile.education_details.filter(is_deleted=False)
                 serializer = UserEducationDetailsSerializer(qualifications,many=True)
                 return Response(serializer.data, status=200)
             else:
@@ -372,7 +373,7 @@ class ApplicantQualificationUpdateView(APIView):
         id = self.kwargs['id']
         data = self.request.data
         user = User.objects.get(user_id=id)
-        qualifications = user.user_profile.education_details.filter()
+        qualifications = user.user_profile.education_details.filter(is_deleted=False)
         for qualification_data in data:
             qualification = user.user_profile.education_details.get(id = qualification_data['id'])
             serializer = UserEducationDetailsSerializer(qualification,data=qualification_data)
@@ -394,10 +395,23 @@ class ApplicantQualificationCreateView(APIView):
             qualification = UserEducationDetails.objects.get(id=result)
             user.user_profile.education_details.add(qualification)
             user.user_profile.save()
-        qualifications = user.user_profile.education_details.filter()
+        qualifications = user.user_profile.education_details.filter(is_deleted=False)
         serializer = UserEducationDetailsSerializer(qualifications,many=True)
         return Response(serializer.data, status=200)
 
+class ApplicantQualificationDeleteView(APIView):
+
+    def delete(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        data = request.data
+        try:
+            education = user.user_profile.education_details.get(id=data['id'])
+            education.is_deleted = True
+            education.save()
+            return Response(data={"message": "Record Deleted Successfully."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
 
 class ApplicantExperiencesListView(APIView):
 
@@ -405,8 +419,8 @@ class ApplicantExperiencesListView(APIView):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
         try:
-            if user.user_profile.experiences.filter().count() > 0:
-                experiences = user.user_profile.experiences.filter()
+            if user.user_profile.experiences.filter(is_deleted=False).count() > 0:
+                experiences = user.user_profile.experiences.filter(is_deleted=False)
                 serializer = UserExperienceDetailsSerializer(experiences, many=True)
                 return Response(serializer.data, status=200)
             else:
@@ -421,7 +435,7 @@ class ApplicantExperienceUpdateView(APIView):
         id = self.kwargs['id']
         data = self.request.data
         user = User.objects.get(user_id=id)
-        experiences = user.user_profile.experiences.filter()
+        experiences = user.user_profile.experiences.filter(is_deleted=False)
         for experience_data in data:
             experience = user.user_profile.experiences.get(id=experience_data['id'])
             serializer = UserExperienceDetailsSerializer(experience, data=experience_data)
@@ -444,9 +458,23 @@ class ApplicantExperienceCreateView(APIView):
             experience = UserExperienceDetails.objects.get(id=result)
             user.user_profile.experiences.add(experience)
             user.user_profile.save()
-        experiences = user.user_profile.experiences.filter()
+        experiences = user.user_profile.experiences.filter(is_deleted=False)
         serializer = UserExperienceDetailsSerializer(experiences, many=True)
         return Response(serializer.data, status=200)
+
+class ApplicantExperienceDeleteView(APIView):
+
+    def delete(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        data = request.data
+        try:
+            experience = user.user_profile.experiences.get(id=data['id'])
+            experience.is_deleted = True
+            experience.save()
+            return Response(data={"message": "Record Deleted Successfully."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
 
 class NeeriRelationsListView(APIView):
 
@@ -454,8 +482,8 @@ class NeeriRelationsListView(APIView):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
         try:
-            if user.user_profile.neeri_relation.filter().count() > 0:
-                neeri_relations = user.user_profile.neeri_relation.filter()
+            if user.user_profile.neeri_relation.filter(is_deleted=False).count() > 0:
+                neeri_relations = user.user_profile.neeri_relation.filter(is_deleted=False)
                 serializer = NeeriRelationSerializer(neeri_relations, many=True)
                 return Response(serializer.data, status=200)
             else:
@@ -469,7 +497,7 @@ class NeeriRelationUpdateView(APIView):
         id = self.kwargs['id']
         data = self.request.data
         user = User.objects.get(user_id=id)
-        neeri_relations = user.user_profile.neeri_relation.filter()
+        neeri_relations = user.user_profile.neeri_relation.filter(is_deleted=False)
         for relation_data in data:
             relation = user.user_profile.neeri_relation.get(id=relation_data['id'])
             serializer = NeeriRelationSerializer(relation, data=relation_data)
@@ -491,9 +519,23 @@ class NeeriRelationCreateView(APIView):
             relation = NeeriRelation.objects.get(id=result)
             user.user_profile.neeri_relation.add(relation)
             user.user_profile.save()
-        experiences = user.user_profile.neeri_relation.filter()
+        experiences = user.user_profile.neeri_relation.filter(is_deleted=False)
         serializer = NeeriRelationSerializer(experiences, many=True)
         return Response(serializer.data, status=200)
+
+class NeeriRelationDeleteView(APIView):
+
+    def delete(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        data = request.data
+        try:
+            neeri_relation = user.user_profile.neeri_relation.get(id=data['id'])
+            neeri_relation.is_deleted = True
+            neeri_relation.save()
+            return Response(data={"message": "Record Deleted Successfully."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
 
 class OverseasVisitsListView(APIView):
 
@@ -501,8 +543,8 @@ class OverseasVisitsListView(APIView):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
         try:
-            if user.user_profile.overseas_visits.filter().count() > 0:
-                visits = user.user_profile.overseas_visits.filter()
+            if user.user_profile.overseas_visits.filter(is_deleted=False).count() > 0:
+                visits = user.user_profile.overseas_visits.filter(is_deleted=False)
                 serializer = OverseasVisitsSerializer(visits, many=True)
                 return Response(serializer.data, status=200)
             else:
@@ -523,7 +565,7 @@ class OverseasVisitsCreateView(APIView):
             visit = OverseasVisits.objects.get(id=result)
             user.user_profile.overseas_visits.add(visit)
             user.user_profile.save()
-        visits = user.user_profile.overseas_visits.filter()
+        visits = user.user_profile.overseas_visits.filter(is_deleted=False)
         serializer = OverseasVisitsSerializer(visits, many=True)
         return Response(serializer.data, status=200)
 
@@ -533,7 +575,7 @@ class OverseasVisitsUpdateView(APIView):
         id = self.kwargs['id']
         data = self.request.data
         user = User.objects.get(user_id=id)
-        visits = user.user_profile.overseas_visits.filter()
+        visits = user.user_profile.overseas_visits.filter(is_deleted=False)
         for visits_data in data:
             visit = user.user_profile.overseas_visits.get(id=visits_data['id'])
             serializer = OverseasVisitsSerializer(visit, data=visits_data)
@@ -542,14 +584,28 @@ class OverseasVisitsUpdateView(APIView):
         serializer = OverseasVisitsSerializer(visits, many=True)
         return Response(serializer.data, status=200)
 
+class OverseasVisitsDeleteView(APIView):
+
+    def delete(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        data = request.data
+        try:
+            overseas_visit = user.user_profile.overseas_visits.get(id=data['id'])
+            overseas_visit.is_deleted = True
+            overseas_visit.save()
+            return Response(data={"message": "Record Deleted Successfully."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
 class ApplicantReferencesListView(APIView):
 
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
         try:
-            if user.user_profile.references.filter().count() > 0:
-                references = user.user_profile.references.filter()
+            if user.user_profile.references.filter(is_deleted=False).count() > 0:
+                references = user.user_profile.references.filter(is_deleted=False)
                 serializer = ReferencesSerializer(references, many=True)
                 return Response(serializer.data, status=200)
             else:
@@ -570,7 +626,7 @@ class ApplicantReferencesCreateView(APIView):
             reference = UserReference.objects.get(id=result)
             user.user_profile.references.add(reference)
             user.user_profile.save()
-        references = user.user_profile.references.filter()
+        references = user.user_profile.references.filter(is_deleted=False)
         serializer = ReferencesSerializer(references, many=True)
         return Response(serializer.data, status=200)
 
@@ -580,7 +636,7 @@ class ApplicantReferencesUpdateView(APIView):
         id = self.kwargs['id']
         data = self.request.data
         user = User.objects.get(user_id=id)
-        references = user.user_profile.references.filter()
+        references = user.user_profile.references.filter(is_deleted=False)
         for reference_data in data:
             reference = user.user_profile.references.get(id=reference_data['id'])
             serializer = ReferencesSerializer(reference, data=reference_data)
@@ -589,14 +645,29 @@ class ApplicantReferencesUpdateView(APIView):
         serializer = ReferencesSerializer(references, many=True)
         return Response(serializer.data, status=200)
 
+class ApplicantReferencesDeleteView(APIView):
+
+    def delete(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        data = request.data
+        try:
+            reference = user.user_profile.references.get(id=data['id'])
+            reference.is_deleted = True
+            reference.save()
+            return Response(data={"message": "Record Deleted Successfully."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
+
 class ApplicantLanguagesListView(APIView):
 
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
         try:
-            if user.user_profile.languages.filter().count() > 0:
-                languages = user.user_profile.languages.filter()
+            if user.user_profile.languages.filter(is_deleted=False).count() > 0:
+                languages = user.user_profile.languages.filter(is_deleted=False)
                 serializer = LanguagesSerializer(languages, many=True)
                 return Response(serializer.data, status=200)
             else:
@@ -617,7 +688,7 @@ class ApplicantLanguagesCreateView(APIView):
             language = UserLanguages.objects.get(id=result)
             user.user_profile.languages.add(language)
             user.user_profile.save()
-        languages = user.user_profile.languages.filter()
+        languages = user.user_profile.languages.filter(is_deleted=False)
         serializer = LanguagesSerializer(languages, many=True)
         return Response(serializer.data, status=200)
 
@@ -627,7 +698,7 @@ class ApplicantLanguagesUpdateView(APIView):
         id = self.kwargs['id']
         data = self.request.data
         user = User.objects.get(user_id=id)
-        languages = user.user_profile.languages.filter()
+        languages = user.user_profile.languages.filter(is_deleted=False)
         for language_data in data:
             language = user.user_profile.languages.get(id=language_data['id'])
             serializer = LanguagesSerializer(language, data=language_data)
@@ -636,14 +707,28 @@ class ApplicantLanguagesUpdateView(APIView):
         serializer = LanguagesSerializer(languages, many=True)
         return Response(serializer.data, status=200)
 
+class ApplicantLanguagesDeleteView(APIView):
+
+    def delete(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        data = request.data
+        try:
+            language = user.user_profile.languages.get(id=data['id'])
+            language.is_deleted = True
+            language.save()
+            return Response(data={"message": "Record Deleted Successfully."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
 class PublishedPapersListView(APIView):
 
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
         try:
-            if user.user_profile.published_papers.filter().count() >0:
-                papers = user.user_profile.published_papers.filter()
+            if user.user_profile.published_papers.filter(is_deleted=False).count() >0:
+                papers = user.user_profile.published_papers.filter(is_deleted=False)
                 serializer = PublishedPapersSerializer(papers, many=True)
                 return Response(serializer.data, status=200)
             else:
@@ -666,7 +751,7 @@ class PublishedPapersCreateView(APIView):
             paper = PublishedPapers.objects.get(id=result)
             user.user_profile.published_papers.add(paper)
             user.user_profile.save()
-        papers = user.user_profile.published_papers.filter()
+        papers = user.user_profile.published_papers.filter(is_deleted=False)
         serializer = PublishedPapersSerializer(papers, many=True)
         return Response(serializer.data, status=200)
 
@@ -681,17 +766,31 @@ class PublishedPapersUpdateView(APIView):
             serializer = PublishedPapersSerializer(paper, data=paper_data)
             serializer.is_valid(raise_exception=True)
             serializer.update(instance=paper, validated_data=paper_data)
-        papers = user.user_profile.published_papers.filter()
+        papers = user.user_profile.published_papers.filter(is_deleted=False)
         response_data = PublishedPapersSerializer(papers, many=True)
         return Response(response_data.data, status=200)
+
+class PublishedPapersDeleteView(APIView):
+
+    def delete(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        data = request.data
+        try:
+            paper = user.user_profile.published_papers.get(id=data['id'])
+            paper.is_deleted = True
+            paper.save()
+            return Response(data={"message": "Record Deleted Successfully."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
 
 class ApplicantAppliedJobListView(APIView):
 
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
         user = User.objects.get(user_id=id)
-        if UserJobPositions.objects.filter(user=user).count() >0:
-            user_job_positions = UserJobPositions.objects.filter(user=user)
+        if UserJobPositions.objects.filter(user=user,is_deleted=False).count() >0:
+            user_job_positions = UserJobPositions.objects.filter(user=user,is_deleted=False)
             serializer = ApplicantJobPositionsSerializer(user_job_positions, many=True)
             return Response(serializer.data, status=200)
         else:
@@ -709,3 +808,66 @@ class ApplicantProfilePercentageView(APIView):
             return Response(data={"percentage": percentage}, status=200)
         except:
             return Response(data={"messsege": "UserProfile not found"}, status=401)
+
+class ProfessionalTrainingListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        try:
+            if user.user_profile.professional_trainings.filter(is_deleted=False).count() > 0:
+                professional_trainings = user.user_profile.professional_trainings.filter(is_deleted=False)
+                serializer = ProfessionalTrainingSerializer(professional_trainings, many=True)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"messege": "Professional Trainings not found", "isEmpty": "true"}, status=200)
+        except:
+            return Response(data={"messege": "Professional Trainings not found", "isEmpty": "true"}, status=200)
+
+class ProfessionalTrainingUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        professional_trainings = user.user_profile.professional_trainings.filter(is_deleted=False)
+        for professional_training_data in data:
+            professional_training = user.user_profile.professional_trainings.get(id=professional_training_data['id'])
+            serializer = ProfessionalTrainingSerializer(professional_training, data=professional_training_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.update(instance=professional_training, validated_data=professional_training_data)
+        serializer = ProfessionalTrainingSerializer(professional_trainings, many=True)
+        return Response(serializer.data, status=200)
+
+
+class ProfessionalTrainingCreateView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        for professional_training_data in data:
+            serializer = ProfessionalTrainingSerializer(data=professional_training_data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=professional_training_data)
+            professional_training = ProfessionalTraining.objects.get(id=result)
+            user.user_profile.professional_trainings.add(professional_training)
+            user.user_profile.save()
+        professional_trainings = user.user_profile.professional_trainings.filter(is_deleted=False)
+        serializer = ProfessionalTrainingSerializer(professional_trainings, many=True)
+        return Response(serializer.data, status=200)
+
+class ProfessionalTrainingDeleteView(APIView):
+
+    def delete(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        data = request.data
+        try:
+            professional_training = user.user_profile.professional_trainings.get(id=data['id'])
+            professional_training.is_deleted = True
+            professional_training.save()
+            return Response(data={"message": "Record Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
