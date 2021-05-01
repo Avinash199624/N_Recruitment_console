@@ -617,6 +617,10 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         method_name="get_first_name", read_only=True
     )
 
+    nationality = serializers.SerializerMethodField(
+        method_name="get_nationality", read_only=True
+    )
+
     class Meta:
         model = UserProfile
         fields = (
@@ -640,6 +644,7 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             "passport_number",
             "passport_expiry",
             "fax_number",
+            "nationality",
             "is_indian_citizen",
             "profile_photo",
             "whatsapp_id",
@@ -821,6 +826,13 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         except:
             return None
 
+    def get_nationality(self,obj):
+        try:
+            nationality = obj.nationality
+            return nationality
+        except:
+            return None
+
     def update(self, instance, validated_data):
 
         instance.status = (
@@ -889,6 +901,10 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
 
         instance.is_indian_citizen = (
             validated_data["is_indian_citizen"] if validated_data["is_indian_citizen"] else instance.is_indian_citizen
+        )
+
+        instance.nationality = (
+            validated_data["nationality"] if validated_data["nationality"] else instance.nationality
         )
 
         instance.user.first_name = (
@@ -1116,6 +1132,7 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             is_indian_citizen = validated_data['is_indian_citizen'] if 'is_indian_citizen' in validated_data else None,
             whatsapp_id = validated_data['whatsapp_id'] if 'whatsapp_id' in validated_data else None,
             skype_id = validated_data['skype_id'] if 'skype_id' in validated_data else None,
+            nationality = validated_data['nationality'] if 'nationality' in validated_data else None,
             # local_address = local_address if local_address else None,
             # permanent_address = permanent_address if local_address else None,
             # father_address = father_address if local_address else None,

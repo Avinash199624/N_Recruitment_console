@@ -1,10 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from job_posting.models import Department,Division,ZonalLab,QualificationMaster,PositionMaster,\
-    PositionQualificationMapping,JobPostingRequirement,JobTemplate,JobPosting
+    PositionQualificationMapping,JobPostingRequirement,JobTemplate,JobPosting,SelectionProcessContent,\
+    ServiceConditions
 from job_posting.serializer import DepartmentSerializer,DivisionSerializer,ZonalLabSerializer,\
     PositionMasterSerializer,QualificationMasterSerializer,ProjectApprovalListSerializer,\
-    PositionQualificationMappingSerializer,JobTemplateSerializer,JobPostingSerializer
+    PositionQualificationMappingSerializer,JobTemplateSerializer,JobPostingSerializer,SelectionProcessContentSerializer,\
+    ServiceConditionsSerializer
 
 from django.http import JsonResponse
 from rest_framework import status
@@ -158,3 +160,52 @@ class JobTemplateCreateView(APIView):
             serializer.is_valid(raise_exception=True)
             serializer.save(validated_data=template_data)
         return Response(data={"messege": "Template Saved Successfully"}, status=200)
+
+class JobPostingCreateView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        serializer = JobPostingSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save(validated_data=data)
+        job_posting = JobPosting.objects.get(job_posting_id = result)
+        serializer = JobPostingSerializer(job_posting)
+        return Response(serializer.data,status=200)
+
+class JobPostingUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        data = self.request.data
+        job_posting_id = self.kwargs['id']
+        job_posting = JobPosting.objects.get(job_posting_id = job_posting_id)
+        serializer = JobPostingSerializer(job_posting,data=data)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.update(job_posting,validated_data=data)
+        job_posting = JobPosting.objects.get(job_posting_id = result)
+        serializer = JobPostingSerializer(job_posting)
+        return Response(serializer.data,status=200)
+
+class GetSelectionContent(APIView):
+
+    def get(self, request, *args, **kwargs):
+        # position_name_list = []
+        # #Imagine you will get list of selected positions(Position_names) for the job
+        # queryset = SelectionProcessContent.objects.none()
+        # for i in position_name_list:
+        #     if SelectionProcessContent.objects.filter(description__icontains=i):
+        #         queryset |= SelectionProcessContent.objects.filter(description__icontains=i)
+        #
+        # serializer = SelectionProcessContentSerializer(queryset,many=True)
+
+        # For now sending all records
+        process_content = SelectionProcessContent.objects.filter()
+        serializer = SelectionProcessContentSerializer(process_content, many=True)
+        return Response(serializer.data,status=200)
+
+
+class GetServiceConditions(APIView):
+
+    def get(self, request, *args, **kwargs):
+        conditions = ServiceConditions.objects.filter()
+        serializer = ServiceConditionsSerializer(conditions,many=True)
+        return Response(serializer.data,status=200)

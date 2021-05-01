@@ -132,10 +132,10 @@ class JobPosting(BaseModel):
 
     STATUS_CHOICES = [
         (DRAFT, 'Draft'),
-        (READY_TO_BE_PUBLISHED, 'Accepted'),
+        (READY_TO_BE_PUBLISHED, 'Ready To Be Published'),
         (PUBLISHED, 'Published'),
         (SUSPENDED, 'Suspended'),
-        (CANCELLED, 'Other'),
+        (CANCELLED, 'Cancelled'),
         (CLOSED, 'Closed'),
     ]
 
@@ -228,4 +228,22 @@ class JobPostingRequirement(models.Model):
 
 class SelectionProcessContent(models.Model):
 
-    pass
+    description = models.CharField(max_length=200,null=True,blank=True)
+    selection_committee = models.ManyToManyField('SelectionCommitteeMaster',blank=True,related_name="selection_committee")
+
+    def __str__(self):
+        return self.description
+
+class SelectionCommitteeMaster(models.Model):
+
+    committee_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    committee_name = models.CharField(max_length=200,null=True,blank=True)
+
+    def __str__(self):
+        return self.committee_name
+
+class ServiceConditions(models.Model):
+
+    title = models.CharField(max_length=200,null=True,blank=True)
+    descriprtion = models.TextField(null=True,blank=True)
+

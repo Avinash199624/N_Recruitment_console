@@ -2,7 +2,20 @@ from django.contrib import admin
 from django.contrib.admin import register
 from job_posting.models import Department,Division,ZonalLab,PositionMaster,QualificationMaster,\
     PositionQualificationMapping,JobPosting,JobTemplate,UserJobPositions,JobPostingRequirement,\
-    JobPostingRequirementPositions,JobDocuments
+    JobPostingRequirementPositions,JobDocuments,SelectionCommitteeMaster,SelectionProcessContent,\
+    ServiceConditions
+
+@register(ServiceConditions)
+class ServiceConditionsAdmin(admin.ModelAdmin):
+    list_display = ['title','descriprtion']
+
+@register(SelectionCommitteeMaster)
+class SelectionCommitteeMasterAdmin(admin.ModelAdmin):
+    list_display = ['committee_id','committee_name']
+
+@register(SelectionProcessContent)
+class SelectionProcessContentAdmin(admin.ModelAdmin):
+    list_display = ['description']
 
 @register(Department)
 class DepartmentAdmin(admin.ModelAdmin):

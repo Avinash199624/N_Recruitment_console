@@ -15,7 +15,7 @@ class BaseModel(models.Model):
 
     created_by = models.CharField(max_length=50, null=True, blank=True,help_text="username")
     updated_by = models.CharField(max_length=25, null=True, blank=True,help_text="username")
-    created_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(null=True, blank=True,auto_now_add=True)
     updated_at = models.DateTimeField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False, help_text="Used for Soft Delete")
 
@@ -122,6 +122,7 @@ class UserProfile(BaseModel):
     is_indian_citizen = models.BooleanField(blank=True, null=True, default=True)
     whatsapp_id = models.CharField(max_length=50, null=True, blank=True)
     skype_id = models.CharField(max_length=50, null=True, blank=True)
+    nationality = models.CharField(max_length=50, null=True, blank=True)
     roles = models.ManyToManyField('user.RoleMaster', blank=True, null=True, related_name="user_roles")
     neeri_relation = models.ManyToManyField('NeeriRelation',blank=True,related_name="neeri_relations")
     documents = models.ManyToManyField('user.UserDocuments', blank=True, null=True, related_name="documents")

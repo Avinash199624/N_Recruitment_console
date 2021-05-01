@@ -1,7 +1,8 @@
 from job_posting.models import UserJobPositions, QualificationMaster, PositionMaster
 from rest_framework import serializers
-from job_posting.models import UserJobPositions,Department,Division,ZonalLab,QualificationMaster,PositionMaster,\
-    PositionQualificationMapping,JobPostingRequirement,JobTemplate,JobDocuments,JobPosting
+from job_posting.models import UserJobPositions,Department,Division,ZonalLab,QualificationMaster,\
+    PositionMaster,PositionQualificationMapping,JobPostingRequirement,JobTemplate,JobDocuments,\
+    JobPosting,SelectionProcessContent,SelectionCommitteeMaster,ServiceConditions
 from document.serializer import DocumentMasterSerializer
 from document.models import DocumentMaster
 
@@ -239,6 +240,10 @@ class JobPostingSerializer(serializers.ModelSerializer):
         method_name='get_documents_uploaded',required=False
     )
 
+    project_number = serializers.SerializerMethodField(
+        method_name='get_project_number',required=False
+    )
+
     class Meta:
         model = JobPosting
         fields = (
@@ -274,6 +279,9 @@ class JobPostingSerializer(serializers.ModelSerializer):
         zonal_lab = obj.zonal_lab
         serializer = ZonalLabSerializer(zonal_lab)
         return serializer.data
+
+    def get_project_number(self,obj):
+        return obj.project_number.project_number
 
     def get_manpower_positions(self,obj):
         positions = obj.manpower_positions.filter()
@@ -324,6 +332,32 @@ class JobPostingSerializer(serializers.ModelSerializer):
         instance.job_type = (
             validated_data["job_type"] if validated_data["job_type"] else instance.job_type
         )
+
+        department = Department.objects.get(dept_id=validated_data['department']['dept_id'])
+        division = Division.objects.get(division_id=validated_data['division']['division_id'])
+        zonal_lab = ZonalLab.objects.get(zonal_lab_id=validated_data['zonal_lab']['zonal_lab_id'])
+        project_number = JobPostingRequirement.objects.get(project_number__icontains=validated_data['project_number'])
+
+        if instance.department == department:
+            pass
+        else:
+            instance.department = department
+
+        if instance.division == division:
+            pass
+        else:
+            instance.division = division
+
+        if instance.zonal_lab == zonal_lab:
+            pass
+        else:
+            instance.zonal_lab = zonal_lab
+
+        if instance.project_number == project_number:
+            pass
+        else:
+            instance.project_number = project_number
+
         instance.save()
 
         return instance.job_posting_id
@@ -360,3 +394,41 @@ class JobPostingSerializer(serializers.ModelSerializer):
         posting.save()
 
         return posting.job_posting_id
+
+class SelectionCommitteeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SelectionCommitteeMaster
+        fields = (
+            "committee_id",
+            "committee_name",
+        )
+
+
+class SelectionProcessContentSerializer(serializers.ModelSerializer):
+
+    selection_committee = serializers.SerializerMethodField(
+        method_name='get_selection_committee',required=False
+    )
+
+    class Meta:
+        model = SelectionProcessContent
+        fields = (
+            "description",
+            "selection_committee",
+        )
+
+    def get_selection_committee(self,obj):
+        selection_committee = obj.selection_committee
+        serializer = SelectionCommitteeSerializer(selection_committee,many=True)
+        return serializer.data
+
+class ServiceConditionsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ServiceConditions
+        fields = (
+            "id",
+            "title",
+            "descriprtion",
+        )
