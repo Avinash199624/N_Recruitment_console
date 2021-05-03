@@ -1,3 +1,4 @@
+from django.contrib import auth
 from django.db import models
 
 from django.contrib.auth.models import AbstractUser,PermissionsMixin
@@ -22,25 +23,85 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
 
+class CustomUserManager(BaseUserManager):
+    use_in_migrations = True
+
+    def _create_user(self, mobile_no, email, password, **extra_fields):
+        """
+        Create and save a user with the given mobile_no, email, and password.
+        """
+        if not email:
+            raise ValueError('The given email must be set')
+        email = self.normalize_email(email)
+        user = self.model(mobile_no=mobile_no, email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_user(self, mobile_no, email=None, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(mobile_no, email, password, **extra_fields)
+
+    def create_superuser(self, mobile_no, email=None, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self._create_user(mobile_no, email, password, **extra_fields)
+
+    def with_perm(self, perm, is_active=True, include_superusers=True, backend=None, obj=None):
+        if backend is None:
+            backends = auth._get_backends(return_tuples=True)
+            if len(backends) == 1:
+                backend, _ = backends[0]
+            else:
+                raise ValueError(
+                    'You have multiple authentication backends configured and '
+                    'therefore must provide the `backend` argument.'
+                )
+        elif not isinstance(backend, str):
+            raise TypeError(
+                'backend must be a dotted import path string (got %r).'
+                % backend
+            )
+        else:
+            backend = auth.load_backend(backend)
+        if hasattr(backend, 'with_perm'):
+            return backend.with_perm(
+                perm,
+                is_active=is_active,
+                include_superusers=include_superusers,
+                obj=obj,
+            )
+        return self.none()
+
+
 class User(AbstractUser,BaseModel):
 
-    REQUIRED_FIELDS = ["username"]
+    REQUIRED_FIELDS = ["mobile_no"]
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # Limiting the username input to accept only digits, ".", "-" and "_"
-    username = models.CharField(
-        _("username"),
-        max_length=25,
-        help_text=_(
-            "Required. Between 5 and 25 characters. "
-            "May only contain letters, digits, - (hyphen) and _ (underscore)."
-        ),
-        validators=[
-            UsernameValidator(),
-            MinLengthValidator(5, "Minimum 5 characters."),
-        ],
-        blank=True,
-        unique=True
-    )
+    username = models.CharField(max_length=30,blank=True,null=True)
+    # models.CharField(
+    #     _("username"),
+    #     max_length=25,
+    #     help_text=_(
+    #         "Required. Between 5 and 25 characters. "
+    #         "May only contain letters, digits, - (hyphen) and _ (underscore)."
+    #     ),
+    #     validators=[
+    #         UsernameValidator(),
+    #         MinLengthValidator(5, "Minimum 5 characters."),
+    #     ],
+    #     blank=True,
+    #     unique=True
+    # )
+    mobile_no = models.CharField(max_length=10,unique=True,)
     email = models.EmailField(unique=True, validators=[EmailValidator()])
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     middle_name = models.CharField(max_length=30,blank=True,null=True)
@@ -50,8 +111,10 @@ class User(AbstractUser,BaseModel):
         verbose_name = 'user'
         verbose_name_plural = 'users'
 
-    def __str__(self):
-        return self.get_username()
+    # def __str__(self):
+    #     return self.username
+
+    objects = CustomUserManager()
 
     def get_email(self):
         email_field_name = self.get_email_field_name()

@@ -76,20 +76,21 @@ class LogoutView(KnoxLogoutView):
         logout(request)
         return Response(data = {"messege":"Logged out successfully"}, status=200)
 
+
 class UserRegistartionView(APIView):
     permission_classes = [AllowAny, ]
 
     def post(self,request,*args,**kwargs):
-        username = self.request.data['fullname']
+        mobile_no = self.request.data['mobile_no']
         email = self.request.data['email']
         password = self.request.data['password']
         role = RoleMaster.objects.get(role_name__exact='applicant')
         if User.objects.filter(email=email).exists():
             return JsonResponse(data={"messege":"User Already Exist"},status=200)
-        elif User.objects.filter(username=username).exists():
-            return JsonResponse(data={"messege": "User Already Exist"}, status=200)
+        elif User.objects.filter(mobile_no=mobile_no).exists():
+            return JsonResponse(data={"messege": "Mobile Number Already Exist"}, status=200)
         else:
-            user = User.objects.create_user(username, email, password)
+            user = User.objects.create_user(mobile_no, email, password)
             UserRoles.objects.create(role=role,user=user)
             serializer = UserSerializer(user)
             return JsonResponse(data=serializer.data, status=200, safe=False)
@@ -110,14 +111,14 @@ class RetrievetUserView(APIView):
 class CreateUserView(APIView):
     def post(self, request, *args, **kwargs):
         data = self.request.data
-        username = data['username']
+        mobile_no = data['mobile_no']
         email = data['email']
         if User.objects.filter(email=email).exists():
-            return JsonResponse(data={"messege":"User Already Exist"},status=200)
-        elif User.objects.filter(username=username).exists():
+            return JsonResponse(data={"messege": "User Already Exist"},status=200)
+        elif User.objects.filter(mobile_no=mobile_no).exists():
             return JsonResponse(data={"messege": "User Already Exist"}, status=200)
         else:
-            user = User.objects.create_user(username=username,email=email)
+            user = User.objects.create_user(mobile_no=mobile_no,email=email)
             serializer = CustomUserSerializer(user,data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save(instance=user,validated_data=data)

@@ -155,7 +155,6 @@ class UserPermissionSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-
     user_profile = UserProfileSerializer(required=False)
     user_roles = serializers.SerializerMethodField(
         method_name="get_user_roles", read_only=True
@@ -167,21 +166,21 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
 
-        profile_names = ("user_profile","user_roles","user_permissions")
+        profile_names = ("user_profile", "user_roles", "user_permissions")
 
         fields = (
-                    "user_id",
+                     "user_id",
                      "username",
                      "email",
+                     "mobile_no",
                      "created_at",
                      "is_deleted",
                      "user_roles",
                  ) + profile_names
 
-
-    def get_user_roles(self,obj):
+    def get_user_roles(self, obj):
         user_roles = UserRoles.objects.filter(user=obj)
-        serializer = UserRolesSerializer(user_roles,many=True)
+        serializer = UserRolesSerializer(user_roles, many=True)
         return serializer.data
 
     def get_user_permissions(self, obj):
