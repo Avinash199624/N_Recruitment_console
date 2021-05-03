@@ -101,7 +101,7 @@ class User(AbstractUser,BaseModel):
     #     blank=True,
     #     unique=True
     # )
-    mobile_no = models.CharField(max_length=10,unique=True,)
+    mobile_no = models.CharField(max_length=10,unique=True,null=True)
     email = models.EmailField(unique=True, validators=[EmailValidator()])
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     middle_name = models.CharField(max_length=30,blank=True,null=True)
