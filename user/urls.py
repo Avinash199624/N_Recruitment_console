@@ -14,7 +14,7 @@ from user.views import LoginView,LogoutView,UserListView,RetrievetUserView,Updat
     ApplicantProfilePercentageView,ProfessionalTrainingListView,ProfessionalTrainingCreateView,\
     ProfessionalTrainingUpdateView,ProfessionalTrainingDeleteView,ApplicantExperienceDeleteView,\
     ApplicantLanguagesDeleteView,ApplicantQualificationDeleteView,ApplicantReferencesDeleteView,NeeriRelationDeleteView,\
-    OverseasVisitsDeleteView,PublishedPapersDeleteView
+    OverseasVisitsDeleteView,PublishedPapersDeleteView,FileUpload
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
@@ -79,4 +79,5 @@ urlpatterns = [
     path('public/professional_training_create/<uuid:id>/', ProfessionalTrainingCreateView.as_view(), name="create-professional-training"),
     path('public/professional_training_update/<uuid:id>/', ProfessionalTrainingUpdateView.as_view(), name="update-professional-training"),
     path('public/professional_training_delete/<uuid:id>/', ProfessionalTrainingDeleteView.as_view(), name="update-professional-training"),
+    path('public/file_upload/',FileUpload.as_view(), name="file_upload"),
 ]

@@ -6,8 +6,8 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
 from user.models import User,RoleMaster,UserRoles,UserProfile,Location,UserEducationDetails,UserExperienceDetails,\
-    UserLanguages,UserReference,NeeriRelation,OverseasVisits,PublishedPapers,ProfessionalTraining
-from job_posting.models import UserJobPositions
+    UserLanguages,UserReference,NeeriRelation,OverseasVisits,PublishedPapers,ProfessionalTraining,UserDocuments
+from job_posting.models import UserJobPositions, JobDocuments, JobPosting,SelectionProcessContent
 from user.serializer import UserSerializer,AuthTokenCustomSerializer,UserProfileSerializer,UserRolesSerializer,\
     CustomUserSerializer,ApplicantUserPersonalInformationSerializer,LocationSerializer,\
     UserEducationDetailsSerializer,UserExperienceDetailsSerializer,NeeriRelationSerializer,\
@@ -22,6 +22,10 @@ from django.contrib.auth import login, logout
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
 from knox.views import LogoutView as KnoxLogoutView
+import os
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
 
 class LoginResponseViewMixin:
 
@@ -870,4 +874,46 @@ class ProfessionalTrainingDeleteView(APIView):
             return Response(data={"message": "Record Deleted Successfully(Soft Delete)."}, status=200)
         except:
             return Response(data={"message": "Details Not Found."}, status=401)
+
+class FileUpload(APIView):
+
+    def post(self, request, *args, **kwargs):
+        # id = self.kwargs['id']
+        # data = self.request.data
+        if 'file' not in request.data:
+            Response(data={"messege": "No file Found"}, status=200)
+        file = request.data['file']
+        doc_type = self.request.GET['doc_type']
+        print(doc_type)
+        if doc_type == 'profile_photo':
+            user = User.objects.get(user_id=self.request.GET['user_id'])
+            if file.name.endswith('jpg') or file.name.endswith('png') or file.name.endswith('jpeg') or \
+                file.name.endswith('JPG') or file.name.endswith('PNG') or file.name.endswith('JPEG'):
+                default_storage.save(settings.MEDIA_ROOT + '/applicant_documents/' + str(user.user_id) + '/' + 'profile.' + file.name.split('.')[1], ContentFile(file.read()))
+                filename = 'profile.' + file.name.split('.')[1]
+                temp_path = settings.BASE_URL + settings.MEDIA_URL + 'applicant_documents/' + str(user.user_id) + '/' + filename
+                doc = UserDocuments.objects.create(doc_file_path=temp_path, doc_name=filename)
+                user.user_profile.documents.add(doc)
+                user.user_profile.profile_photo = temp_path
+                user.user_profile.save()
+            else:
+                    return Response(data={"messege":"Enter file of type jpg,jpeg and png."},status=200)
+
+        elif doc_type == 'paper_attachment':
+            user = User.objects.get(user_id=self.request.GET['user_id'])
+            default_storage.save(
+                settings.MEDIA_ROOT + '/applicant_documents/' + str(user.user_id) + '/' + file.name,
+                ContentFile(file.read()))
+            temp_path = settings.BASE_URL + settings.MEDIA_URL + 'applicant_documents/' + str(user.user_id) + '/' + file.name
+            doc = UserDocuments.objects.create(doc_file_path=temp_path, doc_name=file.name)
+
+        elif doc_type == 'office_memo':
+            job_posting_id = str(self.request.GET['job_posting_id'])
+            job_posting = JobPosting.objects.get(job_posting_id=job_posting_id)
+            default_storage.save(settings.MEDIA_ROOT + '/job_posting_documents/' + str(job_posting.job_posting_id) + '/' + file.name, ContentFile(file.read()))
+            temp_path = settings.BASE_URL + settings.MEDIA_URL + 'job_posting_documents/' + str(job_posting.job_posting_id) + '/' + file.name
+            doc = JobDocuments.objects.create(doc_file_path = temp_path,doc_name = file.name)
+            job_posting.office_memorandum = doc
+            job_posting.save()
+        return Response(data={"messege": "File uploaded successfully","doc_file_path":doc.doc_file_path,"doc_name":doc.doc_name}, status=200)
 

@@ -1520,11 +1520,15 @@ class PublishedPapersSerializer(serializers.ModelSerializer):
             paper_title = validated_data['paper_title'] if 'paper_title' in validated_data else None,
         )
 
+        # for attachment_data in validated_data['attachments']:
+        #     attachment = UserDocuments.objects.create(
+        #         # doc_file_path = attachment_data['doc_file_path'],
+        #         doc_name = attachment_data['doc_name'],
+        #     )
+        #     paper.attachments.add(attachment)
+
         for attachment_data in validated_data['attachments']:
-            attachment = UserDocuments.objects.create(
-                # doc_file_path = attachment_data['doc_file_path'],
-                doc_name = attachment_data['doc_name'],
-            )
+            attachment = UserDocuments.objects.get(doc_file_path__exact = attachment_data['doc_file_path'])
             paper.attachments.add(attachment)
 
         user_profile.published_papers.add(paper)
