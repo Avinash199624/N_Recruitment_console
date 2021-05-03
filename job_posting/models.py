@@ -199,7 +199,7 @@ class UserJobPositions(BaseModel):
     def __str__(self):
         return self.user.email
 
-class JobPostingRequirementPositions(models.Model):
+class JobPostingRequirementPositions(BaseModel):
 
     position = models.ForeignKey('PositionMaster',on_delete=models.SET_NULL, null=True, blank=True)
     job_posting_requirement = models.ForeignKey('JobPostingRequirement',on_delete=models.SET_NULL, null=True, blank=True)
@@ -208,7 +208,7 @@ class JobPostingRequirementPositions(models.Model):
     def __str__(self):
         return self.position.position_name
 
-class JobPostingRequirement(models.Model):
+class JobPostingRequirement(BaseModel):
 
     division_name = models.ForeignKey('Division',on_delete=models.SET_NULL, null=True, blank=True,related_name="job_posting_requirement_division")
     zonal_lab = models.ForeignKey('ZonalLab',on_delete=models.SET_NULL, null=True, blank=True,related_name="job_posting_requirement_zonal_lab")
@@ -226,7 +226,7 @@ class JobPostingRequirement(models.Model):
     def __str__(self):
         return self.project_number
 
-class SelectionProcessContent(models.Model):
+class SelectionProcessContent(BaseModel):
 
     description = models.CharField(max_length=200,null=True,blank=True)
     selection_committee = models.ManyToManyField('SelectionCommitteeMaster',blank=True,related_name="selection_committee")
@@ -234,7 +234,7 @@ class SelectionProcessContent(models.Model):
     def __str__(self):
         return self.description
 
-class SelectionCommitteeMaster(models.Model):
+class SelectionCommitteeMaster(BaseModel):
 
     committee_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     committee_name = models.CharField(max_length=200,null=True,blank=True)
@@ -242,7 +242,7 @@ class SelectionCommitteeMaster(models.Model):
     def __str__(self):
         return self.committee_name
 
-class ServiceConditions(models.Model):
+class ServiceConditions(BaseModel):
 
     title = models.CharField(max_length=200,null=True,blank=True)
     descriprtion = models.TextField(null=True,blank=True)
