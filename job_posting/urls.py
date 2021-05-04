@@ -4,7 +4,8 @@ from job_posting.views import DepartmentListView,DivisionListView,ZonalLabListVi
     RetrieveQualificationMasterView, CreateQualificationMasterView, \
     UpdateQualificationMasterView, DeleteQualificationMasterView, \
     RetrievePositionMasterView, DeletePositionMasterView, UpdatePositionMasterView, CreatePositionMasterView, \
-    QualificationMasterListView, PositionMasterListView,JobPostingCreateView,JobPostingUpdateView,GetSelectionContent,GetServiceConditions
+    QualificationMasterListView, PositionMasterListView,JobPostingCreateView,JobPostingUpdateView,GetSelectionContent,GetServiceConditions,\
+    ApplicantListByJobPositions
 
 urlpatterns = [
     #     QualificationMaster
@@ -34,4 +35,5 @@ urlpatterns = [
     path('service_conditions/', GetServiceConditions.as_view(), name="get-service-conditions"),
     path('job_posting_create/', JobPostingCreateView.as_view(), name="job-posting-create"),
     path('job_posting_update/<uuid:id>/', JobPostingUpdateView.as_view(), name="job-posting-update"),
+    path('applicant_list_by_job/', ApplicantListByJobPositions.as_view(), name="jobwise-applicant-list"),
 ]

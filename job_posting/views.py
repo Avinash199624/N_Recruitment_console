@@ -2,11 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from job_posting.models import Department,Division,ZonalLab,QualificationMaster,PositionMaster,\
     PositionQualificationMapping,JobPostingRequirement,JobTemplate,JobPosting,SelectionProcessContent,\
-    ServiceConditions
+    ServiceConditions,UserJobPositions
 from job_posting.serializer import DepartmentSerializer,DivisionSerializer,ZonalLabSerializer,\
     PositionMasterSerializer,QualificationMasterSerializer,ProjectApprovalListSerializer,\
     PositionQualificationMappingSerializer,JobTemplateSerializer,JobPostingSerializer,SelectionProcessContentSerializer,\
-    ServiceConditionsSerializer
+    ServiceConditionsSerializer,UserJobPositionsSerializer
 
 from django.http import JsonResponse
 from rest_framework import status
@@ -209,3 +209,19 @@ class GetServiceConditions(APIView):
         conditions = ServiceConditions.objects.filter()
         serializer = ServiceConditionsSerializer(conditions,many=True)
         return Response(serializer.data,status=200)
+
+class ApplicantListByJobPositions(APIView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            if self.request.GET['job_posting_id'] == 'all':
+                applicants = UserJobPositions.objects.filter()
+                serializer = UserJobPositionsSerializer(applicants, many=True)
+                return Response(serializer.data, status=200)
+            else:
+                job_posting_id = self.request.GET['job_posting_id']
+                applicants = UserJobPositions.objects.filter(job_posting__job_posting_id=job_posting_id)
+                serializer = UserJobPositionsSerializer(applicants,many=True)
+                return Response(serializer.data,status=200)
+        except:
+            return Response(data={"messege":"No Record Found."},status=200)

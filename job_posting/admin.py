@@ -52,7 +52,7 @@ class JobTemplateAdmin(admin.ModelAdmin):
 
 @register(JobPosting)
 class JobPostingAdmin(admin.ModelAdmin):
-    list_display = ['notification_id','notification_title','description','project_number','department','division',
+    list_display = ['job_posting_id','notification_id','notification_title','description','project_number','department','division',
                     'zonal_lab','publication_date','end_date','status']
 
 

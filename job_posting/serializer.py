@@ -432,3 +432,61 @@ class ServiceConditionsSerializer(serializers.ModelSerializer):
             "title",
             "descriprtion",
         )
+
+class UserJobPositionsSerializer(serializers.ModelSerializer):
+
+    name = serializers.SerializerMethodField(
+        method_name='get_name', required=False
+    )
+
+    department = serializers.SerializerMethodField(
+        method_name='get_department', required=False
+    )
+
+    status = serializers.SerializerMethodField(
+        method_name='get_status', required=False
+    )
+
+    position = serializers.SerializerMethodField(
+        method_name='get_position', required=False
+    )
+    date_applied = serializers.SerializerMethodField(
+        method_name='get_date_applied', required=False
+    )
+
+    contact = serializers.SerializerMethodField(
+        method_name='get_contact', required=False
+    )
+
+
+    class Meta:
+        model = UserJobPositions
+        fields = (
+            "name",
+            "department",
+            "status",
+            "position",
+            "date_applied",
+            "contact",
+        )
+
+    def get_name(self,obj):
+        first_name = obj.user.first_name if obj.user.first_name else None
+        middle_name = obj.user.middle_name if obj.user.middle_name else None
+        last_name = obj.user.last_name if obj.user.last_name else None
+        return first_name + ' ' + middle_name + ' ' + last_name
+
+    def get_department(self, obj):
+        return obj.job_posting.department.dept_name
+
+    def get_status(self, obj):
+        return obj.applied_job_status
+
+    def get_position(self, obj):
+        return obj.position.position.position_name
+
+    def get_date_applied(self,obj):
+        return obj.date_of_application
+
+    def get_contact(self,obj):
+        return obj.user.mobile_no
