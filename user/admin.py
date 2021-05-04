@@ -2,9 +2,13 @@ from django.contrib import admin
 from django.contrib.admin import register
 from user.models import User,UserProfile,RoleMaster,UserRoles,Location,PermissionMaster,\
     UserPermissions,NeeriUserProfile,NeeriRelation,UserEducationDetails,UserExperienceDetails,\
-    UserDocuments,UserLanguages,UserReference,OverseasVisits,PublishedPapers,ProfessionalTraining
+    UserDocuments,UserLanguages,UserReference,OverseasVisits,PublishedPapers,ProfessionalTraining,OtherInformation
 
 # Register your models here.
+@register(OtherInformation)
+class OtherInformationAdmin(admin.ModelAdmin):
+    list_display = ['bond_title','organisation_name','bond_start_date','bond_end_date','notice_period_min','notice_period_max']
+
 
 @register(UserEducationDetails)
 class UserEducationDetailsAdmin(admin.ModelAdmin):

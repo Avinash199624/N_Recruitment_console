@@ -196,6 +196,7 @@ class UserProfile(BaseModel):
     languages = models.ManyToManyField('user.UserLanguages', blank=True, null=True, related_name="languages")
     published_papers = models.ManyToManyField('user.PublishedPapers', blank=True, null=True, related_name="published_papers")
     professional_trainings = models.ManyToManyField('user.ProfessionalTraining', blank=True, null=True, related_name="professional_tarinings")
+    other_info = models.OneToOneField('user.OtherInformation',on_delete=models.CASCADE,blank=True,null=True,related_name="other_info")
 
     @property
     def profile_percentage(self):
@@ -517,10 +518,16 @@ class ProfessionalTraining(BaseModel):
     def __str__(self):
         return self.title
 
-class OtherInfo(BaseModel):
-    bond_details = models.CharField(max_length=100, null=True, blank=True)
-    notice_period_min = models.CharField(max_length=30, null=True, blank=True)
-    notice_period_max = models.CharField(max_length=30, null=True, blank=True)
+class OtherInformation(BaseModel):
+
+    bond_title = models.CharField(max_length=100, null=True, blank=True)
+    bond_details = models.TextField(null=True,blank=True)
+    organisation_name = models.CharField(max_length=200, null=True, blank=True)
+    bond_start_date = models.DateField(null=True,blank=True)
+    bond_end_date = models.DateField(null=True,blank=True)
+    notice_period_min = models.IntegerField(null=True, blank=True,help_text="notice_period_min_in_days")
+    notice_period_max = models.IntegerField(null=True, blank=True,help_text="notice_period_max_in_days")
 
     def __str__(self):
-        return self.bond_details
+        return self.bond_title
+

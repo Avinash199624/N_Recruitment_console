@@ -6,13 +6,13 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
 from user.models import User,RoleMaster,UserRoles,UserProfile,Location,UserEducationDetails,UserExperienceDetails,\
-    UserLanguages,UserReference,NeeriRelation,OverseasVisits,PublishedPapers,ProfessionalTraining,UserDocuments
+    UserLanguages,UserReference,NeeriRelation,OverseasVisits,PublishedPapers,ProfessionalTraining,UserDocuments,OtherInformation
 from job_posting.models import UserJobPositions, JobDocuments, JobPosting,SelectionProcessContent
 from user.serializer import UserSerializer,AuthTokenCustomSerializer,UserProfileSerializer,UserRolesSerializer,\
     CustomUserSerializer,ApplicantUserPersonalInformationSerializer,LocationSerializer,\
     UserEducationDetailsSerializer,UserExperienceDetailsSerializer,NeeriRelationSerializer,\
     OverseasVisitsSerializer,LanguagesSerializer,ReferencesSerializer,PublishedPapersSerializer,\
-    ProfessionalTrainingSerializer
+    ProfessionalTrainingSerializer,UserProfilePreviewSerializer,OtherInformationSerializer
 from job_posting.serializer import ApplicantJobPositionsSerializer
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
@@ -916,5 +916,67 @@ class FileUpload(APIView):
             doc = JobDocuments.objects.create(doc_file_path = temp_path,doc_name = file.name)
             job_posting.office_memorandum = doc
             job_posting.save()
-        return Response(data={"messege": "File uploaded successfully","doc_file_path":doc.doc_file_path,"doc_name":doc.doc_name}, status=200)
+        return Response(data={"messege": "File uploaded successfully","doc_file_path":doc.doc_file_path,"doc_name":doc.doc_name,"doc_id":doc.doc_id}, status=200)
+
+class OtherInformationDetailView(APIView):
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        other_info = user.user_profile.other_info
+        serializer = OtherInformationSerializer(other_info)
+        return Response(serializer.data, status=200)
+
+class OtherInformationCreateView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        try:
+            if user.user_profile.other_info:
+                return Response(data={"messege":"OtherInformation Already Created"},status=200)
+        except:
+            serializer = OtherInformationSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=data)
+            other_info = OtherInformation.objects.get(id=result)
+            user.user_profile.other_info = other_info
+            user.user_profile.save()
+            serializer = OtherInformationSerializer(other_info)
+            return Response(serializer.data, status=200)
+
+class OtherInformationUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        other_info = user.user_profile.other_info
+        serializer = OtherInformationSerializer(other_info, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=other_info, validated_data=data)
+        serializer = OtherInformationSerializer(other_info)
+        return Response(serializer.data, status=200)
+
+class OtherInformationDeleteView(APIView):
+
+    def delete(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        data = request.data
+        try:
+            othet_info = user.user_profile.other_info
+            othet_info.is_deleted = True
+            othet_info.save()
+            return Response(data={"message": "Record Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
+class ProfileDetailView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        serializer = UserProfilePreviewSerializer(user.user_profile)
+        return Response(serializer.data, status=200)
 

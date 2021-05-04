@@ -14,7 +14,8 @@ from user.views import LoginView,LogoutView,UserListView,RetrievetUserView,Updat
     ApplicantProfilePercentageView,ProfessionalTrainingListView,ProfessionalTrainingCreateView,\
     ProfessionalTrainingUpdateView,ProfessionalTrainingDeleteView,ApplicantExperienceDeleteView,\
     ApplicantLanguagesDeleteView,ApplicantQualificationDeleteView,ApplicantReferencesDeleteView,NeeriRelationDeleteView,\
-    OverseasVisitsDeleteView,PublishedPapersDeleteView,FileUpload
+    OverseasVisitsDeleteView,PublishedPapersDeleteView,FileUpload,ProfileDetailView,OtherInformationDetailView,\
+    OtherInformationCreateView,OtherInformationUpdateView,OtherInformationDeleteView
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
@@ -79,5 +80,12 @@ urlpatterns = [
     path('public/professional_training_create/<uuid:id>/', ProfessionalTrainingCreateView.as_view(), name="create-professional-training"),
     path('public/professional_training_update/<uuid:id>/', ProfessionalTrainingUpdateView.as_view(), name="update-professional-training"),
     path('public/professional_training_delete/<uuid:id>/', ProfessionalTrainingDeleteView.as_view(), name="update-professional-training"),
+
+    path('public/other_info/<uuid:id>/', OtherInformationDetailView.as_view(), name="get-other-info"),
+    path('public/other_info_create/<uuid:id>/', OtherInformationCreateView.as_view(), name="create-other-info"),
+    path('public/other_info_update/<uuid:id>/', OtherInformationUpdateView.as_view(), name="update-other-info"),
+    path('public/other_info_delete/<uuid:id>/', OtherInformationDeleteView.as_view(), name="update-other-info"),
+
+    path('public/profile_details/<uuid:id>/', ProfileDetailView.as_view(), name="user-profile-details"),
     path('public/file_upload/',FileUpload.as_view(), name="file_upload"),
 ]

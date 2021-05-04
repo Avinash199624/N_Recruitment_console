@@ -1,6 +1,6 @@
 from user.models import User,UserProfile,Location,UserRoles,UserPermissions,RoleMaster,UserEducationDetails,\
     UserExperienceDetails,NeeriRelation,UserReference,OverseasVisits,UserLanguages,UserDocuments,\
-    PublishedPapers,ProfessionalTraining
+    PublishedPapers,ProfessionalTraining,OtherInformation
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
@@ -1527,7 +1527,7 @@ class PublishedPapersSerializer(serializers.ModelSerializer):
         #     paper.attachments.add(attachment)
 
         for attachment_data in validated_data['attachments']:
-            attachment = UserDocuments.objects.get(doc_file_path__exact = attachment_data['doc_file_path'])
+            attachment = UserDocuments.objects.get(doc_id = attachment_data['doc_id'])
             paper.attachments.add(attachment)
 
         user_profile.published_papers.add(paper)
@@ -1596,3 +1596,213 @@ class ProfessionalTrainingSerializer(serializers.ModelSerializer):
 
         instance.save()
 
+class OtherInformationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OtherInformation
+        fields = (
+            "id",
+            "bond_title",
+            "bond_details",
+            "organisation_name",
+            "bond_start_date",
+            "bond_end_date",
+            "notice_period_min",
+            "notice_period_max",
+        )
+
+    def save(self, validated_data):
+        other_info = OtherInformation.objects.create(
+            bond_title = validated_data['address1'] if 'address1' in validated_data else None,
+            bond_details = validated_data['address2'] if 'address2' in validated_data else None,
+            organisation_name = validated_data['address3'] if 'address3' in validated_data else None,
+            bond_start_date = validated_data['city'] if 'city' in validated_data else None,
+            bond_end_date=validated_data['postcode'] if 'postcode' in validated_data else None,
+            notice_period_min = validated_data['state'] if 'state' in validated_data else None,
+            notice_period_max = validated_data['country'] if 'country' in validated_data else None,
+        )
+        return other_info.id
+
+    def update(self, instance, validated_data):
+
+        instance.bond_title = (
+            validated_data["bond_title"] if validated_data["bond_title"] else instance.bond_title
+        )
+
+        instance.bond_details = (
+            validated_data["bond_details"] if validated_data["bond_details"] else instance.bond_details
+        )
+
+        instance.organisation_name = (
+            validated_data["organisation_name"] if validated_data["organisation_name"] else instance.organisation_name
+        )
+
+        instance.bond_start_date = (
+            validated_data["bond_start_date"] if validated_data["bond_start_date"] else instance.bond_start_date
+        )
+
+        instance.bond_end_date = (
+            validated_data["bond_end_date"] if validated_data["bond_end_date"] else instance.bond_end_date
+        )
+
+        instance.notice_period_min = (
+            validated_data["notice_period_min"] if validated_data["notice_period_min"] else instance.notice_period_min
+        )
+
+        instance.notice_period_max = (
+            validated_data["notice_period_max"] if validated_data["notice_period_max"] else instance.notice_period_max
+        )
+
+        instance.save()
+
+class UserProfilePreviewSerializer(serializers.ModelSerializer):
+
+    name_of_applicant = serializers.SerializerMethodField(
+        method_name="get_name_of_applicant", read_only=True
+    )
+
+    local_address = serializers.SerializerMethodField(
+        method_name="get_local_address", read_only=True
+    )
+
+    permanent_address = serializers.SerializerMethodField(
+        method_name="get_permanent_address", read_only=True
+    )
+
+    father_address = serializers.SerializerMethodField(
+        method_name="get_father_address", read_only=True
+    )
+
+    education_details = serializers.SerializerMethodField(
+        method_name="get_education_details", read_only=True
+    )
+
+    professional_trainings = serializers.SerializerMethodField(
+        method_name="get_professional_trainings", read_only=True
+    )
+
+    published_papers = serializers.SerializerMethodField(
+        method_name="get_published_papers", read_only=True
+    )
+
+    experiences = serializers.SerializerMethodField(
+        method_name="get_experiences", read_only=True
+    )
+
+    other_info = serializers.SerializerMethodField(
+        method_name="get_other_info", read_only=True
+    )
+
+    neeri_relation = serializers.SerializerMethodField(
+        method_name="get_neeri_relation", read_only=True
+    )
+
+    overseas_visits = serializers.SerializerMethodField(
+        method_name="get_overseas_visits", read_only=True
+    )
+
+    languages = serializers.SerializerMethodField(
+        method_name="get_languages", read_only=True
+    )
+
+    references = serializers.SerializerMethodField(
+        method_name="get_references", read_only=True
+    )
+
+
+
+    class Meta:
+        model = UserProfile
+        fields = (
+            "name_of_applicant",
+            "gender",
+            "profile_photo",
+            "local_address",
+            "permanent_address",
+            "date_of_birth",
+            "place_of_birth",
+            "is_indian_citizen",
+            "father_name",
+            "father_address",
+            "father_occupation",
+            "religion",
+            "caste",
+            "passport_number",
+            "passport_expiry",
+            "fax_number",
+            "whatsapp_id",
+            "skype_id",
+            "education_details",
+            "professional_trainings",
+            "published_papers",
+            "experiences",
+            "other_info",
+            "neeri_relation",
+            "overseas_visits",
+            "languages",
+            "references",
+        )
+
+    def get_name_of_applicant(self,obj):
+        name_of_applicant = obj.user.first_name + ' ' + obj.user.middle_name + ' ' + obj.user.last_name
+        return name_of_applicant
+
+    def get_local_address(self,obj):
+        local_address = obj.local_address
+        serializer = LocationSerializer(local_address)
+        return serializer.data
+
+    def get_permanent_address(self,obj):
+        permanent_address = obj.permanent_address
+        serializer = LocationSerializer(permanent_address)
+        return serializer.data
+
+    def get_father_address(self,obj):
+        father_address = obj.father_address
+        serializer = LocationSerializer(father_address)
+        return serializer.data
+
+    def get_education_details(self,obj):
+        education_details = obj.education_details.filter()
+        serializer = UserEducationDetailsSerializer(education_details,many=True)
+        return serializer.data
+
+    def get_professional_trainings(self,obj):
+        professional_trainings = obj.professional_trainings.filter()
+        serializer = ProfessionalTrainingSerializer(professional_trainings,many=True)
+        return serializer.data
+
+    def get_published_papers(self,obj):
+        published_papers = obj.published_papers.filter()
+        serializer = PublishedPapersSerializer(published_papers,many=True)
+        return serializer.data
+
+    def get_experiences(self,obj):
+        experiences = obj.experiences.filter()
+        serializer = UserExperienceDetailsSerializer(experiences,many=True)
+        return serializer.data
+
+    def get_other_info(self,obj):
+        othet_info = obj.other_info
+        serializer = OtherInformationSerializer(othet_info)
+        return serializer.data
+
+    def get_neeri_relation(self,obj):
+        neeri_relation = obj.neeri_relation.filter()
+        serializer = NeeriRelationSerializer(neeri_relation,many=True)
+        return serializer.data
+
+    def get_overseas_visits(self,obj):
+        overseas_visits = obj.overseas_visits.filter()
+        serializer = OverseasVisitsSerializer(overseas_visits,many=True)
+        return serializer.data
+
+    def get_languages(self,obj):
+        languages = obj.languages.filter()
+        serializer = LanguagesSerializer(languages,many=True)
+        return serializer.data
+
+    def get_references(self,obj):
+        references = obj.references.filter()
+        serializer = ReferencesSerializer(references,many=True)
+        return serializer.data
