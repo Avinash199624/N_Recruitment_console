@@ -295,7 +295,7 @@ class UserProfile(BaseModel):
         return str(total) + " %"
 
     def __str__(self):
-        return self.user.email
+        return self.user.username
 
 class NeeriUserProfile(BaseModel):
 
@@ -332,7 +332,7 @@ class NeeriUserProfile(BaseModel):
     roles = models.ManyToManyField('user.RoleMaster',blank=True,null=True,related_name="neeri_user_roles")
 
     def __str__(self):
-        return self.user.email
+        return self.user.username
 
 
 class Location(BaseModel):
@@ -375,7 +375,7 @@ class UserRoles(BaseModel):
                                    related_name="create_userrole")
 
     def __str__(self):
-        return ' '.join([self.user.email,self.role.role_name])
+        return ' '.join([self.user.username,self.role.role_name])
 
 
 class UserPermissions(BaseModel):
@@ -529,5 +529,5 @@ class OtherInformation(BaseModel):
     notice_period_max = models.IntegerField(null=True, blank=True,help_text="notice_period_max_in_days")
 
     def __str__(self):
-        return str(self.id)
+        return self.bond_title
 
