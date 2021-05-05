@@ -178,7 +178,7 @@ class UserProfile(BaseModel):
     father_occupation = models.CharField(max_length=30, null=True, blank=True)
     religion = models.CharField(max_length=30, null=True, blank=True)
     caste = models.CharField(max_length=30,choices=CASTE_CHOICES,null=True,blank=True)
-    passport_number = models.IntegerField(null=True,blank=True)
+    passport_number = models.CharField(max_length=8,null=True,blank=True)
     passport_expiry = models.DateField(null=True,blank=True)
     profile_photo = models.CharField(max_length=200, null=True, blank=True)
     fax_number = models.CharField(max_length=20, null=True, blank=True)
