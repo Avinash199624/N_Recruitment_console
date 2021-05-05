@@ -1613,13 +1613,13 @@ class OtherInformationSerializer(serializers.ModelSerializer):
 
     def save(self, validated_data):
         other_info = OtherInformation.objects.create(
-            bond_title = validated_data['address1'] if 'address1' in validated_data else None,
-            bond_details = validated_data['address2'] if 'address2' in validated_data else None,
-            organisation_name = validated_data['address3'] if 'address3' in validated_data else None,
-            bond_start_date = validated_data['city'] if 'city' in validated_data else None,
-            bond_end_date=validated_data['postcode'] if 'postcode' in validated_data else None,
-            notice_period_min = validated_data['state'] if 'state' in validated_data else None,
-            notice_period_max = validated_data['country'] if 'country' in validated_data else None,
+            bond_title = validated_data['bond_title'] if 'bond_title' in validated_data else None,
+            bond_details = validated_data['bond_details'] if 'bond_details' in validated_data else None,
+            organisation_name = validated_data['organisation_name'] if 'organisation_name' in validated_data else None,
+            bond_start_date = validated_data['bond_start_date'] if 'bond_start_date' in validated_data else None,
+            bond_end_date=validated_data['bond_end_date'] if 'bond_end_date' in validated_data else None,
+            notice_period_min = validated_data['notice_period_min'] if 'notice_period_min' in validated_data else None,
+            notice_period_max = validated_data['notice_period_max'] if 'notice_period_max' in validated_data else None,
         )
         return other_info.id
 

@@ -932,10 +932,9 @@ class OtherInformationCreateView(APIView):
         id = self.kwargs['id']
         data = self.request.data
         user = User.objects.get(user_id=id)
-        try:
-            if user.user_profile.other_info:
-                return Response(data={"messege":"OtherInformation Already Created"},status=200)
-        except:
+        if user.user_profile.other_info:
+            return Response(data={"messege":"OtherInformation Already Created"},status=200)
+        else:
             serializer = OtherInformationSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             result = serializer.save(validated_data=data)
