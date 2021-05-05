@@ -156,11 +156,17 @@ class UserPermissionSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     user_profile = UserProfileSerializer(required=False)
+
     user_roles = serializers.SerializerMethodField(
         method_name="get_user_roles", read_only=True
     )
+
     user_permissions = serializers.SerializerMethodField(
         method_name="get_user_permissions", read_only=True
+    )
+
+    username = serializers.SerializerMethodField(
+        method_name="get_username", read_only=True
     )
 
     class Meta:
@@ -177,6 +183,12 @@ class UserSerializer(serializers.ModelSerializer):
                      "is_deleted",
                      "user_roles",
                  ) + profile_names
+
+    def get_username(self,obj):
+        if obj.first_name == '' and obj.last_name == '':
+            return obj.email
+        else:
+            return obj.first_name + ' ' + obj.last_name
 
     def get_user_roles(self, obj):
         user_roles = UserRoles.objects.filter(user=obj)
@@ -1625,34 +1637,13 @@ class OtherInformationSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
 
-        instance.bond_title = (
-            validated_data["bond_title"] if validated_data["bond_title"] else instance.bond_title
-        )
-
-        instance.bond_details = (
-            validated_data["bond_details"] if validated_data["bond_details"] else instance.bond_details
-        )
-
-        instance.organisation_name = (
-            validated_data["organisation_name"] if validated_data["organisation_name"] else instance.organisation_name
-        )
-
-        instance.bond_start_date = (
-            validated_data["bond_start_date"] if validated_data["bond_start_date"] else instance.bond_start_date
-        )
-
-        instance.bond_end_date = (
-            validated_data["bond_end_date"] if validated_data["bond_end_date"] else instance.bond_end_date
-        )
-
-        instance.notice_period_min = (
-            validated_data["notice_period_min"] if validated_data["notice_period_min"] else instance.notice_period_min
-        )
-
-        instance.notice_period_max = (
-            validated_data["notice_period_max"] if validated_data["notice_period_max"] else instance.notice_period_max
-        )
-
+        instance.bond_title = validated_data["bond_title"]
+        instance.bond_details = validated_data["bond_details"]
+        instance.organisation_name = validated_data["organisation_name"]
+        instance.bond_start_date = validated_data["bond_start_date"]
+        instance.bond_end_date = validated_data["bond_end_date"]
+        instance.notice_period_min = validated_data["notice_period_min"]
+        instance.notice_period_max = validated_data["notice_period_max"]
         instance.save()
 
 class UserProfilePreviewSerializer(serializers.ModelSerializer):
