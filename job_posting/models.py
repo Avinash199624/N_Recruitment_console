@@ -201,9 +201,16 @@ class UserJobPositions(BaseModel):
 
 class JobPostingRequirementPositions(BaseModel):
 
-    position = models.ForeignKey('PositionMaster',on_delete=models.SET_NULL, null=True, blank=True)
-    job_posting_requirement = models.ForeignKey('JobPostingRequirement',on_delete=models.SET_NULL, null=True, blank=True)
+    position = models.ForeignKey('PositionMaster',on_delete=models.SET_NULL, null=True, blank=True, related_name='positions_position')
+    job_posting_requirement = models.ForeignKey('JobPostingRequirement',on_delete=models.SET_NULL, null=True, blank=True, related_name='manpower_position')
     count = models.IntegerField(blank=True,null=True)
+    total_cost = models.FloatField(null=True, blank=True)
+
+    # def save(self, *args, **kwargs):
+    #     self.total_cost = self.position.salary * self.count
+    #     print("hello", self.total_cost)
+    #     # return total_cost
+    #     super(JobPostingRequirementPositions, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.position.position_name

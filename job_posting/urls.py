@@ -1,11 +1,14 @@
 from django.urls import path
-from job_posting.views import DepartmentListView,DivisionListView,ZonalLabListView,\
-    ProjectApprovalListView,PositionQualificationMappingListView,JobTemplateCreateView,\
+from job_posting.views import DepartmentListView, DivisionListView, ZonalLabListView, \
+    ProjectApprovalListView, PositionQualificationMappingListView, JobTemplateCreateView, \
     RetrieveQualificationMasterView, CreateQualificationMasterView, \
     UpdateQualificationMasterView, DeleteQualificationMasterView, \
     RetrievePositionMasterView, DeletePositionMasterView, UpdatePositionMasterView, CreatePositionMasterView, \
-    QualificationMasterListView, PositionMasterListView,JobPostingCreateView,JobPostingUpdateView,GetSelectionContent,GetServiceConditions,\
+    QualificationMasterListView, PositionMasterListView, JobPostingCreateView, JobPostingUpdateView, \
+    GetSelectionContent, GetServiceConditions, CreateProjectRequirementView, UpdateProjectRequirementView, \
+    DeleteProjectRequirementView, RetrieveProjectRequirementView, ProjectRequirementListView, GetSelectionContent,GetServiceConditions,\
     ApplicantListByJobPositions
+
 
 urlpatterns = [
     #     QualificationMaster
@@ -28,6 +31,11 @@ urlpatterns = [
     path('position_list/', PositionMasterListView.as_view(), name="user-list"),
     path('qualification_list/', QualificationMasterListView.as_view(), name="user-list"),
     path('project_approval_list/', ProjectApprovalListView.as_view(), name="project-approval-list"),
+    path('create_project_requirement/', CreateProjectRequirementView.as_view(), name="create-project-requirement"),
+    path('update_project_requirement/<int:id>/', UpdateProjectRequirementView.as_view(), name="update-project-requirement"),
+    path('delete_project_requirement/<int:id>/', DeleteProjectRequirementView.as_view(), name="delete-project-requirement"),
+    path('get_project_requirement/<int:id>/', RetrieveProjectRequirementView.as_view(), name="get-project-requirement"),
+    path('project_requirements_list/', ProjectRequirementListView.as_view(), name="project-requirement-list"),
     path('position_qualification_mapping_list/', PositionQualificationMappingListView.as_view(),
          name="position-qualification-mapping-list"),
     path('save_template/', JobTemplateCreateView.as_view(), name="save-as-template"),

@@ -3,10 +3,11 @@ from rest_framework.response import Response
 from job_posting.models import Department,Division,ZonalLab,QualificationMaster,PositionMaster,\
     PositionQualificationMapping,JobPostingRequirement,JobTemplate,JobPosting,SelectionProcessContent,\
     ServiceConditions,UserJobPositions
-from job_posting.serializer import DepartmentSerializer,DivisionSerializer,ZonalLabSerializer,\
-    PositionMasterSerializer,QualificationMasterSerializer,ProjectApprovalListSerializer,\
-    PositionQualificationMappingSerializer,JobTemplateSerializer,JobPostingSerializer,SelectionProcessContentSerializer,\
-    ServiceConditionsSerializer,UserJobPositionsSerializer
+from job_posting.serializer import DepartmentSerializer, DivisionSerializer, ZonalLabSerializer, \
+    PositionMasterSerializer, QualificationMasterSerializer, ProjectApprovalListSerializer, \
+    PositionQualificationMappingSerializer, JobTemplateSerializer, JobPostingSerializer, \
+    SelectionProcessContentSerializer, \
+    ServiceConditionsSerializer, UserJobPositionsSerializer, ProjectRequirementSerializer
 
 from django.http import JsonResponse
 from rest_framework import status
@@ -111,8 +112,8 @@ class PositionMasterListView(APIView):
 class DepartmentListView(APIView):
 
     def get(self, request, *args, **kwargs):
-        if Department.objects.filter().count() >0:
-            departments = Department.objects.filter()
+        if Department.objects.filter(is_deleted=False).count() >0:
+            departments = Department.objects.filter(is_deleted=False)
             serializer = DepartmentSerializer(departments,many=True)
             return Response(serializer.data,status=200)
         else:
@@ -121,8 +122,8 @@ class DepartmentListView(APIView):
 class DivisionListView(APIView):
 
     def get(self, request, *args, **kwargs):
-        if Division.objects.filter().count() > 0:
-            divisions = Division.objects.filter()
+        if Division.objects.filter(is_deleted=False).count() > 0:
+            divisions = Division.objects.filter(is_deleted=False)
             serializer = DivisionSerializer(divisions,many=True)
             return Response(serializer.data,status=200)
         else:
@@ -131,8 +132,8 @@ class DivisionListView(APIView):
 class ZonalLabListView(APIView):
 
     def get(self, request, *args, **kwargs):
-        if ZonalLab.objects.filter().count() > 0:
-            labs = ZonalLab.objects.filter()
+        if ZonalLab.objects.filter(is_deleted=False).count() > 0:
+            labs = ZonalLab.objects.filter(is_deleted=False)
             serializer = ZonalLabSerializer(labs,many=True)
             return Response(serializer.data,status=200)
         else:
@@ -140,14 +141,68 @@ class ZonalLabListView(APIView):
 class ProjectApprovalListView(APIView):
 
     def get(self, request, *args, **kwargs):
-        projects = JobPostingRequirement.objects.filter()
-        serializer = ProjectApprovalListSerializer(projects,many=True)
-        return Response(serializer.data,status=200)
+        req = JobPostingRequirement.objects.filter(is_deleted=False)
+        serializer = ProjectApprovalListSerializer(req, many=True)
+        return Response(serializer.data, status=200)
+
+# project Requirement
+
+class UpdateProjectRequirementView(APIView):
+    def put(self, request, *args, **kwargs):
+        data = self.request.data
+        id = self.kwargs['id']
+        project = JobPostingRequirement.objects.get(id=id, is_deleted=False)
+        serializer = ProjectRequirementSerializer(project, data=data)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.update(instance=project, validated_data=data)
+        project = JobPostingRequirement.objects.get(id=result)
+        serializer = ProjectRequirementSerializer(project)
+        return Response(serializer.data, status=200)
+
+
+class CreateProjectRequirementView(APIView):
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        serializer = ProjectRequirementSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save(validated_data=data)
+        job_posting = JobPostingRequirement.objects.get(id=result)
+        serializer = ProjectRequirementSerializer(job_posting)
+        return Response(serializer.data, status=200)
+
+
+class DeleteProjectRequirementView(APIView):
+    def delete(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['id']
+            project = JobPostingRequirement.objects.get(id=id)
+            project.is_deleted = True
+            project.save()
+            return Response(data={"message": "Record Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
+
+
+class ProjectRequirementListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        job = JobPostingRequirement.objects.filter(is_deleted=False)
+        serializer = ProjectRequirementSerializer(job, many=True)
+        return Response(serializer.data, status=200)
+
+class RetrieveProjectRequirementView(APIView):
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        job = JobPostingRequirement.objects.get(id=id, is_deleted=False)
+        serializer = ProjectRequirementSerializer(job)
+        return Response(serializer.data, status=200)
+
 
 class PositionQualificationMappingListView(APIView):
 
     def get(self, request, *args, **kwargs):
-        projects = PositionQualificationMapping.objects.filter()
+        projects = PositionQualificationMapping.objects.filter(is_deleted=False)
         serializer = PositionQualificationMappingSerializer(projects,many=True)
         return Response(serializer.data,status=200)
 
@@ -189,7 +244,7 @@ class GetSelectionContent(APIView):
 
     def get(self, request, *args, **kwargs):
         # position_name_list = []
-        # #Imagine you will get list of selected positions(Position_names) for the job
+        #Todo: #Imagine you will get list of selected positions(Position_names) for the job
         # queryset = SelectionProcessContent.objects.none()
         # for i in position_name_list:
         #     if SelectionProcessContent.objects.filter(description__icontains=i):
@@ -198,7 +253,7 @@ class GetSelectionContent(APIView):
         # serializer = SelectionProcessContentSerializer(queryset,many=True)
 
         # For now sending all records
-        process_content = SelectionProcessContent.objects.filter()
+        process_content = SelectionProcessContent.objects.filter(is_deleted=False)
         serializer = SelectionProcessContentSerializer(process_content, many=True)
         return Response(serializer.data,status=200)
 
@@ -206,7 +261,7 @@ class GetSelectionContent(APIView):
 class GetServiceConditions(APIView):
 
     def get(self, request, *args, **kwargs):
-        conditions = ServiceConditions.objects.filter()
+        conditions = ServiceConditions.objects.filter(is_deleted=False)
         serializer = ServiceConditionsSerializer(conditions,many=True)
         return Response(serializer.data,status=200)
 
@@ -215,12 +270,12 @@ class ApplicantListByJobPositions(APIView):
     def get(self, request, *args, **kwargs):
         try:
             if self.request.GET['job_posting_id'] == 'all':
-                applicants = UserJobPositions.objects.filter()
+                applicants = UserJobPositions.objects.filter(is_deleted=False)
                 serializer = UserJobPositionsSerializer(applicants, many=True)
                 return Response(serializer.data, status=200)
             else:
                 job_posting_id = self.request.GET['job_posting_id']
-                applicants = UserJobPositions.objects.filter(job_posting__job_posting_id=job_posting_id)
+                applicants = UserJobPositions.objects.filter(job_posting__job_posting_id=job_posting_id, is_deleted=False)
                 serializer = UserJobPositionsSerializer(applicants,many=True)
                 return Response(serializer.data,status=200)
         except:

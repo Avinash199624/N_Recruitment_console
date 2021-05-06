@@ -1,4 +1,4 @@
-from job_posting.models import UserJobPositions, QualificationMaster, PositionMaster
+from job_posting.models import UserJobPositions, QualificationMaster, PositionMaster, JobPostingRequirementPositions
 from rest_framework import serializers
 from job_posting.models import UserJobPositions,Department,Division,ZonalLab,QualificationMaster,\
     PositionMaster,PositionQualificationMapping,JobPostingRequirement,JobTemplate,JobDocuments,\
@@ -132,6 +132,19 @@ class PositionQualificationMappingSerializer(serializers.ModelSerializer):
         return obj.position.position_name
 
 
+class JobPostingRequirementPositionsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = JobPostingRequirementPositions
+
+        fields = (
+            "id",
+            "position",
+            "job_posting_requirement",
+            "count",
+            "total_cost",
+        )
+
 class ProjectApprovalListSerializer(serializers.ModelSerializer):
 
     project_number = serializers.SerializerMethodField(
@@ -146,6 +159,170 @@ class ProjectApprovalListSerializer(serializers.ModelSerializer):
 
     def get_project_number(self,obj):
         return obj.project_number
+
+
+class ProjectRequirementSerializer(serializers.ModelSerializer):
+
+    division_name = serializers.SerializerMethodField(
+        method_name='get_division_name', required=False
+    )
+
+    zonal_lab = serializers.SerializerMethodField(
+        method_name='get_zonal_lab', required=False
+    )
+
+    # manpower_positions = serializers.SerializerMethodField(
+    #     method_name='get_manpower_positions', required=False
+    # )
+
+    project_number = serializers.SerializerMethodField(
+        method_name="get_project_number", read_only=True
+    )
+    manpower_position = JobPostingRequirementPositionsSerializer(many=True)
+    class Meta:
+        model = JobPostingRequirement
+
+        fields = (
+            "id",
+            "division_name",
+            "zonal_lab",
+            "project_title",
+            "is_deleted",
+            "project_number",
+            "project_start_date",
+            "project_end_date",
+            "manpower_position",
+            "provisions_made",
+            "total_estimated_amount",
+            "min_essential_qualification",
+            "job_requirements",
+            "desired_qualification",
+        )
+        extra_kwargs = {'position': {'required': False}}
+
+
+    def get_project_number(self,obj):
+        return obj.project_number
+
+    def get_division_name(self,obj):
+        # print("obj*****=",obj)
+        division = obj.division_name
+        serializer = DivisionSerializer(division)
+        return serializer.data
+
+    def get_zonal_lab(self,obj):
+        zonal_lab = obj.zonal_lab
+        serializer = ZonalLabSerializer(zonal_lab)
+        return serializer.data
+
+    def get_manpower_positions(self,obj):
+        positions = obj.manpower_positions.filter()
+        serializer = PositionMasterSerializer(positions, many=True)
+        return serializer.data
+
+
+    def save(self, validated_data):
+
+        requi = JobPostingRequirement.objects.create(
+            project_title = validated_data['project_title'],
+            project_number = validated_data['project_number'],
+            project_start_date = validated_data['project_start_date'],
+            project_end_date = validated_data['project_end_date'],
+            provisions_made = validated_data['provisions_made'],
+            total_estimated_amount = validated_data['total_estimated_amount'],
+            min_essential_qualification = validated_data['min_essential_qualification'],
+            job_requirements = validated_data['job_requirements'],
+            desired_qualification = validated_data['desired_qualification'],
+        )
+
+        division_name = Division.objects.get(division_id=validated_data['division_name']['division_id'])
+        zonal_lab = ZonalLab.objects.get(zonal_lab_id=validated_data['zonal_lab']['zonal_lab_id'])
+        requi.division_name = division_name
+        requi.zonal_lab = zonal_lab
+        requi.save()
+
+        for position_data in validated_data['manpower_position']:
+            print("hello position_data ******************************", position_data)
+            manpower_position = PositionMaster.objects.get(position_id=position_data['position'])
+            count = position_data['count']
+            total_cost = position_data['total_cost']
+            JobPostingRequirementPositions.objects.create(
+                position=manpower_position,
+                job_posting_requirement=requi,
+                count=count,
+                total_cost=total_cost,
+            )
+            requi.manpower_positions.add(manpower_position)
+        return requi.id
+
+    def update(self, instance, validated_data):
+        print("instance \n", instance)
+        print("validated_data\n", validated_data)
+        if instance:
+            instance.project_title = (
+                validated_data['project_title'] if validated_data['project_title'] else instance.project_title
+            )
+            instance.project_number = (
+                validated_data['project_number'] if validated_data['project_number'] else instance.project_number
+            )
+            instance.project_start_date = (
+                validated_data['project_start_date'] if validated_data['project_start_date'] else instance.project_start_date
+            )
+            instance.project_end_date = (
+                validated_data['project_end_date'] if validated_data['project_end_date'] else instance.project_end_date
+            )
+            instance.provisions_made = (
+                validated_data['provisions_made'] if validated_data['provisions_made'] else instance.provisions_made
+            )
+            instance.total_estimated_amount = (
+                validated_data['total_estimated_amount'] if validated_data['total_estimated_amount'] else instance.total_estimated_amount
+            )
+            instance.min_essential_qualification = (
+                validated_data['min_essential_qualification'] if validated_data['min_essential_qualification'] else instance.min_essential_qualification
+            )
+            instance.job_requirements = (
+                validated_data['job_requirements'] if validated_data['job_requirements'] else instance.job_requirements
+            )
+            instance.desired_qualification = (
+                validated_data['desired_qualification'] if validated_data['desired_qualification'] else instance.desired_qualification
+            )
+            instance.is_deleted = (
+                validated_data['is_deleted'] if validated_data['is_deleted'] else instance.is_deleted
+            )
+
+            division_name = validated_data['division_name']['division_name']
+            zonal_lab = validated_data['zonal_lab']['zonal_lab_name']
+            division = Division.objects.get(division_name__exact=division_name)
+            zonal = ZonalLab.objects.get(zonal_lab_name__exact=zonal_lab)
+            if instance.division_name == division:
+                pass
+            else:
+                instance.department = division
+
+            if instance.zonal_lab == zonal:
+                pass
+            else:
+                instance.division = zonal
+
+            instance.save()
+            for position_data in validated_data['manpower_position']:
+                manpower_position = PositionMaster.objects.get(position_id=position_data['position'])
+                try:
+                    inst = JobPostingRequirementPositions.objects.get(id=position_data['id'])
+                    inst.count = position_data['count']
+                    inst.position = manpower_position
+                    inst.job_posting_requirement = instance
+                    inst.total_cost = position_data['total_cost']
+                    inst.save()
+                except:
+                    JobPostingRequirementPositions.objects.create(
+                        position=manpower_position,
+                        job_posting_requirement=instance,
+                        count=position_data['count'],
+                        total_cost=position_data['total_cost'],
+                    )
+                    instance.manpower_positions.add(manpower_position)
+        return instance.id
 
 
 class JobTemplateSerializer(serializers.ModelSerializer):

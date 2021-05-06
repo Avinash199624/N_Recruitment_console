@@ -61,12 +61,15 @@ class UserJobPositionsAdmin(admin.ModelAdmin):
     list_display = ['user','job_posting','position','applied_job_status','appealed','date_of_application',
                     'date_of_closing']
 
+
 class JobPostingRequirementPositionsAdmin(admin.TabularInline):
+    # list_display = ['position', 'salary', 'count', 'is_deleted']
     model = JobPostingRequirementPositions
+    exclude = ('created_by', 'updated_by', 'created_at', 'updated_at', 'is_deleted')
+
+
 
 @register(JobPostingRequirement)
 class JobPostingRequirementAdmin(admin.ModelAdmin):
-    list_display = ['division_name','zonal_lab','project_title','project_number']
-    inlines = [JobPostingRequirementPositionsAdmin,]
-
-
+    list_display = ['division_name', 'zonal_lab', 'project_title', 'project_number', 'is_deleted',]
+    inlines = [JobPostingRequirementPositionsAdmin, ]
