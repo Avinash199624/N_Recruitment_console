@@ -357,7 +357,7 @@ class RoleMaster(BaseModel):
     role_name = models.CharField(max_length=30,null=True, blank=True)
 
     def __str__(self):
-        return self.role_name
+        return str(self.role_id)
 
 class PermissionMaster(BaseModel):
 
@@ -365,7 +365,7 @@ class PermissionMaster(BaseModel):
     permission_name = models.CharField(max_length=30, null=True, blank=True)
 
     def __str__(self):
-        return self.permission_name
+        return str(self.permission_id)
 
 class UserRoles(BaseModel):
 
@@ -395,7 +395,7 @@ class UserDocuments(BaseModel):
     doc_name = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
-        return self.doc_name
+        return str(self.doc_id)
 
 
 class OverseasVisits(BaseModel):
@@ -414,7 +414,7 @@ class OverseasVisits(BaseModel):
     purpose_of_visit = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return self.country_visited
+        return str(self.id)
 
 class UserReference(BaseModel):
 
@@ -423,7 +423,7 @@ class UserReference(BaseModel):
     address = models.OneToOneField('Location',on_delete=models.CASCADE, related_name="referee_address")
 
     def __str__(self):
-        return self.reference_name
+        return str(self.id)
 
 
 class NeeriRelation(BaseModel):
@@ -434,7 +434,7 @@ class NeeriRelation(BaseModel):
     relation = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return self.relation_name
+        return str(self.id)
 
 class UserEducationDetails(BaseModel):
 
@@ -457,7 +457,7 @@ class UserEducationDetails(BaseModel):
     specialization = models.CharField(max_length=50, null=True, blank=True, help_text="special subject")
 
     def __str__(self):
-        return self.exam_name
+        return (self.id)
 
 class UserExperienceDetails(BaseModel):
 
@@ -477,7 +477,7 @@ class UserExperienceDetails(BaseModel):
     grade = models.CharField(max_length=30, null=True, blank=True)
 
     def __str__(self):
-        return self.employer_name
+        return str(self.id)
 
 
 class PublishedPapers(BaseModel):
@@ -486,7 +486,7 @@ class PublishedPapers(BaseModel):
     attachments = models.ManyToManyField('user.UserDocuments',blank=True,related_name="attachments")
 
     def __str__(self):
-        return self.paper_title
+        return str(self.id)
 
 class UserLanguages(BaseModel):
 
@@ -507,7 +507,7 @@ class UserLanguages(BaseModel):
     exam_passed = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return str(self.id)
 
 class ProfessionalTraining(BaseModel):
     title =  models.CharField(max_length=200, null=True, blank=True)
@@ -516,7 +516,7 @@ class ProfessionalTraining(BaseModel):
     to_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return self.title
+        return str(self.id)
 
 class OtherInformation(BaseModel):
 

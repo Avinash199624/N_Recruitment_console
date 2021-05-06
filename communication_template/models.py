@@ -11,7 +11,7 @@ class CommunicationType(BaseModel):
     is_deleted = models.BooleanField(default=False,help_text="Used for Soft Delete")
 
     def __str__(self):
-        return self.communication_type
+        return str(self.id)
 
 
 class CommunicationActionType(BaseModel):
@@ -21,7 +21,7 @@ class CommunicationActionType(BaseModel):
     is_deleted = models.BooleanField(default=False,help_text="Used for Soft Delete")
 
     def __str__(self):
-        return self.comm_action_type
+        return str(self.id)
 
 
 class CommunicationMaster(BaseModel):
