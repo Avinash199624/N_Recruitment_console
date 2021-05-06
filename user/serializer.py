@@ -83,7 +83,6 @@ class LocationSerializer(serializers.ModelSerializer):
         instance.save()
 
     def save(self, validated_data):
-
         location = Location.objects.create(
             address1 = validated_data['address1'] if 'address1' in validated_data else None,
             address2 = validated_data['address2'] if 'address2' in validated_data else None,
@@ -97,9 +96,7 @@ class LocationSerializer(serializers.ModelSerializer):
         return location.id
 
 
-
 class UserProfileSerializer(serializers.ModelSerializer):
-
     local_address = LocationSerializer(required=False)
     permanent_address = LocationSerializer(required=False)
     father_address = LocationSerializer(required=False)
@@ -107,10 +104,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
 
-        profile_names = ("local_address","permanent_address","father_address",)
+        profile_names = ("local_address", "permanent_address", "father_address",)
         fields = (
                     "gender",
-                    "mobile_no",
+                    # "mobile_no",
                     "date_of_birth",
                     "status",
                     "created_by",
@@ -261,28 +258,28 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "user_permissions",
         )
 
-    def get_mobile_no(self,obj):
+    def get_mobile_no(self, obj):
         try:
-            mobile_no = obj.user_profile.mobile_no
+            mobile_no = obj.mobile_no
             return mobile_no
         except:
             return None
 
-    def get_phone_no(self,obj):
+    def get_phone_no(self, obj):
         try:
             phone_no = obj.user_profile.phone_no
             return phone_no
         except:
             return None
 
-    def get_gender(self,obj):
+    def get_gender(self, obj):
         try:
             gender = obj.user_profile.gender
             return gender
         except:
             return None
 
-    def get_date_of_birth(self,obj):
+    def get_date_of_birth(self, obj):
         try:
             date_of_birth = obj.user_profile.date_of_birth
             return date_of_birth
@@ -352,9 +349,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
                     validated_data["phone_no"] if validated_data["phone_no"] else instance.user_profile.phone_no
                 )
 
-                instance.user_profile.mobile_no = (
-                    validated_data["mobile_no"] if validated_data["mobile_no"] else instance.user_profile.mobile_no
-                )
+                # instance.user_profile.mobile_no = (
+                #     validated_data["mobile_no"] if validated_data["mobile_no"] else instance.user_profile.mobile_no
+                # )
 
                 instance.user_profile.gender = (
                     validated_data["gender"] if validated_data["gender"] else instance.user_profile.gender
@@ -474,7 +471,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
                 user=instance,
                 gender=validated_data['gender'],
                 phone_no=validated_data['phone_no'],
-                mobile_no=validated_data['mobile_no'],
+                # mobile_no=validated_data['mobile_no'],
                 date_of_birth=validated_data['date_of_birth'],
                 status=validated_data['status'],
             )
@@ -518,7 +515,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
                 user = instance,
                 gender = validated_data['gender'] if 'gender' in validated_data else None,
                 phone_no = validated_data['phone_no'] if 'phone_no' in validated_data else None,
-                mobile_no = validated_data['mobile_no'] if 'mobile_no' in validated_data else None,
+                # mobile_no = validated_data['mobile_no'] if 'mobile_no' in validated_data else None,
                 date_of_birth = validated_data['date_of_birth'] if 'date_of_birth' in validated_data else None,
                 status = validated_data['status'] if 'status' in validated_data else None,
             )
@@ -706,7 +703,7 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
 
     def get_mobile_no(self,obj):
         try:
-            mobile_no = obj.mobile_no
+            mobile_no = obj.user.mobile_no
             return mobile_no
         except:
             return None
@@ -854,9 +851,9 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             validated_data["gender"] if validated_data["gender"] else instance.gender
         )
 
-        instance.mobile_no = (
-            validated_data["mobile_no"] if validated_data["mobile_no"] else instance.mobile_no
-        )
+        # instance.mobile_no = (
+        #     validated_data["mobile_no"] if validated_data["mobile_no"] else instance.mobile_no
+        # )
 
         instance.date_of_birth = (
             validated_data["date_of_birth"] if validated_data["date_of_birth"] else instance.date_of_birth
@@ -1127,7 +1124,7 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         user_profile = UserProfile.objects.create(
             user = user,
             gender = validated_data['gender'] if 'gender' in validated_data else None,
-            mobile_no = validated_data['mobile_no'] if 'mobile_no' in validated_data else None,
+            # mobile_no = validated_data['mobile_no'] if 'mobile_no' in validated_data else None,
             date_of_birth = validated_data['date_of_birth'] if 'date_of_birth' in validated_data else None,
             status = validated_data['status'] if 'status' in validated_data else None,
             date_of_birth_in_words = validated_data['date_of_birth_in_words'] if 'date_of_birth_in_words' in validated_data else None,

@@ -20,7 +20,7 @@ class Division(BaseModel):
     division_name = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return str(self.division_id)
+        return self.division_name
 
 
 class ZonalLab(BaseModel):
@@ -28,7 +28,7 @@ class ZonalLab(BaseModel):
     zonal_lab_name = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return str(self.zonal_lab_id)
+        return self.zonal_lab_name
 
 
 class QualificationMaster(BaseModel):
@@ -37,7 +37,7 @@ class QualificationMaster(BaseModel):
     short_code = ArrayField(CharField(max_length=300, blank=True, null=True), null=True, blank=True)
 
     def __str__(self):
-        return str(self.qualification_id)
+        return self.qualification
 
 
 class PositionMaster(BaseModel):
@@ -47,7 +47,7 @@ class PositionMaster(BaseModel):
     salary = models.FloatField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.position_id)
+        return self.position_name
 
 
 class PositionQualificationMapping(BaseModel):
@@ -70,7 +70,7 @@ class PositionQualificationMapping(BaseModel):
     extra_note = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.id)
+        return self.position.position_name
 
 
 class JobTemplate(BaseModel):
@@ -101,7 +101,7 @@ class JobTemplate(BaseModel):
     extra_note = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.template_id)
+        return self.template_name
 
 
 class JobDocuments(BaseModel):
@@ -110,7 +110,7 @@ class JobDocuments(BaseModel):
     doc_name = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
-        return str(self.doc_id)
+        return self.doc_name
 
 
 class JobPosting(BaseModel):
@@ -165,7 +165,7 @@ class JobPosting(BaseModel):
     # percentwise_relaxation = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
-        return str(self.job_posting_id)
+        return self.notification_title
 
 
 class UserJobPositions(BaseModel):
@@ -221,7 +221,7 @@ class JobPostingRequirementPositions(BaseModel):
     #     super(JobPostingRequirementPositions, self).save(*args, **kwargs)
 
     def __str__(self):
-        return str(self.id)
+        return self.position.position_name
 
 
 class JobPostingRequirement(BaseModel):
@@ -242,7 +242,7 @@ class JobPostingRequirement(BaseModel):
     desired_qualification = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
-        return str(self.id)
+        return self.project_number
 
 
 class SelectionProcessContent(BaseModel):

@@ -48,7 +48,7 @@ class NeeriRelationAdmin(admin.ModelAdmin):
 
 @register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['user_id', 'first_name', 'last_name', 'email', 'mobile_no']
+    list_display = ['user_id','first_name','last_name','email', 'mobile_no']
 
 @register(PermissionMaster)
 class PermissionMasterAdmin(admin.ModelAdmin):
@@ -60,7 +60,7 @@ class UserPermissionsAdmin(admin.ModelAdmin):
 
 @register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ['user','gender','mobile_no','status' ]
+    list_display = ['user','gender','status' ]
 
 @register(NeeriUserProfile)
 class NeeriUserProfileAdmin(admin.ModelAdmin):

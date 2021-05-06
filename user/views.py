@@ -178,7 +178,7 @@ class ApplicantPersonalInformationView(APIView):
                 serializer = ApplicantUserPersonalInformationSerializer(user_profile)
                 return Response(serializer.data,status=200)
         except:
-            return Response(data={"messege": "UserProfile not created","isEmpty":"true"}, status=200)
+            return Response(data={"messege": "UserProfile not created","isEmpty":"true", "mobile_no": user.mobile_no}, status=200)
 
 
 class ApplicantPersonalInformationUpdateView(APIView):
@@ -210,7 +210,7 @@ class ApplicantPersonalInformationCreateView(APIView):
             serializer = ApplicantUserPersonalInformationSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             result = serializer.save(validated_data=data)
-            user_profile = UserProfile.objects.get(user__username=result)
+            user_profile = UserProfile.objects.get(user__mobile_no=result)
             serializer = ApplicantUserPersonalInformationSerializer(user_profile)
             return Response(serializer.data,status=200)
 
@@ -812,7 +812,7 @@ class ApplicantProfilePercentageView(APIView):
             percentage = user.user_profile.profile_percentage
             return Response(data={"percentage": percentage}, status=200)
         except:
-            return Response(data={"messsege": "UserProfile not found"}, status=401)
+            return Response(data={"messsege": "User-Profile not found","percentage":"0"}, status=200)
 
 class ProfessionalTrainingListView(APIView):
 

@@ -164,7 +164,7 @@ class UserProfile(BaseModel):
 
     user = models.OneToOneField('User',on_delete=models.CASCADE, related_name="user_profile")
     gender = models.CharField(null=True, blank=True, choices=GENDER_CHOICES, max_length=20)
-    mobile_no = models.CharField(max_length=20, null=True, blank=True)
+    # mobile_no = models.CharField(max_length=20, null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     status = models.CharField(null=True, blank=True,choices=STATUS_CHOICES,default=NOT_DECIDED, max_length=20)
     local_address = models.OneToOneField('user.Location', on_delete=models.CASCADE, blank=True,null=True, related_name="local_address")

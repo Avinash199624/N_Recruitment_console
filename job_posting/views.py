@@ -265,6 +265,13 @@ class GetServiceConditions(APIView):
         serializer = ServiceConditionsSerializer(conditions,many=True)
         return Response(serializer.data,status=200)
 
+class JosPostingListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        postings = JobPosting.objects.filter(is_deleted=False)
+        serializer = JobPostingSerializer(postings, many=True)
+        return Response(serializer.data, status=200)
+
 class ApplicantListByJobPositions(APIView):
 
     def get(self, request, *args, **kwargs):
