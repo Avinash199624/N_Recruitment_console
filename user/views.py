@@ -977,8 +977,11 @@ class OtherInformationDeleteView(APIView):
 class ProfileDetailView(APIView):
 
     def get(self, request, *args, **kwargs):
-        id = self.kwargs['id']
-        user = User.objects.get(user_id=id)
-        serializer = UserProfilePreviewSerializer(user.user_profile)
-        return Response(serializer.data, status=200)
+        try:
+            id = self.kwargs['id']
+            user = User.objects.get(user_id=id)
+            serializer = UserProfilePreviewSerializer(user.user_profile)
+            return Response(serializer.data, status=200)
+        except:
+            return Response(data={"messege":"No Data Found."},status=200)
 
