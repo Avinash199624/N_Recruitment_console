@@ -8,7 +8,7 @@ from document.serializer import DocumentMasterSerializer
 class RetrieveDocumentView(APIView):
     def get(self,request,*args,**kwargs):
         id = self.kwargs['id']
-        doc = DocumentMaster.objects.get(id=id)
+        doc = DocumentMaster.objects.get(doc_id=id)
         serializer = DocumentMasterSerializer(doc)
         return Response(serializer.data,status=200)
 
@@ -16,7 +16,7 @@ class DeleteDocumentView(APIView):
     def delete(self,request,*args,**kwargs):
         try:
             id = self.kwargs['id']
-            doc = DocumentMaster.objects.get(id=id)
+            doc = DocumentMaster.objects.get(doc_id=id)
             doc.is_deleted = True
             doc.save()
             return Response(data = {"messege":"Document Deleted Successfully(Soft Delete)."}, status=200)
@@ -26,7 +26,7 @@ class DeleteDocumentView(APIView):
 class UpdateDocumentView(APIView):
     def put(self, request, *args, **kwargs):
         id = self.kwargs['id']
-        doc = DocumentMaster.objects.get(id=id)
+        doc = DocumentMaster.objects.get(doc_id=id)
         data = self.request.data
         serializer = DocumentMasterSerializer(doc, data=data)
         serializer.is_valid(raise_exception=True)

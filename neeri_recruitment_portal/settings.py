@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'user',
     'document',
     'communication_template',
+    'job_posting',
 ]
 
 
@@ -141,6 +142,8 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 STATICFILES_DIRS = (
     absolute('static'),
@@ -212,3 +215,4 @@ CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default="", cast=Csv())
 CORS_ORIGIN_REGEX_WHITELIST = config(
     "CORS_ORIGIN_REGEX_WHITELIST", default="", cast=Csv()
 )
+BASE_URL = 'http://20.198.86.180:8181'

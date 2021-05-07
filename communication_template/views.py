@@ -1,39 +1,39 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from communication_template.models import TemplateMaster
-from communication_template.serializer import TemplateMasterSerializer
+from communication_template.models import CommunicationMaster
+from communication_template.serializer import CommunicationMasterSerializer
 
-class TemplateListView(APIView):
+class CommunicationTemplateListView(APIView):
     def get(self, request, *args, **kwargs):
-        docs = TemplateMaster.objects.all()
-        serializer = TemplateMasterSerializer(docs, many=True)
+        docs = CommunicationMaster.objects.filter(is_deleted=False)
+        serializer = CommunicationMasterSerializer(docs, many=True)
         return Response(serializer.data, status=200)
 
-class CreateTemplateView(APIView):
+class CreateCommunicationTemplateView(APIView):
     def post(self, request, *args, **kwargs):
         data = self.request.data
-        data_serializer = TemplateMasterSerializer(data=data)
+        data_serializer = CommunicationMasterSerializer(data=data)
         data_serializer.is_valid(raise_exception=True)
         try:
-            result_data = data_serializer.save()
-            result_serializer = TemplateMasterSerializer(result_data)
+            result_data = data_serializer.save(validated_data=data)
+            result_serializer = CommunicationMasterSerializer(result_data)
         except:
             return Response(data = {"messege":"Constraint Violated"}, status=401)
         return Response(result_serializer.data, status=200)
 
-class RetrievetTemplateView(APIView):
+class RetrievetCommunicationTemplateView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
-        template = TemplateMaster.objects.get(template_id=id)
-        serializer = TemplateMasterSerializer(template)
+        template = CommunicationMaster.objects.get(communication_id=id, is_deleted=False)
+        serializer = CommunicationMasterSerializer(template)
         return Response(serializer.data, status=200)
 
-class UpdateTemplateView(APIView):
+class UpdateCommunicationTemplateView(APIView):
     def put(self, request, *args, **kwargs):
         id = self.kwargs['id']
-        template = TemplateMaster.objects.get(template_id=id)
+        template = CommunicationMaster.objects.get(communication_id=id)
         data = self.request.data
-        serializer = TemplateMasterSerializer(template, data=data)
+        serializer = CommunicationMasterSerializer(template, data=data)
         serializer.is_valid(raise_exception=True)
         try:
             serializer.update(instance=template, validated_data=data)
@@ -41,6 +41,15 @@ class UpdateTemplateView(APIView):
         except:
             return Response(data = {"messege":"Constraint Violated"}, status=401)
 
-class DeleteTemplateView(APIView):
-    pass
+
+class DeleteCommunicationTemplateView(APIView):
+    def delete(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['id']
+            template = CommunicationMaster.objects.get(communication_id=id)
+            template.is_deleted = True
+            template.save()
+            return Response(data={"message": "Record Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
 
