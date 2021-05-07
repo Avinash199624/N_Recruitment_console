@@ -209,8 +209,8 @@ class ApplicantPersonalInformationCreateView(APIView):
             data = self.request.data
             serializer = ApplicantUserPersonalInformationSerializer(data=data)
             serializer.is_valid(raise_exception=True)
-            result = serializer.save(validated_data=data)
-            user_profile = UserProfile.objects.get(user__mobile_no=result)
+            serializer.save(validated_data=data)
+            user_profile = UserProfile.objects.get(user = user)
             serializer = ApplicantUserPersonalInformationSerializer(user_profile)
             return Response(serializer.data,status=200)
 
