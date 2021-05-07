@@ -45,4 +45,5 @@ urlpatterns = [
     path('job_posting_update/<uuid:id>/', JobPostingUpdateView.as_view(), name="job-posting-update"),
     path('job_posting_list/', JosPostingListView.as_view(), name="job-posting-list"),
     path('applicant_list_by_job/', ApplicantListByJobPositions.as_view(), name="jobwise-applicant-list"),
+    path('applicant_list_by_job/<uuid:id>/', ApplicantListByJobPositions.as_view(), name="jobwise-applicant-by-job"),
 ]

@@ -276,14 +276,11 @@ class ApplicantListByJobPositions(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            if self.request.GET['job_posting_id'] == 'all':
-                applicants = UserJobPositions.objects.filter(is_deleted=False)
-                serializer = UserJobPositionsSerializer(applicants, many=True)
-                return Response(serializer.data, status=200)
-            else:
-                job_posting_id = self.request.GET['job_posting_id']
-                applicants = UserJobPositions.objects.filter(job_posting__job_posting_id=job_posting_id, is_deleted=False)
-                serializer = UserJobPositionsSerializer(applicants,many=True)
-                return Response(serializer.data,status=200)
+            job_posting_id = self.kwargs['id']
+            applicants = UserJobPositions.objects.filter(job_posting__job_posting_id=job_posting_id, is_deleted=False)
+            serializer = UserJobPositionsSerializer(applicants, many=True)
+            return Response(serializer.data, status=200)
         except:
-            return Response(data={"messege":"No Record Found."},status=200)
+            applicants = UserJobPositions.objects.filter(is_deleted=False)
+            serializer = UserJobPositionsSerializer(applicants, many=True)
+            return Response(serializer.data, status=200)
