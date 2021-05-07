@@ -920,11 +920,14 @@ class FileUpload(APIView):
 
 class OtherInformationDetailView(APIView):
     def get(self, request, *args, **kwargs):
-        id = self.kwargs['id']
-        user = User.objects.get(user_id=id)
-        other_info = user.user_profile.other_info
-        serializer = OtherInformationSerializer(other_info)
-        return Response(serializer.data, status=200)
+        try:
+            id = self.kwargs['id']
+            user = User.objects.get(user_id=id)
+            other_info = user.user_profile.other_info
+            serializer = OtherInformationSerializer(other_info)
+            return Response(serializer.data, status=200)
+        except:
+            return Response(data={"messege": "OtherInfo not found", "isEmpty": "true"}, status=200)
 
 class OtherInformationCreateView(APIView):
 
