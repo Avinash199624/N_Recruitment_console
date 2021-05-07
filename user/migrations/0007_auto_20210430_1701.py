@@ -10,16 +10,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='userprofile',
-            name='is_father_address_same_as_local',
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name='userprofile',
-            name='is_permenant_address_same_as_local',
-            field=models.BooleanField(default=False),
-        ),
+#         migrations.AddField(
+#             model_name='userprofile',
+#             name='is_father_address_same_as_local',
+#             field=models.BooleanField(default=False),
+#         ),
+#         migrations.AddField(
+#             model_name='userprofile',
+#             name='is_permenant_address_same_as_local',
+#             field=models.BooleanField(default=False),
+#         ),
         migrations.AlterField(
             model_name='userprofile',
             name='profile_photo',
