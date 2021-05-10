@@ -531,3 +531,15 @@ class OtherInformation(BaseModel):
     def __str__(self):
         return str(self.id)
 
+class UserAuthentication(models.Model):
+
+    user = models.OneToOneField('User', on_delete=models.CASCADE, related_name="applicant_user")
+    email_verified = models.BooleanField(default=False)
+    mobile_verified = models.BooleanField(default=False)
+    email_otp = models.IntegerField(null=True,blank=True)
+    mobile_otp = models.IntegerField(null=True,blank=True)
+    email_otp_expiry = models.DateTimeField(null=True,blank=True)
+    mobile_otp_expiry = models.DateTimeField(null=True,blank=True)
+
+    def __str__(self):
+        return self.user.email
