@@ -357,7 +357,7 @@ class RoleMaster(BaseModel):
     role_name = models.CharField(max_length=30,null=True, blank=True)
 
     def __str__(self):
-        return str(self.role_id)
+        return self.role_name
 
 class PermissionMaster(BaseModel):
 
@@ -365,7 +365,7 @@ class PermissionMaster(BaseModel):
     permission_name = models.CharField(max_length=30, null=True, blank=True)
 
     def __str__(self):
-        return str(self.permission_id)
+        return self.permission_name
 
 class UserRoles(BaseModel):
 
@@ -395,7 +395,7 @@ class UserDocuments(BaseModel):
     doc_name = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
-        return str(self.doc_id)
+        return self.doc_name
 
 
 class OverseasVisits(BaseModel):
