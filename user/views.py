@@ -5,8 +5,9 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
-from user.models import User,RoleMaster,UserRoles,UserProfile,Location,UserEducationDetails,UserExperienceDetails,\
-    UserLanguages,UserReference,NeeriRelation,OverseasVisits,PublishedPapers,ProfessionalTraining,UserDocuments,OtherInformation,UserPermissions
+from user.models import User, RoleMaster, UserRoles, UserProfile, Location, UserEducationDetails, UserExperienceDetails, \
+    UserLanguages, UserReference, NeeriRelation, OverseasVisits, PublishedPapers, ProfessionalTraining, UserDocuments, \
+    OtherInformation, UserPermissions, UserAuthentication
 from job_posting.models import UserJobPositions, JobDocuments, JobPosting,SelectionProcessContent
 from user.serializer import UserSerializer,AuthTokenCustomSerializer,UserProfileSerializer,UserRolesSerializer,\
     CustomUserSerializer,ApplicantUserPersonalInformationSerializer,LocationSerializer,\
@@ -75,12 +76,12 @@ class LoginView(KnoxLoginView,LoginResponseViewMixin):
 
         result = super(LoginView, self).post(request, format=None)
         serializer = UserSerializer(user)
-        authentication = UserAuthentication.objects.get(user=user)
+        # authentication = UserAuthentication.objects.get(user=user)
         result.data['user'] = serializer.data
         result.data['roles'] = roles
         result.data['permissions'] = permissions
-        result.data['email_verified'] = authentication.email_verified
-        result.data['mobile_verified'] = authentication.mobile_verified
+        # result.data['email_verified'] = authentication.email_verified
+        # result.data['mobile_verified'] = authentication.mobile_verified
         return Response(result.data,status=200)
 
 class LogoutView(KnoxLogoutView):
@@ -111,12 +112,14 @@ class UserRegistartionView(APIView):
             permissions = [permission.permission.permission_name for permission in
                            UserPermissions.objects.filter(role__role_name__in=roles).distinct('permission')]
             serializer = UserSerializer(user)
+
             result = {}
+
             result['user'] = serializer.data
             result['roles'] = roles
             result['permissions'] = permissions
-            result['email_verified'] = authentication.email_verified
-            result['mobile_verified'] = authentication.mobile_verified
+            # result['email_verified'] = authentication.email_verified
+            # result['mobile_verified'] = authentication.mobile_verified
             return JsonResponse(data=result, status=200, safe=False)
 
 class UserListView(APIView):
