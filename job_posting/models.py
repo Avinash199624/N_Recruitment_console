@@ -207,6 +207,14 @@ class UserJobPositions(BaseModel):
         return self.user.email
 
 
+class AppealMaster(BaseModel):
+    appeal_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    appeal_reason_master = models.CharField(max_length=200, blank=True, null=True)
+
+    def __str__(self):
+        return self.appeal_reason_master
+
+
 class JobPostingRequirementPositions(BaseModel):
     position = models.ForeignKey('PositionMaster', on_delete=models.SET_NULL, null=True, blank=True,
                                  related_name='positions_position')

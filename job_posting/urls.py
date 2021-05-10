@@ -7,7 +7,8 @@ from job_posting.views import DepartmentListView, DivisionListView, ZonalLabList
     QualificationMasterListView, PositionMasterListView, JobPostingCreateView, JobPostingUpdateView, \
     CreateProjectRequirementView, UpdateProjectRequirementView, \
     DeleteProjectRequirementView, RetrieveProjectRequirementView, ProjectRequirementListView, GetSelectionContent,GetServiceConditions,\
-    ApplicantListByJobPositions, JosPostingListView
+    GetServiceConditions, \
+    ApplicantListByJobPositions, JosPostingListView, UserAppealForJobPositions, AppealReasonMasterViews
 
 urlpatterns = [
     #     QualificationMaster
@@ -24,9 +25,17 @@ urlpatterns = [
     path('create_position/', CreatePositionMasterView.as_view(), name="create-position"),
     path('position_list/', PositionMasterListView.as_view(), name="position-list"),
 
-    path('department_list/', DepartmentListView.as_view(), name="user-list"),
-    path('division_list/', DivisionListView.as_view(), name="user-list"),
-    path('zonal_lab_list/', ZonalLabListView.as_view(), name="user-list"),
+    path('department_list/', DepartmentListView.as_view(), name="department-list"),
+    path('division_list/', DivisionListView.as_view(), name="division-list"),
+    path('update_division/<uuid:id>/', DivisionListView.as_view(), name="update-division"),
+    path('delete_division/<uuid:id>/', DivisionListView.as_view(), name="delete-division"),
+    path('create_division/', DivisionListView.as_view(), name="create-division"),
+    path('get_division/<uuid:id>/', DivisionListView.as_view(), name="get-division"),
+    path('zonal_lab_list/', ZonalLabListView.as_view(), name="zonal-lab-list"),
+    path('get_zonal_lab/<uuid:id>/', ZonalLabListView.as_view(), name="get-zonal-lab"),
+    path('update_zonal_lab/<uuid:id>/', ZonalLabListView.as_view(), name="update-zonal-lab"),
+    path('create_zonal_lab/', ZonalLabListView.as_view(), name="create-zonal-lab"),
+    path('delete_zonal_lab/<uuid:id>/', ZonalLabListView.as_view(), name="delete-zonal-lab"),
     path('position_list/', PositionMasterListView.as_view(), name="user-list"),
     path('qualification_list/', QualificationMasterListView.as_view(), name="user-list"),
     path('project_approval_list/', ProjectApprovalListView.as_view(), name="project-approval-list"),
@@ -45,4 +54,7 @@ urlpatterns = [
     path('job_posting_list/', JosPostingListView.as_view(), name="job-posting-list"),
     path('applicant_list_by_job/', ApplicantListByJobPositions.as_view(), name="jobwise-applicant-list"),
     path('applicant_list_by_job/<uuid:id>/', ApplicantListByJobPositions.as_view(), name="jobwise-applicant-by-job"),
+    path('update_user_appeal_for_job_position/<str:id>/', UserAppealForJobPositions.as_view(), name="user-appeal-for-job"),
+    path('appeal_reason_master/', AppealReasonMasterViews.as_view(), name="appeal-master-list-and-create"),
+    path('appeal_reason_master/<uuid:id>/', AppealReasonMasterViews.as_view(), name="appeal-reason-master"),
 ]

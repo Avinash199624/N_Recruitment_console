@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.contrib.admin import register
-from job_posting.models import Department,Division,ZonalLab,PositionMaster,QualificationMaster,\
-    PositionQualificationMapping,JobPosting,JobTemplate,UserJobPositions,JobPostingRequirement,\
-    JobPostingRequirementPositions,JobDocuments,SelectionCommitteeMaster,SelectionProcessContent,\
-    ServiceConditions
+from job_posting.models import Department, Division, ZonalLab, PositionMaster, QualificationMaster, \
+    PositionQualificationMapping, JobPosting, JobTemplate, UserJobPositions, JobPostingRequirement, \
+    JobPostingRequirementPositions, JobDocuments, SelectionCommitteeMaster, SelectionProcessContent, \
+    ServiceConditions, AppealMaster
+
 
 @register(ServiceConditions)
 class ServiceConditionsAdmin(admin.ModelAdmin):
@@ -27,11 +28,15 @@ class JobDocumentsAdmin(admin.ModelAdmin):
 
 @register(Division)
 class DivisionAdmin(admin.ModelAdmin):
-    list_display = ['division_id','division_name']
+    list_display = ['division_id','division_name', 'is_deleted']
+
+@register(AppealMaster)
+class AppealMasterAdmin(admin.ModelAdmin):
+    list_display = ['appeal_id','appeal_reason_master', 'is_deleted']
 
 @register(ZonalLab)
 class ZonalLabAdmin(admin.ModelAdmin):
-    list_display = ['zonal_lab_id','zonal_lab_name']
+    list_display = ['zonal_lab_id','zonal_lab_name', 'is_deleted']
 
 @register(QualificationMaster)
 class QualificationMasterAdmin(admin.ModelAdmin):

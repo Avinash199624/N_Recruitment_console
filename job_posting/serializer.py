@@ -1,7 +1,9 @@
+from job_posting.models import UserJobPositions, QualificationMaster, PositionMaster, JobPostingRequirementPositions, \
+    AppealMaster
 from rest_framework import serializers
 from job_posting.models import UserJobPositions,Department,Division,ZonalLab,QualificationMaster,\
     PositionMaster,PositionQualificationMapping,JobPostingRequirement,JobTemplate,JobDocuments,\
-    JobPosting,SelectionProcessContent,SelectionCommitteeMaster,ServiceConditions,JobPostingRequirementPositions
+    JobPosting,SelectionProcessContent,SelectionCommitteeMaster,ServiceConditions
 from document.serializer import DocumentMasterSerializer
 from document.models import DocumentMaster
 
@@ -250,6 +252,7 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
         requi.save()
 
         for position_data in validated_data['manpower_position']:
+            print("hello position_data ******************************", position_data)
             manpower_position = PositionMaster.objects.get(position_id=position_data['position'])
             count = position_data['count']
             total_cost = position_data['total_cost']
@@ -263,6 +266,8 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
         return requi.id
 
     def update(self, instance, validated_data):
+        print("instance \n", instance)
+        print("validated_data\n", validated_data)
         if instance:
             instance.project_title = (
                 validated_data['project_title'] if validated_data['project_title'] else instance.project_title
@@ -672,3 +677,32 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
 
     def get_contact(self,obj):
         return obj.user.mobile_no
+
+
+class AppealReasonMasterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AppealMaster
+        fields = (
+            "appeal_id",
+            "appeal_reason_master",
+        )
+
+class UserAppealForJobPositionsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserJobPositions
+        fields = (
+            "id",
+            "appealed",
+            "reason_to_appeal",
+        )
+
+        def update(self, instance, validated_data):
+
+            instance.reason_to_appeal = (
+                validated_data["reason_to_appeal"] if validated_data["reason_to_appeal"] else instance.reason_to_appeal
+            )
+
+            instance.save()
+
+            return instance.id

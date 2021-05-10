@@ -323,7 +323,7 @@ class NeeriUserProfile(BaseModel):
 
     user = models.OneToOneField('User', on_delete=models.CASCADE, related_name="neeri_user_profile")
     gender = models.CharField(null=True, blank=True, choices=GENDER_CHOICES, max_length=20)
-    mobile_no = models.CharField(max_length=20, null=True, blank=True)
+    # mobile_no = models.CharField(max_length=20, null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     address = models.OneToOneField('user.Location', on_delete=models.CASCADE, blank=True,null=True, related_name="neeri_user_address")
     religion = models.CharField(max_length=30, null=True, blank=True)

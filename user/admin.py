@@ -64,7 +64,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 @register(NeeriUserProfile)
 class NeeriUserProfileAdmin(admin.ModelAdmin):
-    list_display = ['user','gender','mobile_no']
+    list_display = ['user','gender', 'is_deleted']
 
 @register(RoleMaster)
 class RoleMasterAdmin(admin.ModelAdmin):

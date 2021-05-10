@@ -1,13 +1,14 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from job_posting.models import Department,Division,ZonalLab,QualificationMaster,PositionMaster,\
-    PositionQualificationMapping,JobPostingRequirement,JobTemplate,JobPosting,SelectionProcessContent,\
-    ServiceConditions,UserJobPositions
+from job_posting.models import Department, Division, ZonalLab, QualificationMaster, PositionMaster, \
+    PositionQualificationMapping, JobPostingRequirement, JobTemplate, JobPosting, SelectionProcessContent, \
+    ServiceConditions, UserJobPositions, AppealMaster
 from job_posting.serializer import DepartmentSerializer, DivisionSerializer, ZonalLabSerializer, \
     PositionMasterSerializer, QualificationMasterSerializer, ProjectApprovalListSerializer, \
     PositionQualificationMappingSerializer, JobTemplateSerializer, JobPostingSerializer, \
     SelectionProcessContentSerializer, \
-    ServiceConditionsSerializer, UserJobPositionsSerializer, ProjectRequirementSerializer
+    ServiceConditionsSerializer, UserJobPositionsSerializer, ProjectRequirementSerializer, \
+    UserAppealForJobPositionsSerializer, AppealReasonMasterSerializer
 
 from django.http import JsonResponse
 from rest_framework import status
@@ -112,33 +113,103 @@ class PositionMasterListView(APIView):
 class DepartmentListView(APIView):
 
     def get(self, request, *args, **kwargs):
-        if Department.objects.filter(is_deleted=False).count() >0:
+        if Department.objects.filter(is_deleted=False).count() > 0:
             departments = Department.objects.filter(is_deleted=False)
-            serializer = DepartmentSerializer(departments,many=True)
-            return Response(serializer.data,status=200)
+            serializer = DepartmentSerializer(departments, many=True)
+            return Response(serializer.data, status=200)
         else:
             return Response(data={"messege": "No Records found"}, status=404)
+
 
 class DivisionListView(APIView):
 
     def get(self, request, *args, **kwargs):
-        if Division.objects.filter(is_deleted=False).count() > 0:
-            divisions = Division.objects.filter(is_deleted=False)
-            serializer = DivisionSerializer(divisions,many=True)
-            return Response(serializer.data,status=200)
-        else:
-            return Response(data={"messege": "No Records found"}, status=404)
+        try:
+            division_id = self.kwargs['id']
+            divisions = Division.objects.filter(division_id=division_id, is_deleted=False)
+            serializer = DivisionSerializer(divisions, many=True)
+            return Response(serializer.data, status=200)
+        except:
+            if Division.objects.filter(is_deleted=False).count() > 0:
+                divisions = Division.objects.filter(is_deleted=False)
+                serializer = DivisionSerializer(divisions, many=True)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"message": "No Records found"}, status=404)
+
+# class DeleteDivisionMasterView(APIView):
+    def delete(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['id']
+            division = Division.objects.get(division_id=id)
+            division.is_deleted = True
+            division.save()
+            return Response(data={"message": "Record Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
+
+# class UpdateDivisionMasterView(APIView):
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        division = Division.objects.get(division_id=id)
+        data = self.request.data
+        serializer = DivisionSerializer(division, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=division, validated_data=data)
+        return Response(serializer.data, status=200)
+
+# class CreateDivisionMasterView(APIView):
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        serializer = DivisionSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=200)
+
 
 class ZonalLabListView(APIView):
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        serializer = ZonalLabSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=200)
 
     def get(self, request, *args, **kwargs):
-        if ZonalLab.objects.filter(is_deleted=False).count() > 0:
-            labs = ZonalLab.objects.filter(is_deleted=False)
-            serializer = ZonalLabSerializer(labs,many=True)
-            return Response(serializer.data,status=200)
-        else:
-            return Response(data={"messege": "No Records found"}, status=404)
-			
+        try:
+            lab_id = self.kwargs['id']
+            labs = ZonalLab.objects.filter(zonal_lab_id=lab_id, is_deleted=False)
+            serializer = ZonalLabSerializer(labs, many=True)
+            return Response(serializer.data, status=200)
+        except:
+            if ZonalLab.objects.filter(is_deleted=False).count() > 0:
+                labs = ZonalLab.objects.filter(is_deleted=False)
+                serializer = ZonalLabSerializer(labs, many=True)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"messege": "No Records found"}, status=404)
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        labs = ZonalLab.objects.get(zonal_lab_id=id)
+        data = self.request.data
+        serializer = ZonalLabSerializer(labs, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=labs, validated_data=data)
+        return Response(serializer.data, status=200)
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['id']
+            labs = ZonalLab.objects.get(zonal_lab_id=id)
+            labs.is_deleted = True
+            labs.save()
+            return Response(data={"message": "Record Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
+
 class ProjectApprovalListView(APIView):
 
     def get(self, request, *args, **kwargs):
@@ -204,8 +275,8 @@ class PositionQualificationMappingListView(APIView):
 
     def get(self, request, *args, **kwargs):
         projects = PositionQualificationMapping.objects.filter(is_deleted=False)
-        serializer = PositionQualificationMappingSerializer(projects,many=True)
-        return Response(serializer.data,status=200)
+        serializer = PositionQualificationMappingSerializer(projects, many=True)
+        return Response(serializer.data, status=200)
 
 class JobTemplateCreateView(APIView):
 
@@ -224,28 +295,28 @@ class JobPostingCreateView(APIView):
         serializer = JobPostingSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         result = serializer.save(validated_data=data)
-        job_posting = JobPosting.objects.get(job_posting_id = result)
+        job_posting = JobPosting.objects.get(job_posting_id=result)
         serializer = JobPostingSerializer(job_posting)
-        return Response(serializer.data,status=200)
+        return Response(serializer.data, status=200)
 
 class JobPostingUpdateView(APIView):
 
     def put(self, request, *args, **kwargs):
         data = self.request.data
         job_posting_id = self.kwargs['id']
-        job_posting = JobPosting.objects.get(job_posting_id = job_posting_id)
-        serializer = JobPostingSerializer(job_posting,data=data)
+        job_posting = JobPosting.objects.get(job_posting_id=job_posting_id)
+        serializer = JobPostingSerializer(job_posting, data=data)
         serializer.is_valid(raise_exception=True)
-        result = serializer.update(job_posting,validated_data=data)
-        job_posting = JobPosting.objects.get(job_posting_id = result)
+        result = serializer.update(job_posting, validated_data=data)
+        job_posting = JobPosting.objects.get(job_posting_id=result)
         serializer = JobPostingSerializer(job_posting)
-        return Response(serializer.data,status=200)
+        return Response(serializer.data, status=200)
 
 class GetSelectionContent(APIView):
 
     def get(self, request, *args, **kwargs):
         # position_name_list = []
-        #Todo: #Imagine you will get list of selected positions(Position_names) for the job
+        # Todo: #Imagine you will get list of selected positions(Position_names) for the job
         # queryset = SelectionProcessContent.objects.none()
         # for i in position_name_list:
         #     if SelectionProcessContent.objects.filter(description__icontains=i):
@@ -256,15 +327,15 @@ class GetSelectionContent(APIView):
         # For now sending all records
         process_content = SelectionProcessContent.objects.filter(is_deleted=False)
         serializer = SelectionProcessContentSerializer(process_content, many=True)
-        return Response(serializer.data,status=200)
+        return Response(serializer.data, status=200)
 
 
 class GetServiceConditions(APIView):
 
     def get(self, request, *args, **kwargs):
         conditions = ServiceConditions.objects.filter(is_deleted=False)
-        serializer = ServiceConditionsSerializer(conditions,many=True)
-        return Response(serializer.data,status=200)
+        serializer = ServiceConditionsSerializer(conditions, many=True)
+        return Response(serializer.data, status=200)
 
 class JosPostingListView(APIView):
 
@@ -285,3 +356,62 @@ class ApplicantListByJobPositions(APIView):
             applicants = UserJobPositions.objects.filter(is_deleted=False)
             serializer = UserJobPositionsSerializer(applicants, many=True)
             return Response(serializer.data, status=200)
+
+
+class UserAppealForJobPositions(APIView):
+    def put(self, request, *args, **kwargs):
+        data = self.request.data
+        appeal_id = self.kwargs['id']
+        try:
+            applicants = UserJobPositions.objects.get(id=appeal_id)
+            if applicants.applied_job_status == 'rejected' and applicants.appealed == False:
+                applicants.appealed = True
+                applicants.save()
+                serializer = UserAppealForJobPositionsSerializer(applicants, data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.update(applicants, validated_data=data)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data = {"message": "You've already appealed for this job..."}, status=200)
+        except:
+            return Response(data = {"message": "you are not eligible for the appeal..."}, status=401)
+
+
+class AppealReasonMasterViews(APIView):
+
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        serializer = AppealReasonMasterSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=200)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            appeal_id = self.kwargs['id']
+            applicant = AppealMaster.objects.filter(appeal_id=appeal_id, is_deleted=False)
+            serializer = AppealReasonMasterSerializer(applicant, many=True)
+            return Response(serializer.data, status=200)
+        except:
+            applicants = AppealMaster.objects.filter(is_deleted=False)
+            serializer = AppealReasonMasterSerializer(applicants, many=True)
+            return Response(serializer.data, status=200)
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            appeal_id = self.kwargs['id']
+            applicant = AppealMaster.objects.get(appeal_id=appeal_id)
+            applicant.is_deleted = True
+            applicant.save()
+            return Response(data={"message": "Record Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
+    def put(self, request, *args, **kwargs):
+        appeal_id = self.kwargs['id']
+        applicant = AppealMaster.objects.get(appeal_id=appeal_id)
+        data = self.request.data
+        serializer = AppealReasonMasterSerializer(applicant, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=applicant, validated_data=data)
+        return Response(serializer.data, status=200)

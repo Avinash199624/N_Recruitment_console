@@ -7,13 +7,14 @@ from django.http import JsonResponse
 from rest_framework import status
 from user.models import User, RoleMaster, UserRoles, UserProfile, Location, UserEducationDetails, UserExperienceDetails, \
     UserLanguages, UserReference, NeeriRelation, OverseasVisits, PublishedPapers, ProfessionalTraining, UserDocuments, \
-    OtherInformation, UserPermissions, UserAuthentication
+    OtherInformation, UserPermissions, UserAuthentication, NeeriUserProfile
 from job_posting.models import UserJobPositions, JobDocuments, JobPosting,SelectionProcessContent
-from user.serializer import UserSerializer,AuthTokenCustomSerializer,UserProfileSerializer,UserRolesSerializer,\
-    CustomUserSerializer,ApplicantUserPersonalInformationSerializer,LocationSerializer,\
-    UserEducationDetailsSerializer,UserExperienceDetailsSerializer,NeeriRelationSerializer,\
-    OverseasVisitsSerializer,LanguagesSerializer,ReferencesSerializer,PublishedPapersSerializer,\
-    ProfessionalTrainingSerializer,UserProfilePreviewSerializer,OtherInformationSerializer
+from user.serializer import UserSerializer, AuthTokenCustomSerializer, UserProfileSerializer, UserRolesSerializer, \
+    CustomUserSerializer, ApplicantUserPersonalInformationSerializer, LocationSerializer, \
+    UserEducationDetailsSerializer, UserExperienceDetailsSerializer, NeeriRelationSerializer, \
+    OverseasVisitsSerializer, LanguagesSerializer, ReferencesSerializer, PublishedPapersSerializer, \
+    ProfessionalTrainingSerializer, UserProfilePreviewSerializer, OtherInformationSerializer, \
+    NeeriUserPersonalInformationSerializer
 from job_posting.serializer import ApplicantJobPositionsSerializer
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
@@ -248,6 +249,68 @@ class ApplicantPersonalInformationCreateView(APIView):
             user_profile = UserProfile.objects.get(user = user)
             serializer = ApplicantUserPersonalInformationSerializer(user_profile)
             return Response(serializer.data,status=200)
+
+class NeeriPersonalInformation(APIView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['id']
+            user = User.objects.get(user_id=id)
+            try:
+                if user.neeri_user_profile:
+                    neeri_user_profile = user.neeri_user_profile
+                    serializer = NeeriUserPersonalInformationSerializer(neeri_user_profile)
+                    return Response(serializer.data, status=200)
+            except:
+                return Response(
+                    data={"messege": "NeeriUserProfile not created", "isEmpty": "true", "email": user.email},
+                    status=200)
+        except:
+            neeri_user = NeeriUserProfile.objects.filter(is_deleted=False)
+            serializer = NeeriUserPersonalInformationSerializer(neeri_user, many=True)
+            return Response(serializer.data, status=200)
+
+
+    def post(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        try:
+            if user.neeri_user_profile :
+                return Response(data={"messege":"NeeriUserProfile for Given Neeri User Already Exist"},status=200)
+        except:
+            data = self.request.data
+            serializer = NeeriUserPersonalInformationSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=data)
+            print("result #########", result)
+            user_profile = NeeriUserProfile.objects.get(user=user)
+            serializer = NeeriUserPersonalInformationSerializer(user_profile)
+            return Response(serializer.data,status=200)
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        data = self.request.data
+        try:
+            neeri_user_profile = user.neeri_user_profile
+        except:
+            return Response(data={"messege": "NeeriUserProfile does not exist for the given user,create NeeriUserProfile first."}, status=200)
+        serializer = NeeriUserPersonalInformationSerializer(neeri_user_profile, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=neeri_user_profile, validated_data=data)
+        return Response(serializer.data, status=200)
+
+    def delete(self,request,*args,**kwargs):
+        try:
+            id = self.kwargs['id']
+            user = NeeriUserProfile.objects.get(user__user_id=id)
+            # user.delete()
+            user.is_deleted = True
+            user.save()
+            print(user.is_deleted)
+            return Response(data = {"messege":"User Deleted Successfully."}, status=200)
+        except:
+            return Response(data={"messege": "User Not Found."}, status=404)
 
 class ApplicantAddressView(APIView):
 
