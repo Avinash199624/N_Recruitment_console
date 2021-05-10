@@ -5,8 +5,9 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
-from user.models import User,RoleMaster,UserRoles,UserProfile,Location,UserEducationDetails,UserExperienceDetails,\
-    UserLanguages,UserReference,NeeriRelation,OverseasVisits,PublishedPapers,ProfessionalTraining,UserDocuments,OtherInformation
+from user.models import User, RoleMaster, UserRoles, UserProfile, Location, UserEducationDetails, UserExperienceDetails, \
+    UserLanguages, UserReference, NeeriRelation, OverseasVisits, PublishedPapers, ProfessionalTraining, UserDocuments, \
+    OtherInformation, UserPermissions
 from job_posting.models import UserJobPositions, JobDocuments, JobPosting,SelectionProcessContent
 from user.serializer import UserSerializer,AuthTokenCustomSerializer,UserProfileSerializer,UserRolesSerializer,\
     CustomUserSerializer,ApplicantUserPersonalInformationSerializer,LocationSerializer,\
