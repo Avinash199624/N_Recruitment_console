@@ -15,7 +15,8 @@ from user.views import LoginView,LogoutView,UserListView,RetrievetUserView,Updat
     ProfessionalTrainingUpdateView,ProfessionalTrainingDeleteView,ApplicantExperienceDeleteView,\
     ApplicantLanguagesDeleteView,ApplicantQualificationDeleteView,ApplicantReferencesDeleteView,NeeriRelationDeleteView,\
     OverseasVisitsDeleteView,PublishedPapersDeleteView,FileUpload,ProfileDetailView,OtherInformationDetailView,\
-    OtherInformationCreateView,OtherInformationUpdateView,OtherInformationDeleteView
+    OtherInformationCreateView,OtherInformationUpdateView,OtherInformationDeleteView,ApplicantListView,\
+    ResetPassword
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
@@ -27,6 +28,7 @@ urlpatterns = [
     path('create-user/', CreateUserView.as_view(), name="create-user"),
     path('user-list/', UserListView.as_view(), name="user-list"),
     path('forgot-password/', ForgotPassword.as_view(), name="forgot-password"),
+    path('reset_password/<uuid:id>/', ResetPassword.as_view(), name="reset-password"),
 
     #### Public Portal User URL's
 
@@ -87,5 +89,7 @@ urlpatterns = [
     path('public/other_info_delete/<uuid:id>/', OtherInformationDeleteView.as_view(), name="update-other-info"),
 
     path('public/profile_details/<uuid:id>/', ProfileDetailView.as_view(), name="user-profile-details"),
+    path('public/applicant_list/', ApplicantListView.as_view(), name="applicant-list"),
+
     path('public/file_upload/',FileUpload.as_view(), name="file_upload"),
 ]

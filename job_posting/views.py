@@ -138,6 +138,7 @@ class ZonalLabListView(APIView):
             return Response(serializer.data,status=200)
         else:
             return Response(data={"messege": "No Records found"}, status=404)
+			
 class ProjectApprovalListView(APIView):
 
     def get(self, request, *args, **kwargs):

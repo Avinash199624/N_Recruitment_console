@@ -59,7 +59,7 @@ class JobPostingAdmin(admin.ModelAdmin):
 @register(UserJobPositions)
 class UserJobPositionsAdmin(admin.ModelAdmin):
     list_display = ['user','job_posting','position','applied_job_status','appealed','date_of_application',
-                    'date_of_closing']
+                    'date_of_closing','user_job_position_id']
 
 
 class JobPostingRequirementPositionsAdmin(admin.TabularInline):

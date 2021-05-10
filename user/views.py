@@ -57,6 +57,12 @@ class LoginView(KnoxLoginView,LoginResponseViewMixin):
 
     @csrf_exempt
     def post(self, request, *args, **kwargs):
+        data = request.data
+        user = User.objects.get(email__exact=data['email'])
+        roles = [role.role.role_name for role in UserRoles.objects.filter(user=user)]
+        permissions = [permission.permission.permission_name for permission in UserPermissions.objects.filter(role__role_name__in=roles).distinct('permission')]
+        if not 'applicant' in roles:
+            return Response(data = {"messege":"You are not authorised user"}, status=200)
         serializer = AuthTokenCustomSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
@@ -69,7 +75,12 @@ class LoginView(KnoxLoginView,LoginResponseViewMixin):
 
         result = super(LoginView, self).post(request, format=None)
         serializer = UserSerializer(user)
+        authentication = UserAuthentication.objects.get(user=user)
         result.data['user'] = serializer.data
+        result.data['roles'] = roles
+        result.data['permissions'] = permissions
+        result.data['email_verified'] = authentication.email_verified
+        result.data['mobile_verified'] = authentication.mobile_verified
         return Response(result.data,status=200)
 
 class LogoutView(KnoxLogoutView):
@@ -96,8 +107,17 @@ class UserRegistartionView(APIView):
         else:
             user = User.objects.create_user(mobile_no, email, password)
             UserRoles.objects.create(role=role,user=user)
+            roles = [role.role.role_name for role in UserRoles.objects.filter(user=user)]
+            permissions = [permission.permission.permission_name for permission in
+                           UserPermissions.objects.filter(role__role_name__in=roles).distinct('permission')]
             serializer = UserSerializer(user)
-            return JsonResponse(data=serializer.data, status=200, safe=False)
+            result = {}
+            result['user'] = serializer.data
+            result['roles'] = roles
+            result['permissions'] = permissions
+            result['email_verified'] = authentication.email_verified
+            result['mobile_verified'] = authentication.mobile_verified
+            return JsonResponse(data=result, status=200, safe=False)
 
 class UserListView(APIView):
     def get(self,request,*args,**kwargs):
@@ -162,9 +182,21 @@ class ForgotPassword(APIView):
         try:
             user = User.objects.get(email__exact = email)
             if user:
-                return Response(data={"messege": "Mail sent to your registered Email."}, status=200)
+                # Need to send Email with a link where user can reset password.
+                return Response(data={"messege": "Link sent to your registered Email."}, status=200)
         except:
             return Response(data={"messege": "Email not found, enter valid email."}, status=404)
+
+class ResetPassword(APIView):
+
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        id = self.kwargs['id']
+        user = User.objects.get(user_id=id)
+        password = data['password']
+        user.set_password(password)
+        user.save()
+        return Response(data={"messege":"Password reset Successfully."},status=200)
 
 
 class ApplicantPersonalInformationView(APIView):
@@ -984,4 +1016,11 @@ class ProfileDetailView(APIView):
             return Response(serializer.data, status=200)
         except:
             return Response(data={"messege":"No Data Found."},status=200)
+
+class ApplicantListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        applicants = User.objects.filter(is_deleted=False,user_profile__roles__role_name__icontains='applicant')
+        serializer = CustomUserSerializer(applicants,many=True)
+        return Response(serializer.data, status=200)
 

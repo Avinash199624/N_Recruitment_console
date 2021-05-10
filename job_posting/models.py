@@ -201,6 +201,7 @@ class UserJobPositions(BaseModel):
     reason_to_appeal = models.TextField(blank=True, null=True)
     date_of_application = models.DateField(auto_now_add=True)
     date_of_closing = models.DateField(blank=True, null=True, help_text='Closing date of JobPosting')
+    user_job_position_id = models.CharField(max_length=200,null=True,blank=True)#It will be like notifiction_id/job_posting_id/user_id/position_id
 
     def __str__(self):
         return self.user.email

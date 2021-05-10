@@ -1,8 +1,7 @@
-from job_posting.models import UserJobPositions, QualificationMaster, PositionMaster, JobPostingRequirementPositions
 from rest_framework import serializers
 from job_posting.models import UserJobPositions,Department,Division,ZonalLab,QualificationMaster,\
     PositionMaster,PositionQualificationMapping,JobPostingRequirement,JobTemplate,JobDocuments,\
-    JobPosting,SelectionProcessContent,SelectionCommitteeMaster,ServiceConditions
+    JobPosting,SelectionProcessContent,SelectionCommitteeMaster,ServiceConditions,JobPostingRequirementPositions
 from document.serializer import DocumentMasterSerializer
 from document.models import DocumentMaster
 
@@ -28,6 +27,10 @@ class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
         method_name="get_hiring_status", read_only=True
     )
 
+    user_job_position_id = serializers.SerializerMethodField(
+        method_name='get_user_job_position_id',read_only=True
+    )
+
     class Meta:
         model = UserJobPositions
         fields = (
@@ -37,6 +40,7 @@ class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
             "date_of_application",
             "date_of_closing",
             "hiring_status",
+            "user_job_position_id",
         )
 
     def get_notification_id(self,obj):
@@ -58,6 +62,10 @@ class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
     def get_hiring_status(self,obj):
         hiring_status = obj.applied_job_status
         return hiring_status
+
+    def get_user_job_position_id(self,obj):
+        user_job_position_id = obj.user_job_position_id
+        return user_job_position_id
 
 class DepartmentSerializer(serializers.ModelSerializer):
 
@@ -242,7 +250,6 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
         requi.save()
 
         for position_data in validated_data['manpower_position']:
-            print("hello position_data ******************************", position_data)
             manpower_position = PositionMaster.objects.get(position_id=position_data['position'])
             count = position_data['count']
             total_cost = position_data['total_cost']
@@ -256,8 +263,6 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
         return requi.id
 
     def update(self, instance, validated_data):
-        print("instance \n", instance)
-        print("validated_data\n", validated_data)
         if instance:
             instance.project_title = (
                 validated_data['project_title'] if validated_data['project_title'] else instance.project_title

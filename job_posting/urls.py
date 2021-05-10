@@ -5,9 +5,8 @@ from job_posting.views import DepartmentListView, DivisionListView, ZonalLabList
     UpdateQualificationMasterView, DeleteQualificationMasterView, \
     RetrievePositionMasterView, DeletePositionMasterView, UpdatePositionMasterView, CreatePositionMasterView, \
     QualificationMasterListView, PositionMasterListView, JobPostingCreateView, JobPostingUpdateView, \
-    GetSelectionContent, GetServiceConditions, CreateProjectRequirementView, UpdateProjectRequirementView, \
-    DeleteProjectRequirementView, RetrieveProjectRequirementView, ProjectRequirementListView, GetSelectionContent, \
-    GetServiceConditions, \
+    CreateProjectRequirementView, UpdateProjectRequirementView, \
+    DeleteProjectRequirementView, RetrieveProjectRequirementView, ProjectRequirementListView, GetSelectionContent,GetServiceConditions,\
     ApplicantListByJobPositions, JosPostingListView
 
 urlpatterns = [

@@ -154,13 +154,13 @@ class UserPermissionSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     user_profile = UserProfileSerializer(required=False)
 
-    user_roles = serializers.SerializerMethodField(
-        method_name="get_user_roles", read_only=True
-    )
+    # user_roles = serializers.SerializerMethodField(
+    #     method_name="get_user_roles", read_only=True
+    # )
 
-    user_permissions = serializers.SerializerMethodField(
-        method_name="get_user_permissions", read_only=True
-    )
+    # user_permissions = serializers.SerializerMethodField(
+    #     method_name="get_user_permissions", read_only=True
+    # )
 
     username = serializers.SerializerMethodField(
         method_name="get_username", read_only=True
@@ -169,7 +169,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
 
-        profile_names = ("user_profile", "user_roles", "user_permissions")
+        # profile_names = ("user_profile", "user_roles", "user_permissions")
+        profile_names = ("user_profile",)
 
         fields = (
                      "user_id",
@@ -178,7 +179,7 @@ class UserSerializer(serializers.ModelSerializer):
                      "mobile_no",
                      "created_at",
                      "is_deleted",
-                     "user_roles",
+                     # "user_roles",
                  ) + profile_names
 
     def get_username(self,obj):
@@ -187,18 +188,18 @@ class UserSerializer(serializers.ModelSerializer):
         else:
             return obj.first_name + ' ' + obj.last_name
 
-    def get_user_roles(self, obj):
-        user_roles = UserRoles.objects.filter(user=obj)
-        serializer = UserRolesSerializer(user_roles, many=True)
-        return serializer.data
-
-    def get_user_permissions(self, obj):
-        user_roles = UserRoles.objects.filter(user=obj)
-        role_names = [role.role.role_name for role in user_roles]
-        roles = RoleMaster.objects.filter(role_name__in=role_names)
-        user_permissions = UserPermissions.objects.filter(role__in=roles).distinct('permission')
-        serializer = UserPermissionSerializer(user_permissions, many=True)
-        return serializer.data
+    # def get_user_roles(self, obj):
+    #     user_roles = UserRoles.objects.filter(user=obj)
+    #     serializer = UserRolesSerializer(user_roles, many=True)
+    #     return serializer.data
+    #
+    # def get_user_permissions(self, obj):
+    #     user_roles = UserRoles.objects.filter(user=obj)
+    #     role_names = [role.role.role_name for role in user_roles]
+    #     roles = RoleMaster.objects.filter(role_name__in=role_names)
+    #     user_permissions = UserPermissions.objects.filter(role__in=roles).distinct('permission')
+    #     serializer = UserPermissionSerializer(user_permissions, many=True)
+    #     return serializer.data
 
 class CustomUserSerializer(serializers.ModelSerializer):
 
