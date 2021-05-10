@@ -62,8 +62,8 @@ class LoginView(KnoxLoginView,LoginResponseViewMixin):
         user = User.objects.get(email__exact=data['email'])
         roles = [role.role.role_name for role in UserRoles.objects.filter(user=user)]
         permissions = [permission.permission.permission_name for permission in UserPermissions.objects.filter(role__role_name__in=roles).distinct('permission')]
-        if not 'applicant' in roles:
-            return Response(data = {"messege":"You are not authorised user"}, status=400)
+#         if not 'applicant' in roles:
+#             return Response(data = {"messege":"You are not authorised user"}, status=400)
         serializer = AuthTokenCustomSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
