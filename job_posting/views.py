@@ -126,8 +126,8 @@ class DivisionListView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             division_id = self.kwargs['id']
-            divisions = Division.objects.filter(division_id=division_id, is_deleted=False)
-            serializer = DivisionSerializer(divisions, many=True)
+            divisions = Division.objects.get(division_id=division_id, is_deleted=False)
+            serializer = DivisionSerializer(divisions)
             return Response(serializer.data, status=200)
         except:
             if Division.objects.filter(is_deleted=False).count() > 0:
@@ -179,8 +179,8 @@ class ZonalLabListView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             lab_id = self.kwargs['id']
-            labs = ZonalLab.objects.filter(zonal_lab_id=lab_id, is_deleted=False)
-            serializer = ZonalLabSerializer(labs, many=True)
+            labs = ZonalLab.objects.get(zonal_lab_id=lab_id, is_deleted=False)
+            serializer = ZonalLabSerializer(labs)
             return Response(serializer.data, status=200)
         except:
             if ZonalLab.objects.filter(is_deleted=False).count() > 0:
@@ -389,8 +389,8 @@ class AppealReasonMasterViews(APIView):
     def get(self, request, *args, **kwargs):
         try:
             appeal_id = self.kwargs['id']
-            applicant = AppealMaster.objects.filter(appeal_id=appeal_id, is_deleted=False)
-            serializer = AppealReasonMasterSerializer(applicant, many=True)
+            applicant = AppealMaster.objects.get(appeal_id=appeal_id, is_deleted=False)
+            serializer = AppealReasonMasterSerializer(applicant)
             return Response(serializer.data, status=200)
         except:
             applicants = AppealMaster.objects.filter(is_deleted=False)
@@ -415,3 +415,4 @@ class AppealReasonMasterViews(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=applicant, validated_data=data)
         return Response(serializer.data, status=200)
+
