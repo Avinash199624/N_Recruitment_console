@@ -1205,6 +1205,7 @@ class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
             "religion",
             "caste",
             "profile_photo",
+            "roles",
         )
 
     def get_user_id(self, obj):
