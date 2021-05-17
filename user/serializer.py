@@ -1,9 +1,11 @@
+from job_posting.models import UserJobPositions, JobPosting
 from user.models import User, UserProfile, Location, UserRoles, UserPermissions, RoleMaster, UserEducationDetails, \
     UserExperienceDetails, NeeriRelation, UserReference, OverseasVisits, UserLanguages, UserDocuments, \
     PublishedPapers, ProfessionalTraining, OtherInformation, NeeriUserProfile
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
+from datetime import date
 
 class AuthTokenCustomSerializer(serializers.Serializer):
     email = serializers.CharField(label=_("email"))
@@ -118,6 +120,137 @@ class UserProfileSerializer(serializers.ModelSerializer):
                  ) + profile_names
 
 
+class CompareApplicantSerializer(serializers.ModelSerializer):
+    name_of_applicant = serializers.SerializerMethodField(
+        method_name="get_name_of_applicant", read_only=True
+    )
+    mobile_no = serializers.SerializerMethodField(
+        method_name="get_mobile_no", read_only=True
+    )
+    age_of_applicant = serializers.SerializerMethodField(
+        method_name="get_age_of_applicant", read_only=True
+    )
+    # application_id = serializers.SerializerMethodField(
+    #     method_name="get_application_id", read_only=True
+    # )
+    specialization_in = serializers.SerializerMethodField(
+        method_name="get_specialization", read_only=True
+    )
+    exp_in_years = serializers.SerializerMethodField(
+        method_name="get_exp_in_years", read_only=True
+    )
+
+    class Meta:
+        model = UserProfile
+
+        fields = (
+            # todo: job id ---> application no.
+            # "application_id",
+            "user_id",
+            "name_of_applicant",
+            "date_of_birth",
+            "age_of_applicant",
+            "gender",
+            "caste",
+            "mobile_no",
+            "specialization_in",
+            "exp_in_years",
+        )
+
+    def get_name_of_applicant(self, obj):
+        name_of_applicant = obj.user.first_name + ' ' + obj.user.middle_name + ' ' + obj.user.last_name
+        return name_of_applicant
+
+    def get_mobile_no(self, obj):
+        mobile_no = obj.user.mobile_no
+        return mobile_no
+
+    def get_specialization(self, obj):
+        specialization_in = obj.education_details.filter()
+        serializer = SubjectSpecializationSerializer(specialization_in, many=True)
+        return serializer.data
+
+    # def get_application_id(self, obj):
+    #     app_id = obj.notification_id
+    #     serializer = JobPostingSerializer(app_id)
+    #     return serializer.data
+
+    def get_exp_in_years(self, obj):
+        # try:
+        exp_in_years = obj.experiences.filter()
+        serializer = EmployeeExperienceSerializer(exp_in_years, many=True)
+        return serializer.data
+        # exp_in_years = obj.experiences.employed_to.year - obj.experiences.employed_from.year
+        # return exp_in_years
+        # except:
+        #     return None
+
+    def get_age_of_applicant(self, obj):
+        today = date.today()
+        age_of_applicant = today.year - obj.date_of_birth.year - (
+                (today.month, today.day) < (obj.date_of_birth.month, obj.date_of_birth.day))
+        return age_of_applicant
+
+
+class SubjectSpecializationSerializer(serializers.ModelSerializer):
+    score = serializers.SerializerMethodField(
+        method_name="get_score", read_only=True
+    )
+
+    class Meta:
+        model = UserEducationDetails
+        fields = (
+            "specialization",
+            "score",
+        )
+
+    def get_score(self, obj):
+        score = obj.score + obj.score_unit
+        return score
+
+class JobPostingSerializer(serializers.ModelSerializer):
+    notification_id = serializers.SerializerMethodField(
+        method_name="get_job_id", read_only=True
+    )
+
+    class Meta:
+        model = JobPosting
+        fields = (
+            "notification_id",
+        )
+
+    def get_job_id(self, obj):
+        job_id = obj.notification_id
+        return job_id
+
+
+class EmployeeExperienceSerializer(serializers.ModelSerializer):
+    years = serializers.SerializerMethodField(
+        method_name="get_experience", read_only=True
+    )
+
+    class Meta:
+        model = UserExperienceDetails
+        fields = (
+            "years",
+        )
+
+    def get_experience(self, obj):
+        year = abs(obj.employed_from.year - obj.employed_to.year)
+        month = abs(obj.employed_from.month - obj.employed_to.month)
+        years = str(year) + " year and " + str(month) + " months"
+        return years
+
+
+class RoleMasterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoleMaster
+        fields = (
+            "role_id",
+            "role_name",
+        )
+
+
 class UserRolesSerializer(serializers.ModelSerializer):
 
     user_role = serializers.SerializerMethodField(
@@ -130,7 +263,7 @@ class UserRolesSerializer(serializers.ModelSerializer):
             "user_role",
         )
 
-    def get_user_role(self,obj):
+    def get_user_role(self, obj):
         user_role = obj.role.role_name
         return user_role
 
@@ -146,7 +279,7 @@ class UserPermissionSerializer(serializers.ModelSerializer):
             "user_permission",
         )
 
-    def get_user_permission(self,obj):
+    def get_user_permission(self, obj):
         user_permission = obj.permission.permission_name
         return user_permission
 
@@ -182,7 +315,7 @@ class UserSerializer(serializers.ModelSerializer):
                      # "user_roles",
                  ) + profile_names
 
-    def get_username(self,obj):
+    def get_username(self, obj):
         if obj.first_name == '' and obj.last_name == '':
             return obj.email
         else:
@@ -201,8 +334,8 @@ class UserSerializer(serializers.ModelSerializer):
     #     serializer = UserPermissionSerializer(user_permissions, many=True)
     #     return serializer.data
 
-class CustomUserSerializer(serializers.ModelSerializer):
 
+class CustomUserSerializer(serializers.ModelSerializer):
     mobile_no = serializers.SerializerMethodField(
         method_name="get_mobile_no", read_only=True
     )
@@ -287,34 +420,32 @@ class CustomUserSerializer(serializers.ModelSerializer):
         except:
             return None
 
-
-    def get_status(self,obj):
+    def get_status(self, obj):
         try:
             status = obj.user_profile.status
             return status
         except:
             return None
 
-
-    def get_local_address(self,obj):
+    def get_local_address(self, obj):
         try:
             local_address = obj.user_profile.local_address.all()
-            serializer = LocationSerializer(local_address,many=True)
+            serializer = LocationSerializer(local_address, many=True)
             return serializer.data
         except:
             return None
 
-    def get_permanent_address(self,obj):
+    def get_permanent_address(self, obj):
         try:
             permanent_address = obj.user_profile.permanent_address.all()
-            serializer = LocationSerializer(permanent_address,many=True)
+            serializer = LocationSerializer(permanent_address, many=True)
             return serializer.data
         except:
             return None
 
-    def get_user_roles(self,obj):
+    def get_user_roles(self, obj):
         user_roles = UserRoles.objects.filter(user=obj)
-        serializer = UserRolesSerializer(user_roles,many=True)
+        serializer = UserRolesSerializer(user_roles, many=True)
         return serializer.data
 
     def get_user_permissions(self, obj):
@@ -359,14 +490,13 @@ class CustomUserSerializer(serializers.ModelSerializer):
                 )
 
                 instance.user_profile.date_of_birth = (
-                    validated_data["date_of_birth"] if validated_data["date_of_birth"] else instance.user_profile.date_of_birth
+                    validated_data["date_of_birth"] if validated_data[
+                        "date_of_birth"] else instance.user_profile.date_of_birth
                 )
-
 
                 instance.user_profile.status = (
                     validated_data["status"] if validated_data["status"] else instance.user_profile.status
                 )
-
 
             if local_address_instance:
                 local_address_instance[0].address1 = (
@@ -467,7 +597,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
                 postcode=user_profile_permanent_address[0]['postcode'],
             )
 
-
             user_profile = UserProfile.objects.create(
                 user=instance,
                 gender=validated_data['gender'],
@@ -481,7 +610,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
             instance.user_profile = user_profile
             instance.save()
-
 
     def save(self, instance, validated_data):
 
@@ -529,7 +657,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
 
 class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
-
     status = serializers.SerializerMethodField(
         method_name="get_status", read_only=True
     )
@@ -660,84 +787,84 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             "skype_id",
         )
 
-    def get_user_id(self,obj):
+    def get_user_id(self, obj):
         try:
             user_id = obj.user.user_id
             return user_id
         except:
             return None
 
-    def get_fax_number(self,obj):
+    def get_fax_number(self, obj):
         try:
             fax_number = obj.fax_number
             return fax_number
         except:
             return None
 
-    def get_first_name(self,obj):
+    def get_first_name(self, obj):
         try:
             first_name = obj.user.first_name
             return first_name
         except:
             return None
 
-    def get_last_name(self,obj):
+    def get_last_name(self, obj):
         try:
             last_name = obj.user.last_name
             return last_name
         except:
             return None
 
-    def get_middle_name(self,obj):
+    def get_middle_name(self, obj):
         try:
             middle_name = obj.user.middle_name
             return middle_name
         except:
             return None
 
-    def get_is_indian_citizen(self,obj):
+    def get_is_indian_citizen(self, obj):
         try:
             is_indian_citizen = obj.is_indian_citizen
             return is_indian_citizen
         except:
             return None
 
-    def get_mobile_no(self,obj):
+    def get_mobile_no(self, obj):
         try:
             mobile_no = obj.user.mobile_no
             return mobile_no
         except:
             return None
 
-    def get_gender(self,obj):
+    def get_gender(self, obj):
         try:
             gender = obj.gender
             return gender
         except:
             return None
 
-    def get_date_of_birth(self,obj):
+    def get_date_of_birth(self, obj):
         try:
             date_of_birth = obj.date_of_birth
             return date_of_birth
         except:
             return None
 
-    def get_date_of_birth_in_words(self,obj):
+    def get_date_of_birth_in_words(self, obj):
         try:
             get_date_of_birth_in_words = obj.get_date_of_birth_in_words
             return get_date_of_birth_in_words
         except:
             return None
 
-    def get_place_of_birth(self,obj):
+    def get_place_of_birth(self, obj):
         try:
             place_of_birth = obj.place_of_birth
             return place_of_birth
         except:
             return None
 
-    def get_father_name(self,obj):
+    def get_father_name(self, obj):
         try:
             father_name = obj.father_name
             return father_name
@@ -752,16 +879,14 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
     #     except:
     #         return None
 
-
-    def get_father_occupation(self,obj):
+    def get_father_occupation(self, obj):
         try:
             father_occupation = obj.father_occupation
             return father_occupation
         except:
             return None
 
-
-    def get_status(self,obj):
+    def get_status(self, obj):
         try:
             status = obj.status
             return status
@@ -861,7 +986,8 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         )
 
         instance.date_of_birth_in_words = (
-            validated_data["date_of_birth_in_words"] if validated_data["date_of_birth_in_words"] else instance.date_of_birth_in_words
+            validated_data["date_of_birth_in_words"] if validated_data[
+                "date_of_birth_in_words"] else instance.date_of_birth_in_words
         )
 
         instance.place_of_birth = (
@@ -1126,22 +1252,23 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             user = user,
             gender = validated_data['gender'] if 'gender' in validated_data else None,
             # mobile_no = validated_data['mobile_no'] if 'mobile_no' in validated_data else None,
-            date_of_birth = validated_data['date_of_birth'] if 'date_of_birth' in validated_data else None,
-            status = validated_data['status'] if 'status' in validated_data else None,
-            date_of_birth_in_words = validated_data['date_of_birth_in_words'] if 'date_of_birth_in_words' in validated_data else None,
-            place_of_birth = validated_data['place_of_birth'] if 'place_of_birth' in validated_data else None,
-            father_name = validated_data['father_name'] if 'father_name' in validated_data else None,
-            father_occupation = validated_data['father_occupation'] if 'father_occupation' in validated_data else None,
-            religion = validated_data['religion'] if 'religion' in validated_data else None,
-            caste = validated_data['caste'] if 'caste' in validated_data else None,
-            passport_number = validated_data['passport_number'] if 'passport_number' in validated_data else None,
-            passport_expiry = validated_data['passport_expiry'] if 'passport_expiry' in validated_data else None,
-            profile_photo = validated_data['profile_photo'] if 'profile_photo' in validated_data else None,
-            fax_number = validated_data['fax_number'] if 'fax_number' in validated_data else None,
-            is_indian_citizen = validated_data['is_indian_citizen'] if 'is_indian_citizen' in validated_data else None,
-            whatsapp_id = validated_data['whatsapp_id'] if 'whatsapp_id' in validated_data else None,
-            skype_id = validated_data['skype_id'] if 'skype_id' in validated_data else None,
-            nationality = validated_data['nationality'] if 'nationality' in validated_data else None,
+            date_of_birth=validated_data['date_of_birth'] if 'date_of_birth' in validated_data else None,
+            status=validated_data['status'] if 'status' in validated_data else None,
+            date_of_birth_in_words=validated_data[
+                'date_of_birth_in_words'] if 'date_of_birth_in_words' in validated_data else None,
+            place_of_birth=validated_data['place_of_birth'] if 'place_of_birth' in validated_data else None,
+            father_name=validated_data['father_name'] if 'father_name' in validated_data else None,
+            father_occupation=validated_data['father_occupation'] if 'father_occupation' in validated_data else None,
+            religion=validated_data['religion'] if 'religion' in validated_data else None,
+            caste=validated_data['caste'] if 'caste' in validated_data else None,
+            passport_number=validated_data['passport_number'] if 'passport_number' in validated_data else None,
+            passport_expiry=validated_data['passport_expiry'] if 'passport_expiry' in validated_data else None,
+            profile_photo=validated_data['profile_photo'] if 'profile_photo' in validated_data else None,
+            fax_number=validated_data['fax_number'] if 'fax_number' in validated_data else None,
+            is_indian_citizen=validated_data['is_indian_citizen'] if 'is_indian_citizen' in validated_data else None,
+            whatsapp_id=validated_data['whatsapp_id'] if 'whatsapp_id' in validated_data else None,
+            skype_id=validated_data['skype_id'] if 'skype_id' in validated_data else None,
+            nationality=validated_data['nationality'] if 'nationality' in validated_data else None,
             # local_address = local_address if local_address else None,
             # permanent_address = permanent_address if local_address else None,
             # father_address = father_address if local_address else None,
@@ -1190,6 +1317,12 @@ class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
     first_name = serializers.SerializerMethodField(
         method_name="get_first_name", read_only=True
     )
+    # roles = serializers.SerializerMethodField(
+    #     method_name='get_roles', required=False
+    # )
+    user_address = serializers.SerializerMethodField(
+        method_name='get_address', required=False
+    )
 
     class Meta:
         model = NeeriUserProfile
@@ -1202,6 +1335,7 @@ class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
             "mobile_no",
             "email",
             "date_of_birth",
+            "user_address",
             "religion",
             "caste",
             "profile_photo",
@@ -1251,11 +1385,11 @@ class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
         except:
             return None
     def get_email(self, obj):
-            try:
-                email = obj.user.email
-                return email
-            except:
-                return None
+        try:
+            email = obj.user.email
+            return email
+        except:
+            return None
 
     def get_date_of_birth(self, obj):
         try:
@@ -1268,6 +1402,13 @@ class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
         try:
             religion = obj.religion
             return religion
+        except:
+            return None
+
+    def get_address(self, obj):
+        try:
+            address = obj.address.address1 + ", " + obj.address.address2
+            return address
         except:
             return None
 
@@ -1285,9 +1426,36 @@ class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
         except:
             return None
 
+    # def get_roles(self, obj):
+    #     role = obj.roles.filter()
+    #     serializer = RoleMasterSerializer(role, many=True)
+    #     return serializer.data
+
+    def save(self, validated_data):
+
+        user = User.objects.get(user_id=validated_data['user_id'])
+        user.first_name = validated_data['first_name'] if 'first_name' in validated_data else None
+        user.middle_name = validated_data['middle_name'] if 'middle_name' in validated_data else None
+        user.last_name = validated_data['last_name'] if 'last_name' in validated_data else None
+        user.email = validated_data['email'] if 'email' in validated_data else None
+        user.save()
+
+
+        neeri_user_profile = NeeriUserProfile.objects.create(
+            user=user,
+            gender=validated_data['gender'] if 'gender' in validated_data else None,
+            date_of_birth=validated_data['date_of_birth'] if 'date_of_birth' in validated_data else None,
+            religion=validated_data['religion'] if 'religion' in validated_data else None,
+            caste=validated_data['caste'] if 'caste' in validated_data else None,
+            profile_photo=validated_data['profile_photo'] if 'profile_photo' in validated_data else None,
+        )
+        for role_data in validated_data['roles']:
+            neeri_user_profile.roles.add(role_data)
+        neeri_user_profile.save()
+
+        return neeri_user_profile.user_id
+
     def update(self, instance, validated_data):
-
-
         instance.gender = (
             validated_data["gender"] if validated_data["gender"] else instance.gender
         )
@@ -1320,209 +1488,20 @@ class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
             validated_data["middle_name"] if validated_data["middle_name"] else instance.user.middle_name
         )
         instance.user.save()
+        user = NeeriUserProfile.objects.get(user_id=validated_data['user_id'])
+        oldrole = user.roles.filter()
+        if not validated_data['roles']: # working for empty role.
+            for orole in oldrole:
+                instance.roles.remove(orole)
+        for orole in oldrole:
+            for role_data in validated_data['roles']:
+                if str(orole.role_id) != str(role_data):  # working deletion now
+                    print(str(role_data) + " != " + str(orole.role_id))
+                    instance.roles.remove(orole)
+        for role_data in validated_data['roles']: # working for addition too.
+            instance.roles.add(role_data)
         instance.save()
 
-        # if instance.local_address:
-        #     local_address_instance = instance.local_address
-        #     validated_local_address = validated_data['local_address']
-        #
-        #     local_address_instance.address1 = (
-        #         validated_local_address['address1'] if validated_local_address['address1'] else local_address_instance.address1
-        #     )
-        #
-        #     local_address_instance.address2 = (
-        #         validated_local_address['address2'] if validated_local_address[
-        #             'address2'] else local_address_instance.address2
-        #     )
-        #
-        #     local_address_instance.address3 = (
-        #         validated_local_address['address3'] if validated_local_address[
-        #             'address3'] else local_address_instance.address3
-        #     )
-        #
-        #     local_address_instance.city = (
-        #         validated_local_address['city'] if validated_local_address[
-        #             'city'] else local_address_instance.city
-        #     )
-        #
-        #     local_address_instance.state = (
-        #         validated_local_address['state'] if validated_local_address[
-        #             'state'] else local_address_instance.state
-        #     )
-        #
-        #     local_address_instance.country = (
-        #         validated_local_address['country'] if validated_local_address[
-        #             'country'] else local_address_instance.country
-        #     )
-        #
-        #     local_address_instance.postcode = (
-        #         validated_local_address['postcode'] if validated_local_address[
-        #             'postcode'] else local_address_instance.postcode
-        #     )
-        #
-        #     local_address_instance.telephone_no = (
-        #         validated_local_address['telephone_no'] if validated_local_address[
-        #             'telephone_no'] else local_address_instance.telephone_no
-        #     )
-        #
-        #     local_address_instance.save()
-        #
-        # if instance.permanent_address:
-        #     permanent_address_instance = instance.permanent_address
-        #     validated_permanent_address = validated_data['permanent_address']
-        #
-        #     permanent_address_instance.address1 = (
-        #         validated_permanent_address['address1'] if validated_permanent_address['address1'] else permanent_address_instance.address1
-        #     )
-        #
-        #     permanent_address_instance.address2 = (
-        #         validated_permanent_address['address2'] if validated_permanent_address[
-        #             'address2'] else permanent_address_instance.address2
-        #     )
-        #
-        #     permanent_address_instance.address3 = (
-        #         validated_permanent_address['address3'] if validated_permanent_address[
-        #             'address3'] else permanent_address_instance.address3
-        #     )
-        #
-        #     permanent_address_instance.city = (
-        #         validated_permanent_address['city'] if validated_permanent_address[
-        #             'city'] else permanent_address_instance.city
-        #     )
-        #
-        #     permanent_address_instance.state = (
-        #         validated_permanent_address['state'] if validated_permanent_address[
-        #             'state'] else permanent_address_instance.state
-        #     )
-        #
-        #     permanent_address_instance.country = (
-        #         validated_permanent_address['country'] if validated_permanent_address[
-        #             'country'] else permanent_address_instance.country
-        #     )
-        #
-        #     permanent_address_instance.postcode = (
-        #         validated_permanent_address['postcode'] if validated_permanent_address[
-        #             'postcode'] else permanent_address_instance.postcode
-        #     )
-        #
-        #     permanent_address_instance.telephone_no = (
-        #         validated_permanent_address['telephone_no'] if validated_permanent_address[
-        #             'telephone_no'] else permanent_address_instance.telephone_no
-        #     )
-        #
-        #     permanent_address_instance.save()
-        #
-        # if instance.father_address:
-        #     father_address_instance = instance.father_address
-        #     validated_father_address = validated_data['father_address']
-        #
-        #     father_address_instance.address1 = (
-        #         validated_father_address['address1'] if validated_father_address['address1'] else father_address_instance.address1
-        #     )
-        #
-        #     father_address_instance.address2 = (
-        #         validated_father_address['address2'] if validated_father_address[
-        #             'address2'] else father_address_instance.address2
-        #     )
-        #
-        #     father_address_instance.address3 = (
-        #         validated_father_address['address3'] if validated_father_address[
-        #             'address3'] else father_address_instance.address3
-        #     )
-        #
-        #     father_address_instance.city = (
-        #         validated_father_address['city'] if validated_father_address[
-        #             'city'] else father_address_instance.city
-        #     )
-        #
-        #     father_address_instance.state = (
-        #         validated_father_address['state'] if validated_father_address[
-        #             'state'] else father_address_instance.state
-        #     )
-        #
-        #     father_address_instance.country = (
-        #         validated_father_address['country'] if validated_father_address[
-        #             'country'] else father_address_instance.country
-        #     )
-        #
-        #     father_address_instance.postcode = (
-        #         validated_father_address['postcode'] if validated_father_address[
-        #             'postcode'] else father_address_instance.postcode
-        #     )
-        #
-        #     father_address_instance.telephone_no = (
-        #         validated_father_address['telephone_no'] if validated_father_address[
-        #             'telephone_no'] else father_address_instance.telephone_no
-        #     )
-        #
-        #     father_address_instance.save()
-
-        instance.save()
-
-    def save(self, validated_data):
-
-        # if 'local_address' in validated_data:
-        #     local_address_data = validated_data['local_address']
-        #     local_address = Location.objects.create(
-        #         address1=local_address_data['address1'] if 'address1' in local_address_data else None,
-        #         address2=local_address_data['address2'] if 'address2' in local_address_data else None,
-        #         address3=local_address_data['address3'] if 'address3' in local_address_data else None,
-        #         city=local_address_data['city'] if 'city' in local_address_data else None,
-        #         state=local_address_data['state'] if 'state' in local_address_data else None,
-        #         country=local_address_data['country'] if 'country' in local_address_data else None,
-        #         postcode=local_address_data['postcode'] if 'postcode' in local_address_data else None,
-        #         telephone_no=local_address_data['telephone_no'] if 'telepone_no' in local_address_data else None,
-        #     )
-        # else:
-        #     local_address = None
-        #
-        # if 'permanent_address' in validated_data:
-        #     permanent_address_data = validated_data['permanent_address']
-        #     permanent_address = Location.objects.create(
-        #         address1=permanent_address_data['address1'] if 'address1' in local_address_data else None,
-        #         address2=permanent_address_data['address2'] if 'address2' in local_address_data else None,
-        #         address3=permanent_address_data['address3'] if 'address3' in local_address_data else None,
-        #         city=permanent_address_data['city'] if 'city' in local_address_data else None,
-        #         state=permanent_address_data['state'] if 'state' in local_address_data else None,
-        #         country=permanent_address_data['country'] if 'country' in local_address_data else None,
-        #         postcode=permanent_address_data['postcode'] if 'postcode' in local_address_data else None,
-        #         telephone_no=permanent_address_data['telephone_no'] if 'telephone_no' in local_address_data else None,
-        #     )
-        # else:
-        #     permanent_address = None
-        #
-        # if 'father_address' in validated_data:
-        #     father_address_data = validated_data['father_address']
-        #     father_address = Location.objects.create(
-        #         address1=father_address_data['address1'] if 'address1' in local_address_data else None,
-        #         address2=father_address_data['address2'] if 'address2' in local_address_data else None,
-        #         address3=father_address_data['address3'] if 'address3' in local_address_data else None,
-        #         city=father_address_data['city'] if 'city' in local_address_data else None,
-        #         state=father_address_data['state'] if 'state' in local_address_data else None,
-        #         country=father_address_data['country'] if 'country' in local_address_data else None,
-        #         postcode=father_address_data['postcode'] if 'postcode' in local_address_data else None,
-        #         telephone_no=father_address_data['telephone_no'] if 'telephone_no' in local_address_data else None,
-        #     )
-        # else:
-        #     father_address = None
-
-        user = User.objects.get(user_id=validated_data['user_id'])
-        user.first_name = validated_data['first_name'] if 'first_name' in validated_data else None
-        user.middle_name = validated_data['middle_name'] if 'middle_name' in validated_data else None
-        user.last_name = validated_data['last_name'] if 'last_name' in validated_data else None
-        user.email = validated_data['email'] if 'email' in validated_data else None
-        user.save()
-
-        neeri_user_profile = NeeriUserProfile.objects.create(
-            user = user,
-            gender = validated_data['gender'] if 'gender' in validated_data else None,
-            # mobile_no = validated_data['mobile_no'] if 'mobile_no' in validated_data else None,
-            date_of_birth = validated_data['date_of_birth'] if 'date_of_birth' in validated_data else None,
-            religion = validated_data['religion'] if 'religion' in validated_data else None,
-            caste = validated_data['caste'] if 'caste' in validated_data else None,
-            profile_photo = validated_data['profile_photo'] if 'profile_photo' in validated_data else None,
-        )
-        return neeri_user_profile
 
 class UserEducationDetailsSerializer(serializers.ModelSerializer):
 
@@ -1770,7 +1749,8 @@ class ReferencesSerializer(serializers.ModelSerializer):
             )
 
             address_data.telephone_no = (
-                validated_address_data["telephone_no"] if validated_address_data["telephone_no"] else address_data.telephone_no
+                validated_address_data["telephone_no"] if validated_address_data[
+                    "telephone_no"] else address_data.telephone_no
             )
             address_data.save()
         instance.save()

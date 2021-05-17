@@ -17,9 +17,9 @@ class CreateCommunicationTemplateView(APIView):
         try:
             result_data = data_serializer.save(validated_data=data)
             result_serializer = CommunicationMasterSerializer(result_data)
+            return Response(result_serializer.data, status=200)
         except:
-            return Response(data = {"messege":"Constraint Violated"}, status=401)
-        return Response(result_serializer.data, status=200)
+            return Response(data={"message": "Constraint Violated"}, status=400)
 
 class RetrievetCommunicationTemplateView(APIView):
     def get(self, request, *args, **kwargs):

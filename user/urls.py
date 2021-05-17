@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from user.views import UserRegistartionView, NeeriPersonalInformation
+from user.views import UserRegistartionView, NeeriPersonalInformation, CompareApplicantListView
 from user.views import LoginView,LogoutView,UserListView,RetrievetUserView,UpdateUserView,CreateUserView,DeleteUserView,ForgotPassword,\
     ApplicantPersonalInformationView,ApplicantPersonalInformationUpdateView,\
     ApplicantPersonalInformationCreateView,ApplicantAddressView,ApplicantAddressCreateView,\
@@ -95,4 +95,5 @@ urlpatterns = [
     path('public/applicant_list/', ApplicantListView.as_view(), name="applicant-list"),
 
     path('public/file_upload/',FileUpload.as_view(), name="file_upload"),
+    path('public/compare_applicants_for_job/', CompareApplicantListView.as_view(), name="compare-applicants-for-job"),
 ]

@@ -457,7 +457,7 @@ class UserEducationDetails(BaseModel):
     specialization = models.CharField(max_length=50, null=True, blank=True, help_text="special subject")
 
     def __str__(self):
-        return (self.id)
+        return self.specialization
 
 class UserExperienceDetails(BaseModel):
 
@@ -477,7 +477,7 @@ class UserExperienceDetails(BaseModel):
     grade = models.CharField(max_length=30, null=True, blank=True)
 
     def __str__(self):
-        return str(self.id)
+        return self.employer_name
 
 
 class PublishedPapers(BaseModel):
