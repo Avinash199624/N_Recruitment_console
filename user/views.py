@@ -62,13 +62,16 @@ class LoginView(KnoxLoginView,LoginResponseViewMixin):
         data = request.data
         user = User.objects.get(email__exact=data['email'])
         roles = [role.role.role_name for role in UserRoles.objects.filter(user=user)]
-        permissions = [permission.permission.permission_name for permission in UserPermissions.objects.filter(role__role_name__in=roles).distinct('permission')]
-#         if not 'applicant' in roles:
-#             return Response(data = {"messege":"You are not authorised user"}, status=400)
-        serializer = AuthTokenCustomSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
-        print('user',serializer.data)
+        permissions = [permission.permission.permission_name for permission in
+                       UserPermissions.objects.filter(role__role_name__in=roles).distinct('permission')]
+        if 'applicant' in roles:
+            serializer = AuthTokenCustomSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data["user"]
+            print('aam user', serializer.data)
+            # return Response(serializer.data, status=400)
+        else:
+            return Response(data={"message": "You're not authorized to login.."}, status=400)
 
         if not getattr(user, "is_active", None):
             raise AuthenticationFailed(INACTIVE_ACCOUNT_ERROR, code="account_disabled")
@@ -84,6 +87,48 @@ class LoginView(KnoxLoginView,LoginResponseViewMixin):
         # result.data['email_verified'] = authentication.email_verified
         # result.data['mobile_verified'] = authentication.mobile_verified
         return Response(result.data, status=200)
+
+
+class NeeriLoginView(KnoxLoginView, LoginResponseViewMixin):
+    """
+    For NEERI User
+    Login view adapted for our needs. Since by default all user operations
+    need to be authenticated, we need to explicitly set it to AllowAny.
+    """
+    permission_classes = [AllowAny, ]
+
+    @csrf_exempt
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        user = User.objects.get(email__exact=data['email'])
+        roles = [role.role.role_name for role in UserRoles.objects.filter(user=user)]
+        permissions = [permission.permission.permission_name for permission in
+                       UserPermissions.objects.filter(role__role_name__in=roles).distinct('permission')]
+
+        if not 'applicant' in roles:
+            serializer = AuthTokenCustomSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data["user"]
+            print('welcome neeri user', serializer.data)
+            # return Response(serializer.data, status=400)
+        else:
+            return Response(data={"message": "You're not authorized to login.."}, status=400)
+
+        if not getattr(user, "is_active", None):
+            raise AuthenticationFailed(INACTIVE_ACCOUNT_ERROR, code="account_disabled")
+        res = login(request, user)
+        print('res', res)
+
+        result = super(NeeriLoginView, self).post(request, format=None)
+        serializer = UserSerializer(user)
+        # authentication = UserAuthentication.objects.get(user=user)
+        result.data['user'] = serializer.data
+        result.data['roles'] = roles
+        result.data['permissions'] = permissions
+        # result.data['email_verified'] = authentication.email_verified
+        # result.data['mobile_verified'] = authentication.mobile_verified
+        return Response(result.data, status=200)
+
 
 class LogoutView(KnoxLogoutView):
 
