@@ -212,6 +212,10 @@ CORS_ALLOW_HEADERS = list(default_headers) + config(
 )
 CORS_EXPOSE_HEADERS = config("CORS_EXPOSE_HEADERS", default="", cast=Csv())
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default="", cast=Csv())
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://neeri-findinpi.vercel.app"
+]
 CORS_ORIGIN_REGEX_WHITELIST = config(
     "CORS_ORIGIN_REGEX_WHITELIST", default="", cast=Csv()
 )
