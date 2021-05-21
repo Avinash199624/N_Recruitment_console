@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from user.views import UserRegistartionView, NeeriPersonalInformation, CompareApplicantListView, \
-    NeeriLoginView
+    NeeriLoginView, TempLoginView
 from user.views import LoginView,LogoutView,UserListView,RetrievetUserView,UpdateUserView,CreateUserView,DeleteUserView,ForgotPassword,\
     ApplicantPersonalInformationView,ApplicantPersonalInformationUpdateView,\
     ApplicantPersonalInformationCreateView,ApplicantAddressView,ApplicantAddressCreateView,\
@@ -21,6 +21,7 @@ from user.views import LoginView,LogoutView,UserListView,RetrievetUserView,Updat
 
 urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
+    path('temp_login/', TempLoginView.as_view(), name='login'),
     path('neeri_login/', NeeriLoginView.as_view(), name='neeri-login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('signup/', UserRegistartionView.as_view(), name='signup'),
