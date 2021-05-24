@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.contrib.admin import register
-from user.models import User,UserProfile,RoleMaster,UserRoles,Location,PermissionMaster,\
-    UserPermissions,NeeriUserProfile,NeeriRelation,UserEducationDetails,UserExperienceDetails,\
-    UserDocuments,UserLanguages,UserReference,OverseasVisits,PublishedPapers,ProfessionalTraining,OtherInformation
+from user.models import User, UserProfile, RoleMaster, UserRoles, Location, PermissionMaster, \
+    UserPermissions, NeeriUserProfile, NeeriRelation, UserEducationDetails, UserExperienceDetails, \
+    UserDocuments, UserLanguages, UserReference, OverseasVisits, PublishedPapers, ProfessionalTraining, \
+    OtherInformation, MentorMaster
+
 
 # Register your models here.
 @register(OtherInformation)
@@ -78,3 +80,7 @@ class UserRolesAdmin(admin.ModelAdmin):
 @register(Location)
 class LocationAdmin(admin.ModelAdmin):
     list_display = ['address1','address2','address3','city','state','country','postcode' ]
+
+@register(MentorMaster)
+class MentorMasterAdmin(admin.ModelAdmin):
+    list_display = ['mentor_id','mentor_name']

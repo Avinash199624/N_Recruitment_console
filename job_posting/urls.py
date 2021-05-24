@@ -6,9 +6,11 @@ from job_posting.views import DepartmentListView, DivisionListView, ZonalLabList
     RetrievePositionMasterView, DeletePositionMasterView, UpdatePositionMasterView, CreatePositionMasterView, \
     QualificationMasterListView, PositionMasterListView, JobPostingCreateView, JobPostingUpdateView, \
     CreateProjectRequirementView, UpdateProjectRequirementView, \
-    DeleteProjectRequirementView, RetrieveProjectRequirementView, ProjectRequirementListView, GetSelectionContent,GetServiceConditions,\
+    DeleteProjectRequirementView, RetrieveProjectRequirementView, ProjectRequirementListView, GetSelectionContent, \
     GetServiceConditions, \
-    ApplicantListByJobPositions, JosPostingListView, UserAppealForJobPositions, AppealReasonMasterViews
+    GetServiceConditions, \
+    ApplicantListByJobPositions, JosPostingListView, UserAppealForJobPositions, AppealReasonMasterViews, \
+    NewPositionMasterViews, PermanentPositionMasterViews, TemporaryPositionMasterViews
 
 urlpatterns = [
     #     QualificationMaster
@@ -51,4 +53,10 @@ urlpatterns = [
     path('update_user_appeal_for_job_position/<str:id>/', UserAppealForJobPositions.as_view(), name="user-appeal-for-job"),
     path('appeal_reason_master/', AppealReasonMasterViews.as_view(), name="appeal-master-list-and-create"),
     path('appeal_reason_master/<uuid:id>/', AppealReasonMasterViews.as_view(), name="appeal-reason-master"),
+    path('positions/', NewPositionMasterViews.as_view(), name="positions-master"),
+    path('positions/<uuid:id>/', NewPositionMasterViews.as_view(), name="positions"),
+    path('permanent_positions/', PermanentPositionMasterViews.as_view(), name="positions-master"),
+    path('permanent_positions/<uuid:id>/', PermanentPositionMasterViews.as_view(), name="positions"),
+    path('temporary_positions/', TemporaryPositionMasterViews.as_view(), name="positions-master"),
+    path('temporary_positions/<uuid:id>/', TemporaryPositionMasterViews.as_view(), name="positions"),
 ]

@@ -1,11 +1,13 @@
 from job_posting.models import UserJobPositions, QualificationMaster, PositionMaster, JobPostingRequirementPositions, \
-    AppealMaster
+    AppealMaster, NewPositionMaster, PermanentPositionMaster, TemporaryPositionMaster
 from rest_framework import serializers
 from job_posting.models import UserJobPositions,Department,Division,ZonalLab,QualificationMaster,\
     PositionMaster,PositionQualificationMapping,JobPostingRequirement,JobTemplate,JobDocuments,\
     JobPosting,SelectionProcessContent,SelectionCommitteeMaster,ServiceConditions
-from document.serializer import DocumentMasterSerializer
-from document.models import DocumentMaster
+from document.serializer import DocumentMasterSerializer, InformationMasterSerializer, NewDocumentMasterSerializer
+from document.models import DocumentMaster, NewDocumentMaster, InformationMaster
+from user.serializer import SubjectSpecializationSerializer, EmployeeExperienceSerializer
+
 
 class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
 
@@ -706,3 +708,98 @@ class UserAppealForJobPositionsSerializer(serializers.ModelSerializer):
             instance.save()
 
             return instance.id
+
+
+
+class PermanentPositionMasterSerializer(serializers.ModelSerializer):
+    perm_position = serializers.SerializerMethodField(
+        method_name="get_position", read_only=True
+    )
+    position_id = serializers.SerializerMethodField(
+        method_name="get_position_id", read_only=True
+    )
+    class Meta:
+        model = PermanentPositionMaster
+        fields = (
+            "position_id",
+            "perm_position",
+            "grade",
+            "level",
+        )
+
+    def get_position(self, obj):
+        return obj.perm_position.position_name
+
+    def get_position_id(self, obj):
+        return obj.perm_position.position_id
+
+
+class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
+    temp_position = serializers.SerializerMethodField(
+        method_name="get_position", read_only=True
+    )
+    class Meta:
+        model = TemporaryPositionMaster
+        fields = (
+            "id",
+            "temp_position",
+            "salary_addition",
+            "salary",
+        )
+
+    def get_position(self, obj):
+        return obj.temp_position.position_name
+
+
+# NewPositionMaster
+
+class NewPositionMasterSerializer(serializers.ModelSerializer):
+
+    documents_required = serializers.SerializerMethodField(
+        method_name='get_documents_required', required=False
+    )
+
+    information_required = serializers.SerializerMethodField(
+        method_name='get_information_required', required=False
+    )
+
+    qualification = serializers.SerializerMethodField(
+        method_name='get_qualification', required=False
+    )
+    qualification_job_history = serializers.SerializerMethodField(
+        method_name='get_qualification_job_history', required=False
+    )
+
+    class Meta:
+        model = NewPositionMaster
+        fields = (
+            "position_id",
+            "position_name",
+            "position_display_name",
+            "min_age",
+            "max_age",
+            "documents_required",
+            "information_required",
+            "qualification",
+            "qualification_job_history",
+        )
+
+    def get_documents_required(self, obj):
+        doc_req = obj.documents_required.filter()
+        serializer = NewDocumentMasterSerializer(doc_req, many=True)
+        return serializer.data
+
+    def get_information_required(self, obj):
+        info_req = obj.information_required.filter()
+        serializer = InformationMasterSerializer(info_req, many=True)
+        return serializer.data
+
+    def get_qualification(self, obj):
+        qual = obj.qualification.filter()
+        serializer = SubjectSpecializationSerializer(qual, many=True)
+        return serializer.data
+
+    def get_qualification_job_history(self,obj):
+        qual_job = obj.qualification_job_history.filter()
+        serializer = EmployeeExperienceSerializer(qual_job, many=True)
+        return serializer.data

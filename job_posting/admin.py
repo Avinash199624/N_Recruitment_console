@@ -3,7 +3,7 @@ from django.contrib.admin import register
 from job_posting.models import Department, Division, ZonalLab, PositionMaster, QualificationMaster, \
     PositionQualificationMapping, JobPosting, JobTemplate, UserJobPositions, JobPostingRequirement, \
     JobPostingRequirementPositions, JobDocuments, SelectionCommitteeMaster, SelectionProcessContent, \
-    ServiceConditions, AppealMaster
+    ServiceConditions, AppealMaster, TemporaryPositionMaster, PermanentPositionMaster, NewPositionMaster
 
 
 @register(ServiceConditions)
@@ -78,3 +78,21 @@ class JobPostingRequirementPositionsAdmin(admin.TabularInline):
 class JobPostingRequirementAdmin(admin.ModelAdmin):
     list_display = ['division_name', 'zonal_lab', 'project_title', 'project_number', 'is_deleted',]
     inlines = [JobPostingRequirementPositionsAdmin, ]
+
+
+# NewPositionMaster
+@register(NewPositionMaster)
+class NewPositionMasterAdmin(admin.ModelAdmin):
+    list_display = ['position_id', 'position_name', 'position_display_name', 'is_deleted']
+
+
+# perm position & temp position
+
+@register(PermanentPositionMaster)
+class PermanentPositionMasterAdmin(admin.ModelAdmin):
+    list_display = ['perm_position', 'grade', 'level', 'is_deleted']
+
+
+@register(TemporaryPositionMaster)
+class TemporaryPositionMasterAdmin(admin.ModelAdmin):
+    list_display = ['temp_position', 'salary_addition', 'salary', 'is_deleted']

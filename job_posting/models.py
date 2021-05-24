@@ -40,6 +40,83 @@ class QualificationMaster(BaseModel):
         return self.qualification
 
 
+# Position ID
+# Position Name
+# Position Display Name
+# Minimum Age
+# Maximum Age
+# Required Document
+# Required Information
+# Qualification Degrees ?
+# Qualification Job History ?
+
+class NewPositionMaster(BaseModel):
+    position_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    position_name = models.CharField(max_length=300, null=True, blank=True)
+    position_display_name = models.CharField(max_length=300, null=True, blank=True)
+    min_age = models.PositiveIntegerField(blank=True, null=True)
+    max_age = models.PositiveIntegerField(blank=True, null=True)
+    documents_required = models.ManyToManyField('document.NewDocumentMaster', blank=True, related_name="required_documents")
+    information_required = models.ManyToManyField('document.InformationMaster', blank=True, related_name="required_info")
+    qualification = models.ManyToManyField('user.UserEducationDetails', blank=True, related_name="qualification")
+    qualification_job_history = models.ManyToManyField('user.UserExperienceDetails', blank=True, related_name="qualification_job_history")
+
+    def __str__(self):
+        return self.position_name
+
+
+# Grade I, Grade II, Grade III, Grade IV, Grade V
+# Level I, Level II, Level III, Level IV
+
+I = 'i'
+II = 'ii'
+III = 'iii'
+IV = 'iv'
+V = 'v'
+
+GRADE_CHOICES = [
+    (I, 'I'),
+    (II, 'II'),
+    (III, 'III'),
+    (IV, 'IV'),
+    (V, 'V'),
+]
+LEVEL_CHOICES = [
+    (I, 'I'),
+    (II, 'II'),
+    (III, 'III'),
+    (IV, 'IV'),
+]
+
+
+class PermanentPositionMaster(BaseModel):
+    perm_position = models.ForeignKey('NewPositionMaster', null=True, blank=True, on_delete=models.SET_NULL,
+                                      related_name="perm_positon")
+    grade = models.CharField(max_length=30, choices=GRADE_CHOICES, null=True, blank=True)
+    level = models.CharField(max_length=30, choices=LEVEL_CHOICES, null=True, blank=True)
+
+    def __str__(self):
+        return self.perm_position.position_name
+
+
+HRA = 'hra'
+CONSOLIDATED = 'consolidated'
+
+SAL_ADD_CHOICES = [
+    (HRA, 'HRA'),
+    (CONSOLIDATED, 'CONSOLIDATED'),
+]
+
+class TemporaryPositionMaster(BaseModel):
+    temp_position = models.ForeignKey('NewPositionMaster', null=True, blank=True, on_delete=models.SET_NULL,
+                                 related_name="temp_positon")
+    salary_addition = models.CharField(max_length=30, choices=SAL_ADD_CHOICES, null=True, blank=True)
+    salary = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return self.temp_position.position_name
+
+
 class PositionMaster(BaseModel):
     position_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     position_name = models.CharField(max_length=300, null=True, blank=True)
@@ -201,7 +278,8 @@ class UserJobPositions(BaseModel):
     reason_to_appeal = models.TextField(blank=True, null=True)
     date_of_application = models.DateField(auto_now_add=True)
     date_of_closing = models.DateField(blank=True, null=True, help_text='Closing date of JobPosting')
-    user_job_position_id = models.CharField(max_length=200,null=True,blank=True)#It will be like notifiction_id/job_posting_id/user_id/position_id
+    user_job_position_id = models.CharField(max_length=200, null=True,
+                                            blank=True)  # It will be like notifiction_id/job_posting_id/user_id/position_id
 
     def __str__(self):
         return self.user.email

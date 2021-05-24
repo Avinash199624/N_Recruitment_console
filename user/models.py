@@ -543,3 +543,11 @@ class UserAuthentication(models.Model):
 
     def __str__(self):
         return self.user.email
+
+
+class MentorMaster(BaseModel):
+    mentor_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    mentor_name = models.CharField(max_length=150, null=True, blank=True)
+
+    def __str__(self):
+        return self.mentor_name

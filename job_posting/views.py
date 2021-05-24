@@ -1,14 +1,20 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+
+from document.models import DocumentMaster, InformationMaster, NewDocumentMaster
+from document.serializer import DocumentMasterSerializer
 from job_posting.models import Department, Division, ZonalLab, QualificationMaster, PositionMaster, \
     PositionQualificationMapping, JobPostingRequirement, JobTemplate, JobPosting, SelectionProcessContent, \
-    ServiceConditions, UserJobPositions, AppealMaster
+    ServiceConditions, UserJobPositions, AppealMaster, NewPositionMaster, PermanentPositionMaster, \
+    TemporaryPositionMaster
 from job_posting.serializer import DepartmentSerializer, DivisionSerializer, ZonalLabSerializer, \
     PositionMasterSerializer, QualificationMasterSerializer, ProjectApprovalListSerializer, \
     PositionQualificationMappingSerializer, JobTemplateSerializer, JobPostingSerializer, \
     SelectionProcessContentSerializer, \
     ServiceConditionsSerializer, UserJobPositionsSerializer, ProjectRequirementSerializer, \
-    UserAppealForJobPositionsSerializer, AppealReasonMasterSerializer
+    UserAppealForJobPositionsSerializer, AppealReasonMasterSerializer, NewPositionMasterSerializer, \
+    InformationMasterSerializer, NewDocumentMasterSerializer, PermanentPositionMasterSerializer, \
+    TemporaryPositionMasterSerializer
 
 from django.http import JsonResponse
 from rest_framework import status
@@ -421,3 +427,103 @@ class AppealReasonMasterViews(APIView):
         serializer.update(instance=applicant, validated_data=data)
         return Response(serializer.data, status=200)
 
+
+# NewPositionMaster
+class NewPositionMasterViews(APIView):
+
+    # def post(self, request, *args, **kwargs):
+    #     data = self.request.data
+    #     serializer = AppealReasonMasterSerializer(data=data)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save()
+    #     return Response(serializer.data, status=200)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            position_id = self.kwargs['id']
+            position = NewPositionMaster.objects.get(position_id=position_id, is_deleted=False)
+            serializer = NewPositionMasterSerializer(position)
+            return Response(serializer.data, status=200)
+        except:
+            positions = NewPositionMaster.objects.filter(is_deleted=False)
+            serializer = NewPositionMasterSerializer(positions, many=True)
+            return Response(serializer.data, status=200)
+
+class PermanentPositionMasterViews(APIView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            position_id = self.kwargs['id']
+            position = PermanentPositionMaster.objects.get(perm_position__position_id=position_id, is_deleted=False)
+            serializer = PermanentPositionMasterSerializer(position)
+            return Response(serializer.data, status=200)
+        except:
+            positions = PermanentPositionMaster.objects.filter(is_deleted=False)
+            serializer = PermanentPositionMasterSerializer(positions, many=True)
+            return Response(serializer.data, status=200)
+
+    def delete(self,request,*args,**kwargs):
+        try:
+            id = self.kwargs['id']
+            info = PermanentPositionMaster.objects.get(perm_position__position_id=id)
+            info.is_deleted = True
+            info.save()
+            return Response(data = {"message": "Permanent Position Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        info = PermanentPositionMaster.objects.get(perm_position__position_id=id)
+        data = self.request.data
+        serializer = PermanentPositionMasterSerializer(info, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=info, validated_data=data)
+        return Response(serializer.data, status=200)
+
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        serializer = PermanentPositionMasterSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=200)
+
+
+class TemporaryPositionMasterViews(APIView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            position_id = self.kwargs['id']
+            position = TemporaryPositionMaster.objects.get(temp_position__position_id=position_id, is_deleted=False)
+            serializer = TemporaryPositionMasterSerializer(position)
+            return Response(serializer.data, status=200)
+        except:
+            positions = TemporaryPositionMaster.objects.filter(is_deleted=False)
+            serializer = TemporaryPositionMasterSerializer(positions, many=True)
+            return Response(serializer.data, status=200)
+
+    def delete(self,request,*args,**kwargs):
+        try:
+            id = self.kwargs['id']
+            info = TemporaryPositionMaster.objects.get(temp_position__position_id=id)
+            info.is_deleted = True
+            info.save()
+            return Response(data = {"message": "Temporary Position Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        info = TemporaryPositionMaster.objects.get(temp_position__position_id=id)
+        data = self.request.data
+        serializer = TemporaryPositionMasterSerializer(info, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=info, validated_data=data)
+        return Response(serializer.data, status=200)
+
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        serializer = TemporaryPositionMasterSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=200)

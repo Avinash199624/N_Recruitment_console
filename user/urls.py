@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from user.views import UserRegistartionView, NeeriPersonalInformation, CompareApplicantListView, \
-    NeeriLoginView, TempLoginView, RoleMasterView
+    NeeriLoginView, TempLoginView, RoleMasterView, CreateNeeriUserView, MentorMasterListView
 from user.views import LoginView,LogoutView,UserListView,RetrievetUserView,UpdateUserView,CreateUserView,DeleteUserView,ForgotPassword,\
     ApplicantPersonalInformationView,ApplicantPersonalInformationUpdateView,\
     ApplicantPersonalInformationCreateView,ApplicantAddressView,ApplicantAddressCreateView,\
@@ -29,6 +29,9 @@ urlpatterns = [
     path('delete-user/<uuid:id>/', DeleteUserView.as_view(), name="delete-user"),
     path('update-user/<uuid:id>/', UpdateUserView.as_view(), name="update-user"),
     path('create-user/', CreateUserView.as_view(), name="create-user"),
+    path('create_neeri_user/', CreateNeeriUserView.as_view(), name="create-neeri-user"),
+    path('neeri_user/', CreateNeeriUserView.as_view(), name="neeri-user"),
+    path('neeri_user/<uuid:id>/', CreateNeeriUserView.as_view(), name="neeri-user-api"),
     path('user-list/', UserListView.as_view(), name="user-list"),
     path('forgot-password/', ForgotPassword.as_view(), name="forgot-password"),
     path('reset_password/<uuid:id>/', ResetPassword.as_view(), name="reset-password"),
@@ -100,4 +103,6 @@ urlpatterns = [
     path('public/file_upload/',FileUpload.as_view(), name="file_upload"),
     path('public/compare_applicants_for_job/', CompareApplicantListView.as_view(), name="compare-applicants-for-job"),
     path('public/role_master/', RoleMasterView.as_view(), name="role-master-list"),
+    path('mentor/', MentorMasterListView.as_view(), name="mentor-list"),
+    path('mentor/<uuid:id>/', MentorMasterListView.as_view(), name="mentor"),
 ]

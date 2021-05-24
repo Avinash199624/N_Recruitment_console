@@ -1,7 +1,7 @@
 from job_posting.models import UserJobPositions, JobPosting
 from user.models import User, UserProfile, Location, UserRoles, UserPermissions, RoleMaster, UserEducationDetails, \
     UserExperienceDetails, NeeriRelation, UserReference, OverseasVisits, UserLanguages, UserDocuments, \
-    PublishedPapers, ProfessionalTraining, OtherInformation, NeeriUserProfile
+    PublishedPapers, ProfessionalTraining, OtherInformation, NeeriUserProfile, MentorMaster
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
@@ -314,6 +314,57 @@ class UserSerializer(serializers.ModelSerializer):
                      "is_deleted",
                      # "user_roles",
                  ) + profile_names
+
+    def get_username(self, obj):
+        if obj.first_name == '' and obj.last_name == '':
+            return obj.email
+        else:
+            return obj.first_name + ' ' + obj.last_name
+
+    # def get_user_roles(self, obj):
+    #     user_roles = UserRoles.objects.filter(user=obj)
+    #     serializer = UserRolesSerializer(user_roles, many=True)
+    #     return serializer.data
+    #
+    # def get_user_permissions(self, obj):
+    #     user_roles = UserRoles.objects.filter(user=obj)
+    #     role_names = [role.role.role_name for role in user_roles]
+    #     roles = RoleMaster.objects.filter(role_name__in=role_names)
+    #     user_permissions = UserPermissions.objects.filter(role__in=roles).distinct('permission')
+    #     serializer = UserPermissionSerializer(user_permissions, many=True)
+    #     return serializer.data
+
+
+class NeeriUserSerializer(serializers.ModelSerializer):
+    # n_user_profile = UserProfileSerializer(required=False)
+
+    # user_roles = serializers.SerializerMethodField(
+    #     method_name="get_user_roles", read_only=True
+    # )
+
+    # user_permissions = serializers.SerializerMethodField(
+    #     method_name="get_user_permissions", read_only=True
+    # )
+
+    username = serializers.SerializerMethodField(
+        method_name="get_username", read_only=True
+    )
+
+    class Meta:
+        model = User
+
+        # profile_names = ("user_profile", "user_roles", "user_permissions")
+        # profile_names = ("user_profile",)
+
+        fields = (
+            "user_id",
+            "username",
+            "email",
+            "mobile_no",
+            "created_at",
+            "is_deleted",
+            # "user_roles",
+        )
 
     def get_username(self, obj):
         if obj.first_name == '' and obj.last_name == '':
@@ -986,8 +1037,7 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         )
 
         instance.date_of_birth_in_words = (
-            validated_data["date_of_birth_in_words"] if validated_data[
-                "date_of_birth_in_words"] else instance.date_of_birth_in_words
+            validated_data["date_of_birth_in_words"] if validated_data["date_of_birth_in_words"] else instance.date_of_birth_in_words
         )
 
         instance.place_of_birth = (
@@ -1252,30 +1302,260 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             user = user,
             gender = validated_data['gender'] if 'gender' in validated_data else None,
             # mobile_no = validated_data['mobile_no'] if 'mobile_no' in validated_data else None,
-            date_of_birth=validated_data['date_of_birth'] if 'date_of_birth' in validated_data else None,
-            status=validated_data['status'] if 'status' in validated_data else None,
-            date_of_birth_in_words=validated_data[
-                'date_of_birth_in_words'] if 'date_of_birth_in_words' in validated_data else None,
-            place_of_birth=validated_data['place_of_birth'] if 'place_of_birth' in validated_data else None,
-            father_name=validated_data['father_name'] if 'father_name' in validated_data else None,
-            father_occupation=validated_data['father_occupation'] if 'father_occupation' in validated_data else None,
-            religion=validated_data['religion'] if 'religion' in validated_data else None,
-            caste=validated_data['caste'] if 'caste' in validated_data else None,
-            passport_number=validated_data['passport_number'] if 'passport_number' in validated_data else None,
-            passport_expiry=validated_data['passport_expiry'] if 'passport_expiry' in validated_data else None,
-            profile_photo=validated_data['profile_photo'] if 'profile_photo' in validated_data else None,
-            fax_number=validated_data['fax_number'] if 'fax_number' in validated_data else None,
-            is_indian_citizen=validated_data['is_indian_citizen'] if 'is_indian_citizen' in validated_data else None,
-            whatsapp_id=validated_data['whatsapp_id'] if 'whatsapp_id' in validated_data else None,
-            skype_id=validated_data['skype_id'] if 'skype_id' in validated_data else None,
-            nationality=validated_data['nationality'] if 'nationality' in validated_data else None,
+            date_of_birth = validated_data['date_of_birth'] if 'date_of_birth' in validated_data else None,
+            status = validated_data['status'] if 'status' in validated_data else None,
+            date_of_birth_in_words = validated_data['date_of_birth_in_words'] if 'date_of_birth_in_words' in validated_data else None,
+            place_of_birth = validated_data['place_of_birth'] if 'place_of_birth' in validated_data else None,
+            father_name = validated_data['father_name'] if 'father_name' in validated_data else None,
+            father_occupation = validated_data['father_occupation'] if 'father_occupation' in validated_data else None,
+            religion = validated_data['religion'] if 'religion' in validated_data else None,
+            caste = validated_data['caste'] if 'caste' in validated_data else None,
+            passport_number = validated_data['passport_number'] if 'passport_number' in validated_data else None,
+            passport_expiry = validated_data['passport_expiry'] if 'passport_expiry' in validated_data else None,
+            profile_photo = validated_data['profile_photo'] if 'profile_photo' in validated_data else None,
+            fax_number = validated_data['fax_number'] if 'fax_number' in validated_data else None,
+            is_indian_citizen = validated_data['is_indian_citizen'] if 'is_indian_citizen' in validated_data else None,
+            whatsapp_id = validated_data['whatsapp_id'] if 'whatsapp_id' in validated_data else None,
+            skype_id = validated_data['skype_id'] if 'skype_id' in validated_data else None,
+            nationality = validated_data['nationality'] if 'nationality' in validated_data else None,
             # local_address = local_address if local_address else None,
             # permanent_address = permanent_address if local_address else None,
             # father_address = father_address if local_address else None,
         )
         return user_profile
 
-class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
+
+# class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
+#     gender = serializers.SerializerMethodField(
+#         method_name="get_gender", read_only=True
+#     )
+#     email = serializers.SerializerMethodField(
+#         method_name="get_email", read_only=True
+#     )
+#
+#     mobile_no = serializers.SerializerMethodField(
+#         method_name="get_mobile_no", read_only=True
+#     )
+#
+#     date_of_birth = serializers.SerializerMethodField(
+#         method_name="get_date_of_birth", read_only=True
+#     )
+#
+#     religion = serializers.SerializerMethodField(
+#         method_name="get_religion", read_only=True
+#     )
+#
+#     caste = serializers.SerializerMethodField(
+#         method_name="get_caste", read_only=True
+#     )
+#     profile_photo = serializers.SerializerMethodField(
+#         method_name="get_profile_photo", read_only=True
+#     )
+#
+#     user_id = serializers.SerializerMethodField(
+#         method_name="get_user_id", read_only=True
+#     )
+#
+#     middle_name = serializers.SerializerMethodField(
+#         method_name="get_middle_name", read_only=True
+#     )
+#
+#     last_name = serializers.SerializerMethodField(
+#         method_name="get_last_name", read_only=True
+#     )
+#
+#     first_name = serializers.SerializerMethodField(
+#         method_name="get_first_name", read_only=True
+#     )
+#
+#     # roles = serializers.SerializerMethodField(
+#     #     method_name='get_roles', required=False
+#     # )
+#     # user_address = serializers.SerializerMethodField(
+#     #     method_name='get_address', required=False
+#     # )
+#
+#     class Meta:
+#         model = NeeriUserProfile
+#         fields = (
+#             "user_id",
+#             "first_name",
+#             "middle_name",
+#             "last_name",
+#             "gender",
+#             "mobile_no",
+#             "email",
+#             "date_of_birth",
+#             # "user_address",
+#             "religion",
+#             "caste",
+#             "profile_photo",
+#             "roles",
+#         )
+#
+#     def get_user_id(self, obj):
+#         try:
+#             user_id = obj.user.user_id
+#             return user_id
+#         except:
+#             return None
+#
+#     def get_first_name(self, obj):
+#         try:
+#             first_name = obj.user.first_name
+#             return first_name
+#         except:
+#             return None
+#
+#     def get_last_name(self, obj):
+#         try:
+#             last_name = obj.user.last_name
+#             return last_name
+#         except:
+#             return None
+#
+#     def get_middle_name(self, obj):
+#         try:
+#             middle_name = obj.user.middle_name
+#             return middle_name
+#         except:
+#             return None
+#
+#     def get_mobile_no(self, obj):
+#         try:
+#             mobile_no = obj.user.mobile_no
+#             return mobile_no
+#         except:
+#             return None
+#
+#     def get_gender(self, obj):
+#         try:
+#             gender = obj.gender
+#             return gender
+#         except:
+#             return None
+#
+#     def get_email(self, obj):
+#         try:
+#             email = obj.user.email
+#             return email
+#         except:
+#             return None
+#
+#     def get_date_of_birth(self, obj):
+#         try:
+#             date_of_birth = obj.date_of_birth
+#             return date_of_birth
+#         except:
+#             return None
+#
+#     def get_religion(self, obj):
+#         try:
+#             religion = obj.religion
+#             return religion
+#         except:
+#             return None
+#
+#     # def get_address(self, obj):
+#     #     try:
+#     #         address = obj.address.address1 + ", " + obj.address.address2
+#     #         return address
+#     #     except:
+#     #         return None
+#
+#     def get_caste(self, obj):
+#         try:
+#             caste = obj.caste
+#             return caste
+#         except:
+#             return None
+#
+#     def get_profile_photo(self, obj):
+#         try:
+#             profile_photo = obj.profile_photo
+#             return profile_photo
+#         except:
+#             return None
+#
+#     # def get_roles(self, obj):
+#     #     role = obj.roles.filter()
+#     #     serializer = RoleMasterSerializer(role, many=True)
+#     #     return serializer.data
+#
+#     def save(self, validated_data):
+#         user = User.objects.get(user_id=validated_data['user_id'])
+#         user.first_name = validated_data['first_name'] if 'first_name' in validated_data else None
+#         user.middle_name = validated_data['middle_name'] if 'middle_name' in validated_data else None
+#         user.last_name = validated_data['last_name'] if 'last_name' in validated_data else None
+#         user.email = validated_data['email'] if 'email' in validated_data else None
+#         user.save()
+#
+#         neeri_user_profile = NeeriUserProfile.objects.create(
+#             user=user,
+#             gender=validated_data['gender'] if 'gender' in validated_data else None,
+#             date_of_birth=validated_data['date_of_birth'] if 'date_of_birth' in validated_data else None,
+#             religion=validated_data['religion'] if 'religion' in validated_data else None,
+#             caste=validated_data['caste'] if 'caste' in validated_data else None,
+#             profile_photo=validated_data['profile_photo'] if 'profile_photo' in validated_data else None,
+#         )
+#         for role_data in validated_data['roles']:
+#             neeri_user_profile.roles.add(role_data)
+#         neeri_user_profile.save()
+#
+#         return neeri_user_profile.user_id
+#
+#     def update(self, instance, validated_data):
+#         print("instance ----->", instance)
+#         print("instance.user ----->", instance.user)
+#         print("validated_data ---->", validated_data)
+#         instance.gender = (
+#             validated_data["gender"] if validated_data["gender"] else instance.gender
+#         )
+#
+#         instance.date_of_birth = (
+#             validated_data["date_of_birth"] if validated_data["date_of_birth"] else instance.date_of_birth
+#         )
+#
+#         instance.religion = (
+#             validated_data["religion"] if validated_data["religion"] else instance.religion
+#         )
+#
+#         instance.caste = (
+#             validated_data["caste"] if validated_data["caste"] else instance.caste
+#         )
+#
+#         instance.profile_photo = (
+#             validated_data["profile_photo"] if validated_data["profile_photo"] else instance.profile_photo
+#         )
+#
+#         instance.user.first_name = (
+#             validated_data["first_name"] if validated_data["first_name"] else instance.user.first_name
+#         )
+#
+#         instance.user.last_name = (
+#             validated_data["last_name"] if validated_data["last_name"] else instance.user.last_name
+#         )
+#
+#         instance.user.middle_name = (
+#             validated_data["middle_name"] if validated_data["middle_name"] else instance.user.middle_name
+#         )
+#         instance.user.save()
+#         user = NeeriUserProfile.objects.get(user_id=validated_data['user_id'])
+#         oldrole = user.roles.filter()
+#         if not validated_data['roles']:  # working for empty role.
+#             for orole in oldrole:
+#                 instance.roles.remove(orole)
+#         for orole in oldrole:
+#             for role_data in validated_data['roles']:
+#                 if str(orole.role_id) != str(role_data):  # working deletion now
+#                     print(str(role_data) + " != " + str(orole.role_id))
+#                     instance.roles.remove(orole)
+#         for role_data in validated_data['roles']:  # working for addition too.
+#             instance.roles.add(role_data)
+#         instance.save()
+
+
+class NeeriUsersSerializer(serializers.ModelSerializer):
     gender = serializers.SerializerMethodField(
         method_name="get_gender", read_only=True
     )
@@ -1432,30 +1712,49 @@ class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def save(self, validated_data):
-
-        user = User.objects.get(user_id=validated_data['user_id'])
-        user.first_name = validated_data['first_name'] if 'first_name' in validated_data else None
-        user.middle_name = validated_data['middle_name'] if 'middle_name' in validated_data else None
-        user.last_name = validated_data['last_name'] if 'last_name' in validated_data else None
-        user.email = validated_data['email'] if 'email' in validated_data else None
-        user.save()
+        neeri_user = User.objects.create_user(
+            first_name=validated_data['first_name'] if 'first_name' in validated_data else None,
+            middle_name=validated_data['middle_name'] if 'middle_name' in validated_data else None,
+            last_name=validated_data['last_name'] if 'last_name' in validated_data else None,
+            email=validated_data['email'] if 'email' in validated_data else None,
+            mobile_no=validated_data['mobile_no'],
+            password=validated_data['password']
+        )
+        print("user_id", neeri_user)
+        # neeri_user = User.objects.get(email=validated_data['email'])
+        # neeri_user.first_name = validated_data['first_name'] if 'first_name' in validated_data else None
+        # neeri_user.middle_name = validated_data['middle_name'] if 'middle_name' in validated_data else None
+        # neeri_user.last_name = validated_data['last_name'] if 'last_name' in validated_data else None
+        # neeri_user.email = validated_data['email'] if 'email' in validated_data else None
+        # neeri_user.save()
 
 
         neeri_user_profile = NeeriUserProfile.objects.create(
-            user=user,
+            user=neeri_user,
+            # username=validated_data['username'] if 'username' in validated_data else None,
             gender=validated_data['gender'] if 'gender' in validated_data else None,
             date_of_birth=validated_data['date_of_birth'] if 'date_of_birth' in validated_data else None,
             religion=validated_data['religion'] if 'religion' in validated_data else None,
             caste=validated_data['caste'] if 'caste' in validated_data else None,
             profile_photo=validated_data['profile_photo'] if 'profile_photo' in validated_data else None,
         )
+
         for role_data in validated_data['roles']:
-            neeri_user_profile.roles.add(role_data)
+            neeri_user_profile.roles.add(role_data["role_id"])
+            print("role_data-------->", role_data["role_id"])
+            role = RoleMaster.objects.get(role_id=role_data["role_id"])
+            print("role-------->", role)
+            print("neeri_user-------->", neeri_user)
+
+            UserRoles.objects.create(role=role, user=neeri_user)
         neeri_user_profile.save()
 
         return neeri_user_profile.user_id
 
     def update(self, instance, validated_data):
+        print("instance ----->", instance)
+        print("instance.user ----->", instance.user)
+        print("validated_data ---->", validated_data)
         instance.gender = (
             validated_data["gender"] if validated_data["gender"] else instance.gender
         )
@@ -1490,16 +1789,37 @@ class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
         instance.user.save()
         user = NeeriUserProfile.objects.get(user_id=validated_data['user_id'])
         oldrole = user.roles.filter()
-        if not validated_data['roles']: # working for empty role.
+        if not validated_data['roles']:  # working for empty role.
             for orole in oldrole:
                 instance.roles.remove(orole)
+                role = RoleMaster.objects.get(role_id=orole.role_id)
+
+                if UserRoles.objects.filter(role=role, user=user.user).exists():
+                    user_role = UserRoles.objects.get(role=role, user=user.user)
+                    user_role.delete()
+                else:
+                    print("already deleted")
         for orole in oldrole:
             for role_data in validated_data['roles']:
-                if str(orole.role_id) != str(role_data):  # working deletion now
-                    print(str(role_data) + " != " + str(orole.role_id))
+                print("role_data.role_id-------------->",role_data["role_id"])
+                if str(orole.role_id) != str(role_data["role_id"]):  # working deletion now
+                    print(str(role_data["role_id"]) + " != " + str(orole.role_id))
                     instance.roles.remove(orole)
-        for role_data in validated_data['roles']: # working for addition too.
-            instance.roles.add(role_data)
+                    role = RoleMaster.objects.get(role_id=orole.role_id)
+
+                    if UserRoles.objects.filter(role=role, user=user.user).exists():
+                        user_role = UserRoles.objects.get(role=role, user=user.user)
+                        user_role.delete()
+                    else:
+                        print("already deleted")
+
+        for role_data in validated_data['roles']:  # working for addition too.
+            instance.roles.add(role_data["role_id"])
+            role = RoleMaster.objects.get(role_id=role_data["role_id"])
+            if not UserRoles.objects.filter(user=user.user, role=role).exists():
+                UserRoles.objects.create(role=role, user=user.user)
+            else:
+                print("already present")
         instance.save()
 
 
@@ -1749,8 +2069,7 @@ class ReferencesSerializer(serializers.ModelSerializer):
             )
 
             address_data.telephone_no = (
-                validated_address_data["telephone_no"] if validated_address_data[
-                    "telephone_no"] else address_data.telephone_no
+                validated_address_data["telephone_no"] if validated_address_data["telephone_no"] else address_data.telephone_no
             )
             address_data.save()
         instance.save()
@@ -2151,3 +2470,13 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
         references = obj.references.filter()
         serializer = ReferencesSerializer(references,many=True)
         return serializer.data
+
+
+class MentorMasterSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = MentorMaster
+        fields = (
+            "mentor_id",
+            "mentor_name",
+        )
