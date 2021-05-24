@@ -14,7 +14,7 @@ from user.serializer import UserSerializer, AuthTokenCustomSerializer, UserProfi
     UserEducationDetailsSerializer, UserExperienceDetailsSerializer, NeeriRelationSerializer, \
     OverseasVisitsSerializer, LanguagesSerializer, ReferencesSerializer, PublishedPapersSerializer, \
     ProfessionalTrainingSerializer, UserProfilePreviewSerializer, OtherInformationSerializer, \
-    NeeriUserPersonalInformationSerializer, CompareApplicantSerializer
+    NeeriUserPersonalInformationSerializer, CompareApplicantSerializer, RoleMasterSerializer
 from job_posting.serializer import ApplicantJobPositionsSerializer
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
@@ -283,6 +283,12 @@ class ResetPassword(APIView):
         user.set_password(password)
         user.save()
         return Response(data={"messege":"Password reset Successfully."},status=200)
+
+class RoleMasterView(APIView):
+    def get(self,request,*args,**kwargs):
+        roles = RoleMaster.objects.filter(is_deleted = False)
+        serializer = RoleMasterSerializer(roles,many=True)
+        return Response(serializer.data,status=200)
 
 
 class ApplicantPersonalInformationView(APIView):

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from user.views import UserRegistartionView, NeeriPersonalInformation, CompareApplicantListView, \
-    NeeriLoginView, TempLoginView
+    NeeriLoginView, TempLoginView, RoleMasterView
 from user.views import LoginView,LogoutView,UserListView,RetrievetUserView,UpdateUserView,CreateUserView,DeleteUserView,ForgotPassword,\
     ApplicantPersonalInformationView,ApplicantPersonalInformationUpdateView,\
     ApplicantPersonalInformationCreateView,ApplicantAddressView,ApplicantAddressCreateView,\
@@ -99,4 +99,5 @@ urlpatterns = [
 
     path('public/file_upload/',FileUpload.as_view(), name="file_upload"),
     path('public/compare_applicants_for_job/', CompareApplicantListView.as_view(), name="compare-applicants-for-job"),
+    path('public/role_master/', RoleMasterView.as_view(), name="role-master-list"),
 ]
