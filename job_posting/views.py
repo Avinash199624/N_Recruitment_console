@@ -286,7 +286,12 @@ class JobTemplateCreateView(APIView):
             serializer = JobTemplateSerializer(data=template_data)
             serializer.is_valid(raise_exception=True)
             serializer.save(validated_data=template_data)
-        return Response(data={"messege": "Template Saved Successfully"}, status=200)
+        return Response(data={"message": "Template Saved Successfully"}, status=200)
+
+    # def get(self, request, *args, **kwargs):
+    #     projects = JobTemplate.objects.filter(is_deleted=False)
+    #     serializer = JobTemplateSerializer(projects, many=True)
+    #     return Response(serializer.data, status=200)
 
 class JobPostingCreateView(APIView):
 

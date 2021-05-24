@@ -268,7 +268,7 @@ class SelectionCommitteeMaster(BaseModel):
     committee_name = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
-        return str(self.committee_id)
+        return self.committee_name
 
 
 class ServiceConditions(BaseModel):

@@ -587,7 +587,7 @@ class SelectionCommitteeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SelectionCommitteeMaster
         fields = (
-            "committee_id",
+            # "committee_id",
             "committee_name",
         )
 

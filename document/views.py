@@ -8,7 +8,7 @@ from document.serializer import DocumentMasterSerializer
 class RetrieveDocumentView(APIView):
     def get(self,request,*args,**kwargs):
         id = self.kwargs['id']
-        doc = DocumentMaster.objects.get(doc_id=id)
+        doc = DocumentMaster.objects.get(doc_id=id, is_deleted=False)
         serializer = DocumentMasterSerializer(doc)
         return Response(serializer.data,status=200)
 
@@ -43,7 +43,7 @@ class CreateDocumentView(APIView):
 
 class DocumentListView(APIView):
     def get(self,request,*args,**kwargs):
-        docs = DocumentMaster.objects.all()
+        docs = DocumentMaster.objects.filter(is_deleted=False)
         serializer = DocumentMasterSerializer(docs, many=True)
         return Response(serializer.data, status=200)
 
