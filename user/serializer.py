@@ -1317,9 +1317,9 @@ class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
     first_name = serializers.SerializerMethodField(
         method_name="get_first_name", read_only=True
     )
-    # roles = serializers.SerializerMethodField(
-    #     method_name='get_roles', required=False
-    # )
+    roles = serializers.SerializerMethodField(
+        method_name='get_roles', required=False
+    )
     user_address = serializers.SerializerMethodField(
         method_name='get_address', required=False
     )
@@ -1426,10 +1426,10 @@ class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
         except:
             return None
 
-    # def get_roles(self, obj):
-    #     role = obj.roles.filter()
-    #     serializer = RoleMasterSerializer(role, many=True)
-    #     return serializer.data
+    def get_roles(self, obj):
+        role = obj.roles.filter()
+        serializer = RoleMasterSerializer(role, many=True)
+        return serializer.data
 
     def save(self, validated_data):
 
