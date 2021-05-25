@@ -276,18 +276,18 @@ class CreateUserView(APIView):
             serializer.save(instance=user, validated_data=data)
             return Response(serializer.data, status=200)
 
+class NeeriUserListView(APIView):
+    def get(self, request, *args, **kwargs):
+        neeri_user = NeeriUserProfile.objects.filter(is_deleted=False)
+        serializer = NeeriUsersSerializer(neeri_user, many=True)
+        return Response(serializer.data, status=200)
 
 class CreateNeeriUserView(APIView):
-    # def get(self, request, *args, **kwargs):
-    #     try:
-    #         id = self.kwargs['id']
-    #         user = User.objects.get(user_id=id)
-    #         serializer = NeeriUsersSerializer(user)
-    #         return Response(serializer.data, status=200)
-    #     except:
-    #         neeri_user = User.objects.filter(is_deleted=False)
-    #         serializer = NeeriUsersSerializer(neeri_user, many=True)
-    #         return Response(serializer.data, status=200)
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = NeeriUserProfile.objects.get(user_id=id, is_deleted=False)
+        serializer = NeeriUsersSerializer(user)
+        return Response(serializer.data, status=200)
 
     def post(self, request, *args, **kwargs):
         data = self.request.data
@@ -308,6 +308,15 @@ class CreateNeeriUserView(APIView):
             result_serializer = NeeriUsersSerializer(neeri_user_profile)
             print("result_serializer.data---->", result_serializer.data)
             return Response(result_serializer.data, status=200)
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        user = NeeriUserProfile.objects.get(user_id=id)
+        data = self.request.data
+        serializer = NeeriUsersSerializer(user, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=user, validated_data=data)
+        return Response(serializer.data, status=200)
 
     def delete(self, request, *args, **kwargs):
         try:
