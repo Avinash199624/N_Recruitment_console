@@ -35,21 +35,44 @@ class NewDocumentMaster(BaseModel):
         return self.doc_type
 
 
+# Required Information Enum:
+# "Personal"
+# "Reservation"
+# "Education: Graduation"
+# "Education: Post Graduation"
+# "Education: Doctorate"
+# "Skills: Typing Speed"
+# "Publication: Published Papers"
+# "References"
+# "Job History"
+# "International Trips"
+# "Relatives in NEERI"
 
-CASTE = 'caste'
+
+RESERVATION = 'reservation'
 PERSONAL = 'personal'
-QUALIFICATION = 'qualification'
-EXPERIENCE = 'experience'
+GRADUATION = 'graduation'
+POST_GRADUATION = 'post graduation'
+DOCTORATE = 'education doctorate'
+TYPING_SPEED = 'typing speed'
 PUBLISHED_PAPERS = 'published papers'
-OTHERS = 'others'
+REFERENCES = 'references'
+JOB_HISTORY = 'jon history'
+INTERNATIONAL_TRIPS = 'international trips'
+RELATIVES_IN_NEERI = 'relatives in neeri'
 
 INFO_TYPE_CHOICES = [
-    (CASTE, 'CASTE'),
+    (RESERVATION, 'RESERVATION'),
     (PERSONAL, 'PERSONAL'),
-    (QUALIFICATION, 'QUALIFICATION'),
-    (EXPERIENCE, 'EXPERIENCE'),
+    (GRADUATION, 'GRADUATION'),
+    (POST_GRADUATION, 'POST_GRADUATION'),
+    (DOCTORATE, 'DOCTORATE'),
+    (TYPING_SPEED, 'TYPING_SPEED'),
     (PUBLISHED_PAPERS, 'PUBLISHED_PAPERS'),
-    (OTHERS, 'OTHERS'),
+    (REFERENCES, 'REFERENCES'),
+    (JOB_HISTORY, 'JOB_HISTORY'),
+    (INTERNATIONAL_TRIPS, 'INTERNATIONAL_TRIPS'),
+    (RELATIVES_IN_NEERI, 'RELATIVES_IN_NEERI'),
 ]
 
 class InformationMaster(BaseModel):
