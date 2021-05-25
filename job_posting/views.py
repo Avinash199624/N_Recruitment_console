@@ -454,9 +454,12 @@ class PermanentPositionMasterViews(APIView):
     def get(self, request, *args, **kwargs):
         try:
             position_id = self.kwargs['id']
-            position = PermanentPositionMaster.objects.get(perm_position__position_id=position_id, is_deleted=False)
-            serializer = PermanentPositionMasterSerializer(position)
-            return Response(serializer.data, status=200)
+            if PermanentPositionMaster.objects.filter(id=position_id, is_deleted=False).exists():
+                position = PermanentPositionMaster.objects.get(id=position_id, is_deleted=False)
+                serializer = PermanentPositionMasterSerializer(position)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"message": "Details Not Found."}, status=401)
         except:
             positions = PermanentPositionMaster.objects.filter(is_deleted=False)
             serializer = PermanentPositionMasterSerializer(positions, many=True)
@@ -465,7 +468,7 @@ class PermanentPositionMasterViews(APIView):
     def delete(self,request,*args,**kwargs):
         try:
             id = self.kwargs['id']
-            info = PermanentPositionMaster.objects.get(perm_position__position_id=id)
+            info = PermanentPositionMaster.objects.get(id=id)
             info.is_deleted = True
             info.save()
             return Response(data = {"message": "Permanent Position Deleted Successfully(Soft Delete)."}, status=200)
@@ -473,19 +476,34 @@ class PermanentPositionMasterViews(APIView):
             return Response(data={"message": "Details Not Found."}, status=401)
 
     def put(self, request, *args, **kwargs):
-        id = self.kwargs['id']
-        info = PermanentPositionMaster.objects.get(perm_position__position_id=id)
         data = self.request.data
+        id = self.kwargs['id']
+        info = PermanentPositionMaster.objects.get(id=id, is_deleted=False)
+        print("info ------->", info)
+
         serializer = PermanentPositionMasterSerializer(info, data=data)
         serializer.is_valid(raise_exception=True)
-        serializer.update(instance=info, validated_data=data)
+        result = serializer.update(instance=info, validated_data=data)
+        print("result ------->", result)
+
+        info = PermanentPositionMaster.objects.get(id=result)
+        print("info after------->", info)
+
+        serializer = PermanentPositionMasterSerializer(info)
+        print("serializer ------->", serializer.data)
+
         return Response(serializer.data, status=200)
 
     def post(self, request, *args, **kwargs):
         data = self.request.data
+        print("data ------->", data)
         serializer = PermanentPositionMasterSerializer(data=data)
+        print("serializer ----------->",serializer)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        result = serializer.save(validated_data=data)
+        print("result ----------->",result)
+        posi = PermanentPositionMaster.objects.get(id=result)
+        serializer = PermanentPositionMasterSerializer(posi)
         return Response(serializer.data, status=200)
 
 
@@ -494,9 +512,12 @@ class TemporaryPositionMasterViews(APIView):
     def get(self, request, *args, **kwargs):
         try:
             position_id = self.kwargs['id']
-            position = TemporaryPositionMaster.objects.get(temp_position__position_id=position_id, is_deleted=False)
-            serializer = TemporaryPositionMasterSerializer(position)
-            return Response(serializer.data, status=200)
+            if TemporaryPositionMaster.objects.filter(id=position_id, is_deleted=False).exists():
+                position = TemporaryPositionMaster.objects.get(id=position_id, is_deleted=False)
+                serializer = TemporaryPositionMasterSerializer(position)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"message": "Details Not Found."}, status=401)
         except:
             positions = TemporaryPositionMaster.objects.filter(is_deleted=False)
             serializer = TemporaryPositionMasterSerializer(positions, many=True)
@@ -505,7 +526,7 @@ class TemporaryPositionMasterViews(APIView):
     def delete(self,request,*args,**kwargs):
         try:
             id = self.kwargs['id']
-            info = TemporaryPositionMaster.objects.get(temp_position__position_id=id)
+            info = TemporaryPositionMaster.objects.get(id=id)
             info.is_deleted = True
             info.save()
             return Response(data = {"message": "Temporary Position Deleted Successfully(Soft Delete)."}, status=200)
@@ -513,17 +534,50 @@ class TemporaryPositionMasterViews(APIView):
             return Response(data={"message": "Details Not Found."}, status=401)
 
     def put(self, request, *args, **kwargs):
-        id = self.kwargs['id']
-        info = TemporaryPositionMaster.objects.get(temp_position__position_id=id)
         data = self.request.data
+        id = self.kwargs['id']
+        info = TemporaryPositionMaster.objects.get(id=id, is_deleted=False)
+        print("info ------->", info)
         serializer = TemporaryPositionMasterSerializer(info, data=data)
         serializer.is_valid(raise_exception=True)
-        serializer.update(instance=info, validated_data=data)
+        result = serializer.update(instance=info, validated_data=data)
+        print("result ------->", result)
+        info = TemporaryPositionMaster.objects.get(id=result)
+        print("info after------->", info)
+
+        serializer = TemporaryPositionMasterSerializer(info)
+        print("serializer ------->", serializer.data)
+
         return Response(serializer.data, status=200)
+
+
+    # def put(self, request, *args, **kwargs):
+    #     data = self.request.data
+    #     id = self.kwargs['id']
+    #     info = PermanentPositionMaster.objects.get(id=id, is_deleted=False)
+    #     print("info ------->", info)
+    #
+    #     serializer = PermanentPositionMasterSerializer(info, data=data)
+    #     serializer.is_valid(raise_exception=True)
+    #     result = serializer.update(instance=info, validated_data=data)
+    #     print("result ------->", result)
+    #
+    #     info = PermanentPositionMaster.objects.get(id=result)
+    #     print("info after------->", info)
+    #
+    #     serializer = PermanentPositionMasterSerializer(info)
+    #     print("serializer ------->", serializer.data)
+    #
+    #     return Response(serializer.data, status=200)
 
     def post(self, request, *args, **kwargs):
         data = self.request.data
+        print("data ------->", data)
         serializer = TemporaryPositionMasterSerializer(data=data)
+        print("serializer ----------->", serializer)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        result = serializer.save(validated_data=data)
+        print("result ----------->", result)
+        posi = TemporaryPositionMaster.objects.get(id=result)
+        serializer = TemporaryPositionMasterSerializer(posi)
         return Response(serializer.data, status=200)

@@ -55,8 +55,8 @@ urlpatterns = [
     path('appeal_reason_master/<uuid:id>/', AppealReasonMasterViews.as_view(), name="appeal-reason-master"),
     path('positions/', NewPositionMasterViews.as_view(), name="positions-master"),
     path('positions/<uuid:id>/', NewPositionMasterViews.as_view(), name="positions"),
-    path('permanent_positions/', PermanentPositionMasterViews.as_view(), name="positions-master"),
-    path('permanent_positions/<uuid:id>/', PermanentPositionMasterViews.as_view(), name="positions"),
-    path('temporary_positions/', TemporaryPositionMasterViews.as_view(), name="positions-master"),
-    path('temporary_positions/<uuid:id>/', TemporaryPositionMasterViews.as_view(), name="positions"),
+    path('permanent_positions/', PermanentPositionMasterViews.as_view(), name="p-positions-master"),
+    path('permanent_positions/<str:id>/', PermanentPositionMasterViews.as_view(), name="p-positions"),
+    path('temporary_positions/', TemporaryPositionMasterViews.as_view(), name="t-positions-master"),
+    path('temporary_positions/<str:id>/', TemporaryPositionMasterViews.as_view(), name="t-positions"),
 ]

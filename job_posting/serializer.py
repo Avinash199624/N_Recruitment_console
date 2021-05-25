@@ -715,23 +715,52 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
     perm_position = serializers.SerializerMethodField(
         method_name="get_position", read_only=True
     )
-    position_id = serializers.SerializerMethodField(
-        method_name="get_position_id", read_only=True
-    )
+    # position_id = serializers.SerializerMethodField(
+    #     method_name="get_position_id", read_only=True
+    # )
     class Meta:
         model = PermanentPositionMaster
         fields = (
-            "position_id",
+            "id",
+            # "position_id",
             "perm_position",
             "grade",
             "level",
         )
 
     def get_position(self, obj):
-        return obj.perm_position.position_name
+        serializer = P_MasterSerializer(obj.perm_position)
+        return serializer.data
 
-    def get_position_id(self, obj):
-        return obj.perm_position.position_id
+    # def get_position_id(self, obj):
+    #     return obj.perm_position.position_id
+
+    def save(self, validated_data):
+        print("validated_data------>",validated_data)
+        posi_id = NewPositionMaster.objects.get(position_name=validated_data['perm_position']['position_name'])
+        print("posi_id------>",posi_id)
+
+        posi = PermanentPositionMaster.objects.create(
+            perm_position=posi_id,
+            grade=validated_data['grade'],
+            level=validated_data['level'],
+        )
+        print("Done")
+
+        return posi.id
+
+    def update(self, instance, validated_data):
+        if instance:
+            instance.grade = (
+                validated_data['grade'] if validated_data['grade'] else instance.grade
+            )
+            instance.level = (
+                validated_data['level'] if validated_data['level'] else instance.level
+            )
+            instance.save()
+        print("Done")
+
+        return instance.id
 
 
 class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
@@ -748,10 +777,47 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
         )
 
     def get_position(self, obj):
-        return obj.temp_position.position_name
+        serializer = P_MasterSerializer(obj.temp_position)
+        return serializer.data
 
+    def save(self, validated_data):
+        print("validated_data------>", validated_data)
+        posi_id = NewPositionMaster.objects.get(position_name=validated_data['temp_position']['position_name'])
+        print("posi_id------>", posi_id)
+
+        posi = TemporaryPositionMaster.objects.create(
+            temp_position=posi_id,
+            salary=validated_data['salary'],
+            salary_addition=validated_data['salary_addition'],
+        )
+        print("Done")
+
+        return posi.id
+
+    def update(self, instance, validated_data):
+        print("validated_data------>", validated_data)
+
+        if instance:
+            instance.salary = (
+                validated_data['salary'] if validated_data['salary'] else instance.salary
+            )
+            instance.salary_addition = (
+                validated_data['salary_addition'] if validated_data['salary_addition'] else instance.salary_addition
+            )
+            instance.save()
+        print("Done")
+
+        return instance.id
 
 # NewPositionMaster
+
+class P_MasterSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = NewPositionMaster
+        fields = (
+            "position_name",
+        )
 
 class NewPositionMasterSerializer(serializers.ModelSerializer):
 

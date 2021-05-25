@@ -21,7 +21,7 @@ class DeleteDocumentView(APIView):
             doc.save()
             return Response(data = {"messege":"Document Deleted Successfully(Soft Delete)."}, status=200)
         except:
-            return Response(data={"messege": "User Not Found."}, status=401)
+            return Response(data={"messege": "Document Not Found."}, status=401)
 
 class UpdateDocumentView(APIView):
     def put(self, request, *args, **kwargs):
@@ -54,9 +54,12 @@ class NewDocumentListView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             id = self.kwargs['id']
-            doc = NewDocumentMaster.objects.get(doc_id=id, is_deleted=False)
-            serializer = NewDocumentMasterSerializer(doc)
-            return Response(serializer.data, status=200)
+            if NewDocumentMaster.objects.filter(doc_id=id, is_deleted=False).exists():
+                doc = NewDocumentMaster.objects.get(doc_id=id, is_deleted=False)
+                serializer = NewDocumentMasterSerializer(doc)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"message": "Details Not Found."}, status=401)
         except:
             docs = NewDocumentMaster.objects.filter(is_deleted=False)
             serializer = NewDocumentMasterSerializer(docs, many=True)
@@ -70,7 +73,7 @@ class NewDocumentListView(APIView):
             doc.save()
             return Response(data = {"messege":"Document Deleted Successfully(Soft Delete)."}, status=200)
         except:
-            return Response(data={"messege": "User Not Found."}, status=401)
+            return Response(data={"messege": "Document Not Found."}, status=401)
 
     def put(self, request, *args, **kwargs):
         id = self.kwargs['id']
@@ -94,9 +97,12 @@ class InformationListView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             id = self.kwargs['id']
-            info = InformationMaster.objects.get(info_id=id, is_deleted=False)
-            serializer = InformationMasterSerializer(info)
-            return Response(serializer.data, status=200)
+            if InformationMaster.objects.filter(info_id=id, is_deleted=False).exists():
+                info = InformationMaster.objects.get(info_id=id, is_deleted=False)
+                serializer = InformationMasterSerializer(info)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"message": "Details Not Found."}, status=401)
         except:
             info = InformationMaster.objects.filter(is_deleted=False)
             serializer = InformationMasterSerializer(info, many=True)
