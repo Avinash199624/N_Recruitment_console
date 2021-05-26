@@ -1,7 +1,7 @@
 from django.contrib import auth
 from django.db import models
 
-from django.contrib.auth.models import AbstractUser,PermissionsMixin
+from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from neeri_recruitment_portal.validators import EmailValidator, UsernameValidator
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser, BaseUserManager
@@ -12,16 +12,17 @@ from django.utils.translation import gettext_lazy as _
 import uuid
 from django.conf import settings
 
-class BaseModel(models.Model):
 
-    created_by = models.CharField(max_length=50, null=True, blank=True,help_text="username")
-    updated_by = models.CharField(max_length=25, null=True, blank=True,help_text="username")
-    created_at = models.DateTimeField(null=True, blank=True,auto_now_add=True)
+class BaseModel(models.Model):
+    created_by = models.CharField(max_length=50, null=True, blank=True, help_text="username")
+    updated_by = models.CharField(max_length=25, null=True, blank=True, help_text="username")
+    created_at = models.DateTimeField(null=True, blank=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False, help_text="Used for Soft Delete")
 
     class Meta:
         abstract = True
+
 
 class CustomUserManager(BaseUserManager):
     use_in_migrations = True
@@ -81,12 +82,11 @@ class CustomUserManager(BaseUserManager):
         return self.none()
 
 
-class User(AbstractUser,BaseModel):
-
+class User(AbstractUser, BaseModel):
     REQUIRED_FIELDS = ["mobile_no"]
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # Limiting the username input to accept only digits, ".", "-" and "_"
-    username = models.CharField(max_length=30,blank=True,null=True)
+    username = models.CharField(max_length=30, blank=True, null=True)
     # models.CharField(
     #     _("username"),
     #     max_length=25,
@@ -101,10 +101,10 @@ class User(AbstractUser,BaseModel):
     #     blank=True,
     #     unique=True
     # )
-    mobile_no = models.CharField(max_length=10,unique=True,null=True)
+    mobile_no = models.CharField(max_length=10, unique=True, null=True)
     email = models.EmailField(unique=True, validators=[EmailValidator()])
     created_at = models.DateTimeField(auto_now_add=True, null=True)
-    middle_name = models.CharField(max_length=30,blank=True,null=True)
+    middle_name = models.CharField(max_length=30, blank=True, null=True)
     USERNAME_FIELD = "email"
 
     class Meta:
@@ -124,14 +124,14 @@ class User(AbstractUser,BaseModel):
         email_field_name = self.get_email_field_name()
         return setattr(self, email_field_name, new_mail)
 
-class UserProfile(BaseModel):
 
+class UserProfile(BaseModel):
     GENDER_MALE = 'male'
     GENDER_FEMALE = 'female'
 
     GENDER_CHOICES = [
-        (GENDER_MALE,'Male'),
-        (GENDER_FEMALE,'Female'),
+        (GENDER_MALE, 'Male'),
+        (GENDER_FEMALE, 'Female'),
     ]
 
     NOT_DECIDED = 'not_decided'
@@ -141,11 +141,11 @@ class UserProfile(BaseModel):
     OTHER = 'other'
 
     STATUS_CHOICES = [
-        (NOT_DECIDED,'Not Decided'),
-        (ACCEPTED,'Accepted'),
-        (REJECTED,'Rejected'),
-        (ON_HOLD,'On Hold'),
-        (OTHER,'Other'),
+        (NOT_DECIDED, 'Not Decided'),
+        (ACCEPTED, 'Accepted'),
+        (REJECTED, 'Rejected'),
+        (ON_HOLD, 'On Hold'),
+        (OTHER, 'Other'),
     ]
 
     SC = 'sc'
@@ -155,31 +155,34 @@ class UserProfile(BaseModel):
     PWD = 'pwd'
 
     CASTE_CHOICES = [
-        (SC,'SC'),
-        (ST,'ST'),
-        (OBC,'OBC'),
-        (GEN,'GEN'),
-        (PWD,'PWD'),
+        (SC, 'SC'),
+        (ST, 'ST'),
+        (OBC, 'OBC'),
+        (GEN, 'GEN'),
+        (PWD, 'PWD'),
     ]
 
-    user = models.OneToOneField('User',on_delete=models.CASCADE, related_name="user_profile")
+    user = models.OneToOneField('User', on_delete=models.CASCADE, related_name="user_profile")
     gender = models.CharField(null=True, blank=True, choices=GENDER_CHOICES, max_length=20)
     # mobile_no = models.CharField(max_length=20, null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
-    status = models.CharField(null=True, blank=True,choices=STATUS_CHOICES,default=NOT_DECIDED, max_length=20)
-    local_address = models.OneToOneField('user.Location', on_delete=models.CASCADE, blank=True,null=True, related_name="local_address")
-    permanent_address = models.OneToOneField('user.Location', on_delete=models.CASCADE, blank=True,null=True, related_name="permanent_address")
+    status = models.CharField(null=True, blank=True, choices=STATUS_CHOICES, default=NOT_DECIDED, max_length=20)
+    local_address = models.OneToOneField('user.Location', on_delete=models.CASCADE, blank=True, null=True,
+                                         related_name="local_address")
+    permanent_address = models.OneToOneField('user.Location', on_delete=models.CASCADE, blank=True, null=True,
+                                             related_name="permanent_address")
     is_permenant_address_same_as_local = models.BooleanField(default=False)
     is_father_address_same_as_local = models.BooleanField(default=False)
     date_of_birth_in_words = models.CharField(max_length=50, null=True, blank=True)
     place_of_birth = models.CharField(max_length=30, null=True, blank=True)
     father_name = models.CharField(max_length=50, null=True, blank=True)
-    father_address = models.OneToOneField('user.Location', on_delete=models.CASCADE, blank=True,null=True, related_name="father_address")
+    father_address = models.OneToOneField('user.Location', on_delete=models.CASCADE, blank=True, null=True,
+                                          related_name="father_address")
     father_occupation = models.CharField(max_length=30, null=True, blank=True)
     religion = models.CharField(max_length=30, null=True, blank=True)
-    caste = models.CharField(max_length=30,choices=CASTE_CHOICES,null=True,blank=True)
-    passport_number = models.CharField(max_length=8,null=True,blank=True)
-    passport_expiry = models.DateField(null=True,blank=True)
+    caste = models.CharField(max_length=30, choices=CASTE_CHOICES, null=True, blank=True)
+    passport_number = models.CharField(max_length=8, null=True, blank=True)
+    passport_expiry = models.DateField(null=True, blank=True)
     profile_photo = models.CharField(max_length=200, null=True, blank=True)
     fax_number = models.CharField(max_length=20, null=True, blank=True)
     is_indian_citizen = models.BooleanField(blank=True, null=True, default=True)
@@ -187,28 +190,34 @@ class UserProfile(BaseModel):
     skype_id = models.CharField(max_length=50, null=True, blank=True)
     nationality = models.CharField(max_length=50, null=True, blank=True)
     roles = models.ManyToManyField('user.RoleMaster', blank=True, null=True, related_name="user_roles")
-    neeri_relation = models.ManyToManyField('NeeriRelation',blank=True,related_name="neeri_relations")
+    neeri_relation = models.ManyToManyField('NeeriRelation', blank=True, related_name="neeri_relations")
     documents = models.ManyToManyField('user.UserDocuments', blank=True, null=True, related_name="documents")
-    education_details = models.ManyToManyField('user.UserEducationDetails', blank=True, null=True, related_name="education_details")
-    experiences = models.ManyToManyField('user.UserExperienceDetails', blank=True, null=True, related_name="experiences")
+    education_details = models.ManyToManyField('user.UserEducationDetails', blank=True, null=True,
+                                               related_name="education_details")
+    experiences = models.ManyToManyField('user.UserExperienceDetails', blank=True, null=True,
+                                         related_name="experiences")
     references = models.ManyToManyField('user.UserReference', blank=True, null=True, related_name="references")
-    overseas_visits = models.ManyToManyField('user.OverseasVisits', blank=True, null=True, related_name="overseas_visits")
+    overseas_visits = models.ManyToManyField('user.OverseasVisits', blank=True, null=True,
+                                             related_name="overseas_visits")
     languages = models.ManyToManyField('user.UserLanguages', blank=True, null=True, related_name="languages")
-    published_papers = models.ManyToManyField('user.PublishedPapers', blank=True, null=True, related_name="published_papers")
-    professional_trainings = models.ManyToManyField('user.ProfessionalTraining', blank=True, null=True, related_name="professional_tarinings")
-    other_info = models.OneToOneField('user.OtherInformation',on_delete=models.CASCADE,blank=True,null=True,related_name="other_info")
+    published_papers = models.ManyToManyField('user.PublishedPapers', blank=True, null=True,
+                                              related_name="published_papers")
+    professional_trainings = models.ManyToManyField('user.ProfessionalTraining', blank=True, null=True,
+                                                    related_name="professional_tarinings")
+    other_info = models.OneToOneField('user.OtherInformation', on_delete=models.CASCADE, blank=True, null=True,
+                                      related_name="other_info")
 
     @property
     def profile_percentage(self):
 
         percent = {'gender': 2, 'mobile_no': 5, 'date_of_birth': 5, 'local_address': 5,
-                   'permanent_address': 5, 'father_address': 5,'date_of_birth_in_words' : 2,
+                   'permanent_address': 5, 'father_address': 5, 'date_of_birth_in_words': 2,
                    'place_of_birth': 2, 'father_name': 2, 'father_occupation': 2, 'religion': 2,
                    'caste': 2, 'passport_number': 2, 'passport_expiry': 2, 'profile_photo': 5,
                    'fax_number': 1, 'is_indian_citizen': 1, 'whatsapp_id': 5, 'skype_id': 5,
                    'neeri_relation': 5, 'documents': 5, 'education_details': 5, 'experiences': 5,
                    'references': 5, 'overseas_visits': 5, 'languages': 5, 'published_papers': 5,
-                    }
+                   }
 
         total = 0
         if self.gender:
@@ -297,8 +306,8 @@ class UserProfile(BaseModel):
     def __str__(self):
         return self.user.email
 
-class NeeriUserProfile(BaseModel):
 
+class NeeriUserProfile(BaseModel):
     GENDER_MALE = 'male'
     GENDER_FEMALE = 'female'
 
@@ -325,25 +334,25 @@ class NeeriUserProfile(BaseModel):
     gender = models.CharField(null=True, blank=True, choices=GENDER_CHOICES, max_length=20)
     # mobile_no = models.CharField(max_length=20, null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
-    address = models.OneToOneField('user.Location', on_delete=models.CASCADE, blank=True,null=True, related_name="neeri_user_address")
+    address = models.OneToOneField('user.Location', on_delete=models.CASCADE, blank=True, null=True,
+                                   related_name="neeri_user_address")
     religion = models.CharField(max_length=30, null=True, blank=True)
-    caste = models.CharField(max_length=30,choices=CASTE_CHOICES, null=True, blank=True)
+    caste = models.CharField(max_length=30, choices=CASTE_CHOICES, null=True, blank=True)
     profile_photo = models.CharField(max_length=100, null=True, blank=True)
-    roles = models.ManyToManyField('user.RoleMaster',blank=True,null=True,related_name="neeri_user_roles")
+    roles = models.ManyToManyField('user.RoleMaster', blank=True, null=True, related_name="neeri_user_roles")
 
     def __str__(self):
         return self.user.email
 
 
 class Location(BaseModel):
-
     address1 = models.CharField(max_length=200, blank=True)
     address2 = models.CharField(max_length=200, blank=True)
-    address3 = models.CharField(max_length=200,null=True, blank=True)
-    city = models.CharField(max_length=200,null=True, blank=True)
-    state = models.CharField(max_length=200,null=True, blank=True)
-    country = models.CharField(max_length=200,null=True, blank=True)
-    postcode = models.CharField(max_length=20,null=True, blank=True)
+    address3 = models.CharField(max_length=200, null=True, blank=True)
+    city = models.CharField(max_length=200, null=True, blank=True)
+    state = models.CharField(max_length=200, null=True, blank=True)
+    country = models.CharField(max_length=200, null=True, blank=True)
+    postcode = models.CharField(max_length=20, null=True, blank=True)
     telephone_no = models.CharField(max_length=20, null=True, blank=True)
 
     def __str__(self):
@@ -351,47 +360,46 @@ class Location(BaseModel):
                           self.city or '', self.postcode or '',
                           self.country])
 
-class RoleMaster(BaseModel):
 
+class RoleMaster(BaseModel):
     role_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    role_name = models.CharField(max_length=30,null=True, blank=True)
+    role_name = models.CharField(max_length=30, null=True, blank=True)
 
     def __str__(self):
         return self.role_name
 
-class PermissionMaster(BaseModel):
 
+class PermissionMaster(BaseModel):
     permission_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     permission_name = models.CharField(max_length=30, null=True, blank=True)
 
     def __str__(self):
         return self.permission_name
 
-class UserRoles(BaseModel):
 
+class UserRoles(BaseModel):
     role = models.ForeignKey('RoleMaster', null=True, blank=True, on_delete=models.SET_NULL,
-                                   related_name="create_userrole")
+                             related_name="create_userrole")
     user = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL,
-                                   related_name="create_userrole")
+                             related_name="create_userrole")
 
     def __str__(self):
-        return ' '.join([self.user.email,self.role.role_name])
+        return ' '.join([self.user.email, self.role.role_name])
 
 
 class UserPermissions(BaseModel):
-
     permission = models.ForeignKey('PermissionMaster', null=True, blank=True, on_delete=models.SET_NULL,
-                             related_name="permission")
+                                   related_name="permission")
     role = models.ForeignKey('RoleMaster', null=True, blank=True, on_delete=models.SET_NULL,
                              related_name="user")
 
     def __str__(self):
-        return ' '.join([self.role.role_name,self.permission.permission_name])
+        return ' '.join([self.role.role_name, self.permission.permission_name])
+
 
 class UserDocuments(BaseModel):
-
     doc_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    doc_file_path = models.CharField(max_length=200, null=True, blank=True,help_text="path to document")
+    doc_file_path = models.CharField(max_length=200, null=True, blank=True, help_text="path to document")
     doc_name = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
@@ -399,45 +407,43 @@ class UserDocuments(BaseModel):
 
 
 class OverseasVisits(BaseModel):
-
     USA = 'usa'
     UK = 'uk'
 
     COUNTRY_CHOICES = [
-        (USA,'USA'),
-        (UK,'UK'),
+        (USA, 'USA'),
+        (UK, 'UK'),
     ]
 
-    country_visited = models.CharField(max_length=50,choices=COUNTRY_CHOICES, null=True, blank=True)
-    date_of_visit = models.DateField(null=True,blank=True)
+    country_visited = models.CharField(max_length=50, choices=COUNTRY_CHOICES, null=True, blank=True)
+    date_of_visit = models.DateField(null=True, blank=True)
     duration_of_visit = models.CharField(max_length=50, null=True, blank=True)
     purpose_of_visit = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
 
-class UserReference(BaseModel):
 
+class UserReference(BaseModel):
     reference_name = models.CharField(max_length=50, null=True, blank=True)
     position = models.CharField(max_length=50, null=True, blank=True)
-    address = models.OneToOneField('Location',on_delete=models.CASCADE, related_name="referee_address")
+    address = models.OneToOneField('Location', on_delete=models.CASCADE, related_name="referee_address")
 
     def __str__(self):
         return str(self.id)
 
 
 class NeeriRelation(BaseModel):
-
     relation_name = models.CharField(max_length=50, null=True, blank=True)
-    designation =models.CharField(max_length=50, null=True, blank=True)
+    designation = models.CharField(max_length=50, null=True, blank=True)
     center_name = models.CharField(max_length=50, null=True, blank=True)
     relation = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
 
-class UserEducationDetails(BaseModel):
 
+class UserEducationDetails(BaseModel):
     PERCENTAGE = '%'
     CLASS = 'class'
     DIVISION = 'division'
@@ -449,30 +455,30 @@ class UserEducationDetails(BaseModel):
     ]
 
     exam_name = models.CharField(max_length=50, null=True, blank=True)
-    university = models.CharField(max_length=50, null=True, blank=True,help_text="university")
+    university = models.CharField(max_length=50, null=True, blank=True, help_text="university")
     college_name = models.CharField(max_length=50, null=True, blank=True)
     passing_year = models.CharField(max_length=50, null=True, blank=True)
-    score = models.CharField(max_length=50, null=True, blank=True,help_text="score")
-    score_unit = models.CharField(max_length=30,choices=SCORE_UNIT_CHOICES, null=True, blank=True)
+    score = models.CharField(max_length=50, null=True, blank=True, help_text="score")
+    score_unit = models.CharField(max_length=30, choices=SCORE_UNIT_CHOICES, null=True, blank=True)
     specialization = models.CharField(max_length=50, null=True, blank=True, help_text="special subject")
 
     def __str__(self):
         return self.specialization
 
-class UserExperienceDetails(BaseModel):
 
+class UserExperienceDetails(BaseModel):
     PERMANENT = 'permanent'
     TEMPORARY = 'temporary'
 
     EMPLOYMENT_TYPE_CHOICES = [
-        (PERMANENT,'PERMANENT'),
-        (TEMPORARY,'TEMPORARY'),
+        (PERMANENT, 'PERMANENT'),
+        (TEMPORARY, 'TEMPORARY'),
     ]
     employer_name = models.CharField(max_length=50, null=True, blank=True)
     post = models.CharField(max_length=30, null=True, blank=True)
     employed_from = models.DateField(null=True, blank=True)
     employed_to = models.DateField(null=True, blank=True)
-    employment_type = models.CharField(max_length=30,choices=EMPLOYMENT_TYPE_CHOICES, null=True, blank=True)
+    employment_type = models.CharField(max_length=30, choices=EMPLOYMENT_TYPE_CHOICES, null=True, blank=True)
     salary = models.IntegerField(null=True, blank=True)
     grade = models.CharField(max_length=30, null=True, blank=True)
 
@@ -481,65 +487,65 @@ class UserExperienceDetails(BaseModel):
 
 
 class PublishedPapers(BaseModel):
-
     paper_title = models.CharField(max_length=30, null=True, blank=True)
-    attachments = models.ManyToManyField('user.UserDocuments',blank=True,related_name="attachments")
+    attachments = models.ManyToManyField('user.UserDocuments', blank=True, related_name="attachments")
 
     def __str__(self):
         return str(self.id)
 
-class UserLanguages(BaseModel):
 
+class UserLanguages(BaseModel):
     BEGINNER = 'beginner'
     INTERMEDIATE = 'intermediate'
     EXPERT = 'expert'
 
     LEVEL_CHOICES = [
-        (BEGINNER,'BEGINNER'),
-        (INTERMEDIATE,'INTERMEDIATE'),
-        (EXPERT,'EXPERT')
+        (BEGINNER, 'BEGINNER'),
+        (INTERMEDIATE, 'INTERMEDIATE'),
+        (EXPERT, 'EXPERT')
     ]
 
     name = models.CharField(max_length=30, null=True, blank=True)
-    read_level = models.CharField(max_length=20,choices=LEVEL_CHOICES, null=True, blank=True)
-    write_level = models.CharField(max_length=20,choices=LEVEL_CHOICES, null=True, blank=True)
-    speak_level = models.CharField(max_length=20,choices=LEVEL_CHOICES, null=True, blank=True)
+    read_level = models.CharField(max_length=20, choices=LEVEL_CHOICES, null=True, blank=True)
+    write_level = models.CharField(max_length=20, choices=LEVEL_CHOICES, null=True, blank=True)
+    speak_level = models.CharField(max_length=20, choices=LEVEL_CHOICES, null=True, blank=True)
     exam_passed = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
 
+
 class ProfessionalTraining(BaseModel):
-    title =  models.CharField(max_length=200, null=True, blank=True)
-    description =  models.CharField(max_length=200, null=True, blank=True)
+    title = models.CharField(max_length=200, null=True, blank=True)
+    description = models.CharField(max_length=200, null=True, blank=True)
     from_date = models.DateField(null=True, blank=True)
     to_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return str(self.id)
 
-class OtherInformation(BaseModel):
 
+class OtherInformation(BaseModel):
     bond_title = models.CharField(max_length=100, null=True, blank=True)
-    bond_details = models.TextField(null=True,blank=True)
+    bond_details = models.TextField(null=True, blank=True)
     organisation_name = models.CharField(max_length=200, null=True, blank=True)
-    bond_start_date = models.DateField(null=True,blank=True)
-    bond_end_date = models.DateField(null=True,blank=True)
-    notice_period_min = models.IntegerField(null=True, blank=True,help_text="notice_period_min_in_days")
-    notice_period_max = models.IntegerField(null=True, blank=True,help_text="notice_period_max_in_days")
+    bond_start_date = models.DateField(null=True, blank=True)
+    bond_end_date = models.DateField(null=True, blank=True)
+    notice_period_min = models.IntegerField(null=True, blank=True, help_text="notice_period_min_in_days")
+    notice_period_max = models.IntegerField(null=True, blank=True, help_text="notice_period_max_in_days")
 
     def __str__(self):
         return str(self.id)
 
-class UserAuthentication(models.Model):
 
+class UserAuthentication(models.Model):
     user = models.OneToOneField('User', on_delete=models.CASCADE, related_name="applicant_user")
     email_verified = models.BooleanField(default=False)
     mobile_verified = models.BooleanField(default=False)
-    email_otp = models.IntegerField(null=True,blank=True)
-    mobile_otp = models.IntegerField(null=True,blank=True)
-    email_otp_expiry = models.DateTimeField(null=True,blank=True)
-    mobile_otp_expiry = models.DateTimeField(null=True,blank=True)
+    email_otp = models.IntegerField(null=True, blank=True)
+    mobile_otp = models.IntegerField(null=True, blank=True)
+    email_otp_expiry = models.DateTimeField(null=True, blank=True)
+    mobile_otp_expiry = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.user.email
@@ -551,3 +557,38 @@ class MentorMaster(BaseModel):
 
     def __str__(self):
         return self.mentor_name
+
+
+# Trainee ID	PK
+# Department (division)	dropdown
+# Mentor	dropdown
+# Trainee Name
+# Email
+# Mobile
+# EmploymentStartDate
+# EmploymentEndDate
+# Status	enum	Yet to join, Active, Completed
+
+NOT_DECIDED = 'not_decided'
+ACTIVE = 'active'
+COMPLETED = 'completed'
+YET_TO_JOIN = 'yet to join'
+
+STATUS_CHOICES = [
+    (NOT_DECIDED, 'NOT_DECIDED'),
+    (ACTIVE, 'ACTIVE'),
+    (COMPLETED, 'COMPLETED'),
+    (YET_TO_JOIN, 'YET_TO_JOIN'),
+]
+
+
+class Trainee(BaseModel):
+    trainee_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    division = models.ForeignKey('job_posting.Division', on_delete=models.CASCADE, null=True, blank=True, related_name="division_trainee")
+    mentor = models.ForeignKey('user.MentorMaster', on_delete=models.CASCADE, null=True, blank=True, related_name="mentor")
+    trainee_name = models.CharField(max_length=150, null=True, blank=True)
+    email = models.EmailField(unique=True, validators=[EmailValidator()])
+    mobile_no = models.CharField(max_length=10, unique=True, null=True)
+    emp_start_date = models.DateField(null=True, blank=True)
+    emp_end_date = models.DateField(null=True, blank=True)
+    status = models.CharField(null=True, blank=True, choices=STATUS_CHOICES, default=NOT_DECIDED, max_length=20)

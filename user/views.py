@@ -7,14 +7,14 @@ from django.http import JsonResponse
 from rest_framework import status
 from user.models import User, RoleMaster, UserRoles, UserProfile, Location, UserEducationDetails, UserExperienceDetails, \
     UserLanguages, UserReference, NeeriRelation, OverseasVisits, PublishedPapers, ProfessionalTraining, UserDocuments, \
-    OtherInformation, UserPermissions, UserAuthentication, NeeriUserProfile, MentorMaster
+    OtherInformation, UserPermissions, UserAuthentication, NeeriUserProfile, MentorMaster, Trainee
 from job_posting.models import UserJobPositions, JobDocuments, JobPosting, SelectionProcessContent
 from user.serializer import UserSerializer, AuthTokenCustomSerializer, UserProfileSerializer, UserRolesSerializer, \
     CustomUserSerializer, ApplicantUserPersonalInformationSerializer, LocationSerializer, \
     UserEducationDetailsSerializer, UserExperienceDetailsSerializer, NeeriRelationSerializer, \
     OverseasVisitsSerializer, LanguagesSerializer, ReferencesSerializer, PublishedPapersSerializer, \
     ProfessionalTrainingSerializer, UserProfilePreviewSerializer, OtherInformationSerializer, \
-    NeeriUsersSerializer, CompareApplicantSerializer, RoleMasterSerializer, MentorMasterSerializer
+    NeeriUsersSerializer, CompareApplicantSerializer, RoleMasterSerializer, MentorMasterSerializer, TraineeSerializer
 from job_posting.serializer import ApplicantJobPositionsSerializer
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
@@ -1302,12 +1302,59 @@ class MentorMasterListView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             mentor_id = self.kwargs['id']
-            mentor = MentorMaster.objects.filter(mentor_id=mentor_id, is_deleted=False)
-            serializer = MentorMasterSerializer(mentor, many=True)
-            return Response(serializer.data, status=200)
+            if MentorMaster.objects.filter(mentor_id=mentor_id, is_deleted=False).exists():
+                mentor = MentorMaster.objects.get(mentor_id=mentor_id, is_deleted=False)
+                serializer = MentorMasterSerializer(mentor)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"message": "Details Not Found."}, status=401)
         except:
             mentor = MentorMaster.objects.filter(is_deleted=False)
             serializer = MentorMasterSerializer(mentor, many=True)
             return Response(serializer.data, status=200)
 
+    def delete(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['id']
+            mentor = MentorMaster.objects.get(mentor_id=id)
+            # print("mentor.mentor_id---------->",mentor.mentor_id)
+            # print("mentor---------->",mentor)
+            # if Trainee.objects.filter(mentor=mentor).exists():
+            #     trainee = Trainee.objects.get(mentor=mentor)
+            #     for t in trainee:
+            #         t.is_deleted = True
+            #         t.save()
+            #     print("trainee---------->", trainee)
 
+            mentor.is_deleted = True
+            mentor.save()
+            return Response(data={"message": "Mentor Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Mentor Not Found."}, status=401)
+
+
+class TraineeListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            trainee_id = self.kwargs['id']
+            if Trainee.objects.filter(trainee_id=trainee_id, is_deleted=False).exists():
+                trainee = Trainee.objects.get(trainee_id=trainee_id, is_deleted=False)
+                serializer = TraineeSerializer(trainee)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"message": "Details Not Found."}, status=401)
+        except:
+            trainee = Trainee.objects.filter(is_deleted=False)
+            serializer = TraineeSerializer(trainee, many=True)
+            return Response(serializer.data, status=200)
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['id']
+            trainee = Trainee.objects.get(trainee_id=id)
+            trainee.is_deleted = True
+            trainee.save()
+            return Response(data={"message": "Trainee Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Trainee Not Found."}, status=401)

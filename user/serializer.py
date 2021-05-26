@@ -1,7 +1,7 @@
-from job_posting.models import UserJobPositions, JobPosting
+from job_posting.models import UserJobPositions, JobPosting, Division
 from user.models import User, UserProfile, Location, UserRoles, UserPermissions, RoleMaster, UserEducationDetails, \
     UserExperienceDetails, NeeriRelation, UserReference, OverseasVisits, UserLanguages, UserDocuments, \
-    PublishedPapers, ProfessionalTraining, OtherInformation, NeeriUserProfile, MentorMaster
+    PublishedPapers, ProfessionalTraining, OtherInformation, NeeriUserProfile, MentorMaster, Trainee
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
@@ -2480,3 +2480,46 @@ class MentorMasterSerializer(serializers.ModelSerializer):
             "mentor_id",
             "mentor_name",
         )
+
+class DivisionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Division
+        fields = (
+            "division_id",
+            "division_name",
+        )
+
+
+class TraineeSerializer(serializers.ModelSerializer):
+
+    division = serializers.SerializerMethodField(
+        method_name='get_division_name', required=False
+    )
+    mentor = serializers.SerializerMethodField(
+        method_name='get_mentor_name', required=False
+    )
+
+    class Meta:
+        model = Trainee
+        fields = (
+            "trainee_id",
+            "trainee_name",
+            "division",
+            "mentor",
+            "email",
+            "mobile_no",
+            "emp_start_date",
+            "emp_end_date",
+            "status",
+        )
+
+    def get_division_name(self,obj):
+        division = obj.division
+        serializer = DivisionSerializer(division)
+        return serializer.data
+
+    def get_mentor_name(self,obj):
+        mentor = obj.mentor
+        serializer = MentorMasterSerializer(mentor)
+        return serializer.data
