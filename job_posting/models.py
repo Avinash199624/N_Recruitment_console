@@ -102,7 +102,7 @@ class PermanentPositionMaster(BaseModel):
 HRA = 'hra'
 CONSOLIDATED = 'consolidated'
 
-SAL_ADD_CHOICES = [
+ALLOWANCE_CHOICES = [
     (HRA, 'HRA'),
     (CONSOLIDATED, 'CONSOLIDATED'),
 ]
@@ -110,7 +110,7 @@ SAL_ADD_CHOICES = [
 class TemporaryPositionMaster(BaseModel):
     temp_position = models.ForeignKey('NewPositionMaster', null=True, blank=True, on_delete=models.SET_NULL,
                                  related_name="temp_positon")
-    salary_addition = models.CharField(max_length=30, choices=SAL_ADD_CHOICES, null=True, blank=True)
+    allowance = models.CharField(max_length=30, choices=ALLOWANCE_CHOICES, null=True, blank=True)
     salary = models.FloatField(null=True, blank=True)
 
     def __str__(self):

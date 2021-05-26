@@ -95,4 +95,4 @@ class PermanentPositionMasterAdmin(admin.ModelAdmin):
 
 @register(TemporaryPositionMaster)
 class TemporaryPositionMasterAdmin(admin.ModelAdmin):
-    list_display = ['temp_position', 'salary_addition', 'salary', 'is_deleted']
+    list_display = ['temp_position', 'allowance', 'salary', 'is_deleted']

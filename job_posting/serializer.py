@@ -772,7 +772,7 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "temp_position",
-            "salary_addition",
+            "allowance",
             "salary",
         )
 
@@ -788,7 +788,7 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
         posi = TemporaryPositionMaster.objects.create(
             temp_position=posi_id,
             salary=validated_data['salary'],
-            salary_addition=validated_data['salary_addition'],
+            allowance=validated_data['allowance'],
         )
         print("Done")
 
@@ -801,8 +801,8 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
             instance.salary = (
                 validated_data['salary'] if validated_data['salary'] else instance.salary
             )
-            instance.salary_addition = (
-                validated_data['salary_addition'] if validated_data['salary_addition'] else instance.salary_addition
+            instance.allowance = (
+                validated_data['allowance'] if validated_data['allowance'] else instance.allowance
             )
             instance.save()
         print("Done")
