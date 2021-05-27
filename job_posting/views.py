@@ -454,6 +454,16 @@ class NewPositionMasterViews(APIView):
             serializer = NewPositionMasterSerializer(positions, many=True)
             return Response(serializer.data, status=200)
 
+    def delete(self,request,*args,**kwargs):
+        try:
+            id = self.kwargs['id']
+            posi = NewPositionMaster.objects.get(position_id=id)
+            posi.is_deleted = True
+            posi.save()
+            return Response(data = {"message": "ManPower Position Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
 class PermanentPositionMasterViews(APIView):
 
     def get(self, request, *args, **kwargs):
