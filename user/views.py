@@ -1313,6 +1313,13 @@ class MentorMasterListView(APIView):
             serializer = MentorMasterSerializer(mentor, many=True)
             return Response(serializer.data, status=200)
 
+    # def post(self, request, *args, **kwargs):
+    #     data = self.request.data
+    #     serializer = MentorMasterSerializer(data=data)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save()
+    #     return Response(serializer.data, status=200)
+
     def delete(self, request, *args, **kwargs):
         try:
             id = self.kwargs['id']
@@ -1358,3 +1365,31 @@ class TraineeListView(APIView):
             return Response(data={"message": "Trainee Deleted Successfully(Soft Delete)."}, status=200)
         except:
             return Response(data={"message": "Trainee Not Found."}, status=401)
+
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        serializer = TraineeSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save(validated_data=data)
+        if result:
+            trainee = Trainee.objects.get(trainee_id=result)
+            serializer = TraineeSerializer(trainee)
+            return Response(serializer.data, status=200)
+        else:
+            return Response(data={"message": "This Mentor already added to 4 Trainee, try with another mentor."}, status=401)
+
+    def put(self, request, *args, **kwargs):
+        data = self.request.data
+        id = self.kwargs['id']
+        trainee = Trainee.objects.get(trainee_id=id, is_deleted=False)
+        serializer = TraineeSerializer(trainee, data=data)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.update(instance=trainee, validated_data=data)
+        if result:
+            trainee = Trainee.objects.get(trainee_id=result)
+            serializer = TraineeSerializer(trainee)
+            return Response(serializer.data, status=200)
+        else:
+            return Response(data={"message": "This Mentor already added to 4 Trainee, try with another mentor."}, status=401)
+
+

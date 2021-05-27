@@ -2486,7 +2486,6 @@ class DivisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Division
         fields = (
-            "division_id",
             "division_name",
         )
 
@@ -2504,6 +2503,7 @@ class TraineeSerializer(serializers.ModelSerializer):
         model = Trainee
         fields = (
             "trainee_id",
+            "generated_trainee_id",
             "trainee_name",
             "division",
             "mentor",
@@ -2523,3 +2523,64 @@ class TraineeSerializer(serializers.ModelSerializer):
         mentor = obj.mentor
         serializer = MentorMasterSerializer(mentor)
         return serializer.data
+
+    def save(self, validated_data):
+        print("validated_data-------------->",validated_data)
+
+        valid_mentor = Trainee.objects.filter(mentor=validated_data['mentor']['mentor_id'])
+        print("valid_mentor-------------->",valid_mentor)
+        print("valid_mentor.count()-------------->",valid_mentor.count())
+        if not valid_mentor.count() > 4:
+
+            trainee = Trainee.objects.create(
+                trainee_name = validated_data['trainee_name'],
+                email = validated_data['email'],
+                mobile_no = validated_data['mobile_no'],
+                emp_start_date = validated_data['emp_start_date'],
+                emp_end_date = validated_data['emp_end_date'],
+                status = validated_data['status'],
+            )
+
+            division = Division.objects.get(division_name=validated_data['division']['division_name'])
+            mentor = MentorMaster.objects.get(mentor_id=validated_data['mentor']['mentor_id'])
+            trainee.division = division
+            trainee.mentor = mentor
+            trainee.save()
+            return trainee.trainee_id
+        else:
+            return None
+
+    def update(self, instance, validated_data):
+        valid_mentor = Trainee.objects.filter(mentor=validated_data['mentor']['mentor_id'])
+        if not valid_mentor.count() > 4:
+            if instance:
+                instance.trainee_name = (
+                    validated_data['trainee_name'] if validated_data['trainee_name'] else instance.trainee_name
+                )
+                instance.email = (
+                    validated_data['email'] if validated_data['email'] else instance.email
+                )
+                instance.mobile_no = (
+                    validated_data['mobile_no'] if validated_data['mobile_no'] else instance.mobile_no
+                )
+                instance.emp_start_date = (
+                    validated_data['emp_start_date'] if validated_data['emp_start_date'] else instance.emp_start_date
+                )
+                instance.emp_end_date = (
+                    validated_data['emp_end_date'] if validated_data['emp_end_date'] else instance.emp_end_date
+                )
+                instance.status = (
+                    validated_data['status'] if validated_data['status'] else instance.status
+                )
+
+                division_name = validated_data['division']['division_name']
+                mentor_name = validated_data['mentor']['mentor_name']
+                division = Division.objects.get(division_name__exact=division_name)
+                mentor = MentorMaster.objects.get(mentor_name__exact=mentor_name)
+                instance.division = division
+                instance.mentor = mentor
+                instance.save()
+
+            return instance.trainee_id
+        else:
+            return None

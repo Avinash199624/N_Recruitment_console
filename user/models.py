@@ -1,7 +1,11 @@
+import random
+
 from django.contrib import auth
 from django.db import models
 
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
+from django.utils.crypto import get_random_string
+
 from neeri_recruitment_portal.validators import EmailValidator, UsernameValidator
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser, BaseUserManager
@@ -421,16 +425,17 @@ class OverseasVisits(BaseModel):
     purpose_of_visit = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return str(self.id)
+        return self.country_visited
 
 
 class UserReference(BaseModel):
     reference_name = models.CharField(max_length=50, null=True, blank=True)
     position = models.CharField(max_length=50, null=True, blank=True)
     address = models.OneToOneField('Location', on_delete=models.CASCADE, related_name="referee_address")
+    # TODO: email = models.OneToOneField('user.User', on_delete=models.CASCADE, related_name="user_email")
 
     def __str__(self):
-        return str(self.id)
+        return self.reference_name
 
 
 class NeeriRelation(BaseModel):
@@ -440,7 +445,7 @@ class NeeriRelation(BaseModel):
     relation = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
-        return str(self.id)
+        return self.relation_name
 
 
 class UserEducationDetails(BaseModel):
@@ -584,6 +589,7 @@ STATUS_CHOICES = [
 
 class Trainee(BaseModel):
     trainee_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    generated_trainee_id = models.CharField(max_length=16, blank=True, null=True, default=None, unique=True)
     division = models.ForeignKey('job_posting.Division', on_delete=models.CASCADE, null=True, blank=True, related_name="division_trainee")
     mentor = models.ForeignKey('user.MentorMaster', on_delete=models.CASCADE, null=True, blank=True, related_name="mentor")
     trainee_name = models.CharField(max_length=150, null=True, blank=True)
@@ -592,3 +598,13 @@ class Trainee(BaseModel):
     emp_start_date = models.DateField(null=True, blank=True)
     emp_end_date = models.DateField(null=True, blank=True)
     status = models.CharField(null=True, blank=True, choices=STATUS_CHOICES, default=NOT_DECIDED, max_length=20)
+
+    def save(self, **kwargs):
+        prefix = 'TRN-'
+        number = '{:09d}'.format(random.randrange(1, 999999999))
+        self.generated_trainee_id = (prefix + number)
+        super(Trainee, self).save(**kwargs)
+        # if not self.generated_trainee_id:
+        #     self.generated_trainee_id = get_random_string(length=9)
+        # super(Trainee, self).save(**kwargs)
+

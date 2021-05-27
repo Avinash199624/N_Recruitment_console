@@ -106,4 +106,4 @@ class MentorMasterAdmin(admin.ModelAdmin):
 
 @register(Trainee)
 class TraineeAdmin(admin.ModelAdmin):
-    list_display = ['trainee_id', 'trainee_name', 'email', 'mobile_no', 'is_deleted']
+    list_display = ['trainee_id', 'generated_trainee_id', 'trainee_name', 'email', 'mobile_no', 'is_deleted']
