@@ -431,12 +431,17 @@ class AppealReasonMasterViews(APIView):
 # NewPositionMaster
 class NewPositionMasterViews(APIView):
 
-    # def post(self, request, *args, **kwargs):
-    #     data = self.request.data
-    #     serializer = AppealReasonMasterSerializer(data=data)
-    #     serializer.is_valid(raise_exception=True)
-    #     serializer.save()
-    #     return Response(serializer.data, status=200)
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        print("data ------->", data)
+        serializer = NewPositionMasterSerializer(data=data)
+        print("serializer ----------->", serializer)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save(validated_data=data)
+        print("result ----------->", result)
+        posi = NewPositionMaster.objects.get(position_id=result)
+        serializer = NewPositionMasterSerializer(posi)
+        return Response(serializer.data, status=200)
 
     def get(self, request, *args, **kwargs):
         try:

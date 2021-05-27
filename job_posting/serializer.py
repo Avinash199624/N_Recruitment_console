@@ -6,7 +6,9 @@ from job_posting.models import UserJobPositions,Department,Division,ZonalLab,Qua
     JobPosting,SelectionProcessContent,SelectionCommitteeMaster,ServiceConditions
 from document.serializer import DocumentMasterSerializer, InformationMasterSerializer, NewDocumentMasterSerializer
 from document.models import DocumentMaster, NewDocumentMaster, InformationMaster
-from user.serializer import SubjectSpecializationSerializer, EmployeeExperienceSerializer
+from user.models import UserEducationDetails, UserExperienceDetails
+from user.serializer import SubjectSpecializationSerializer, EmployeeExperienceSerializer, \
+    UserExperienceDetailsSerializer
 
 
 class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
@@ -867,5 +869,39 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
 
     def get_qualification_job_history(self,obj):
         qual_job = obj.qualification_job_history.filter()
-        serializer = EmployeeExperienceSerializer(qual_job, many=True)
+        serializer = UserExperienceDetailsSerializer(qual_job, many=True)
         return serializer.data
+
+    def save(self, validated_data):
+
+        position = NewPositionMaster.objects.create(
+            position_name = validated_data['position_name'],
+            position_display_name=validated_data['position_display_name'],
+            min_age = validated_data['min_age'],
+            max_age = validated_data['max_age'],
+        )
+
+        # position = PositionMaster.objects.get(position_id=validated_data['position']['position_id'])
+        # template.position = position
+        # template.save()
+        print("validated_data--------->", validated_data)
+
+        for qualification_data in validated_data['qualification']:
+            qualification = UserEducationDetails.objects.get(specialization = qualification_data['specialization'])
+            position.qualification.add(qualification)
+        print("validated_data['qualification_job_history']--------->", validated_data['qualification_job_history'])
+
+        for exp in validated_data['qualification_job_history']:
+            print("exp--------->", exp)
+            emp_exp = UserExperienceDetails.objects.get(employer_name = exp['employer_name'])
+            position.qualification_job_history.add(emp_exp)
+
+        for info_data in validated_data['information_required']:
+            info = InformationMaster.objects.get(info_type=info_data['info_type'])
+            position.information_required.add(info)
+
+        for doc in validated_data['documents_required']:
+            docs = NewDocumentMaster.objects.get(doc_type=doc['doc_type'])
+            position.documents_required.add(docs)
+
+        return position.position_id
