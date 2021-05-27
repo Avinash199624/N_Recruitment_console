@@ -62,7 +62,7 @@ class NewPositionMaster(BaseModel):
     qualification_job_history = models.ManyToManyField('user.UserExperienceDetails', blank=True, related_name="qualification_job_history")
 
     def __str__(self):
-        return self.position_name
+        return str(self.position_name)
 
 
 # Grade I, Grade II, Grade III, Grade IV, Grade V
