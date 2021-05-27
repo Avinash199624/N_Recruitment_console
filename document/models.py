@@ -57,7 +57,7 @@ DOCTORATE = 'education doctorate'
 TYPING_SPEED = 'typing speed'
 PUBLISHED_PAPERS = 'published papers'
 REFERENCES = 'references'
-JOB_HISTORY = 'jon history'
+JOB_HISTORY = 'job history'
 INTERNATIONAL_TRIPS = 'international trips'
 RELATIVES_IN_NEERI = 'relatives in neeri'
 

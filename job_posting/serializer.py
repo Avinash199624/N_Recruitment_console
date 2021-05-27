@@ -821,6 +821,24 @@ class P_MasterSerializer(serializers.ModelSerializer):
             "position_name",
         )
 
+class SubjectSpecializationqualificationSerializer(serializers.ModelSerializer):
+    score = serializers.SerializerMethodField(
+        method_name="get_score", read_only=True
+    )
+
+    class Meta:
+        model = UserEducationDetails
+        fields = (
+            "id",
+            "specialization",
+            "score",
+        )
+
+    def get_score(self, obj):
+        score = obj.score + obj.score_unit
+        return score
+
+
 class NewPositionMasterSerializer(serializers.ModelSerializer):
 
     documents_required = serializers.SerializerMethodField(
@@ -864,7 +882,7 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
 
     def get_qualification(self, obj):
         qual = obj.qualification.filter()
-        serializer = SubjectSpecializationSerializer(qual, many=True)
+        serializer = SubjectSpecializationqualificationSerializer(qual, many=True)
         return serializer.data
 
     def get_qualification_job_history(self,obj):
@@ -887,7 +905,7 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
         print("validated_data--------->", validated_data)
 
         for qualification_data in validated_data['qualification']:
-            qualification = UserEducationDetails.objects.get(specialization = qualification_data['specialization'])
+            qualification = UserEducationDetails.objects.get(id = qualification_data['id'])
             position.qualification.add(qualification)
         print("validated_data['qualification_job_history']--------->", validated_data['qualification_job_history'])
 
@@ -905,3 +923,102 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
             position.documents_required.add(docs)
 
         return position.position_id
+
+    def update(self, instance, validated_data):
+        print("instance ----->", instance)
+        print("instance.position_name ----->", instance.position_name)
+        print("validated_data ---->", validated_data)
+        instance.position_name = (
+            validated_data["position_name"] if validated_data["position_name"] else instance.position_name
+        )
+
+        instance.position_display_name = (
+            validated_data["position_display_name"] if validated_data["position_display_name"] else instance.position_display_name
+        )
+
+        instance.min_age = (
+            validated_data["min_age"] if validated_data["min_age"] else instance.min_age
+        )
+
+        instance.max_age = (
+            validated_data["max_age"] if validated_data["max_age"] else instance.max_age
+        )
+
+        instance.save()
+        posi = NewPositionMaster.objects.get(position_id=validated_data['position_id'])
+        oldqual = posi.qualification.filter()
+        oldexp = posi.qualification_job_history.filter()
+        olddoc = posi.documents_required.filter()
+        oldinfo = posi.information_required.filter()
+        print("validated_data['qualification']---------->",validated_data['qualification'])
+        if not validated_data['qualification']:  # working for empty role.
+            for oqual in oldqual:
+                instance.qualification.remove(oqual)
+                print("qual deleted")
+
+        for oqual in oldqual:
+            for qual_data in validated_data['qualification']:
+                print("qual_data.id-------------->",qual_data["id"])
+                if str(oqual.id) != str(qual_data["id"]):  # working deletion now
+                    print(str(qual_data["id"]) + " != " + str(oqual.id))
+                    instance.qualification.remove(oqual)
+
+        for qual_data in validated_data['qualification']:  # working for addition too.
+            instance.qualification.add(qual_data["id"])
+
+
+        # qualification_job_history
+        print("validated_data['qualification_job_history']---------->", validated_data['qualification_job_history'])
+        if not validated_data['qualification_job_history']:  # working for empty role.
+            for oexp in oldexp:
+                instance.qualification_job_history.remove(oexp)
+                print("exp deleted")
+
+        for oexp in oldexp:
+            for exp_data in validated_data['qualification_job_history']:
+                print("qual_data.id-------------->", exp_data["id"])
+                if str(oexp.id) != str(exp_data["id"]):  # working deletion now
+                    print(str(exp_data["id"]) + " != " + str(oexp.id))
+                    instance.qualification_job_history.remove(oexp)
+
+        for exp_data in validated_data['qualification_job_history']:  # working for addition too.
+            instance.qualification_job_history.add(exp_data["id"])
+
+
+
+        # documents_required
+        print("validated_data['documents_required']---------->", validated_data['documents_required'])
+        if not validated_data['documents_required']:  # working for empty role.
+            for odoc in olddoc:
+                instance.documents_required.remove(odoc)
+                print("doc deleted")
+
+        for odoc in olddoc:
+            for doc_data in validated_data['documents_required']:
+                # print("doc_data.doc_id-------------->", doc_data["doc_id"])
+                if str(odoc.doc_id) != str(doc_data["doc_id"]):  # working deletion now
+                    print(str(doc_data["doc_id"]) + " != " + str(odoc.doc_id))
+                    instance.documents_required.remove(odoc)
+
+        for doc_data in validated_data['documents_required']:  # working for addition too.
+            instance.documents_required.add(doc_data["doc_id"])
+
+        # information_required
+        print("validated_data['information_required']---------->", validated_data['information_required'])
+        if not validated_data['information_required']:  # working for empty role.
+            for oinfo in oldinfo:
+                instance.information_required.remove(oinfo)
+                print("info deleted")
+
+        for oinfo in oldinfo:
+            for info_data in validated_data['information_required']:
+                print("doc_data.info_id-------------->", info_data["info_id"])
+                if str(oinfo.info_id) != str(info_data["info_id"]):  # working deletion now
+                    print(str(info_data["info_id"]) + " != " + str(oinfo.info_id))
+                    instance.information_required.remove(oinfo)
+
+        for info_data in validated_data['information_required']:  # working for addition too.
+            instance.information_required.add(info_data["info_id"])
+
+        instance.save()
+        return instance.position_id

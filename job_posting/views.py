@@ -446,13 +446,25 @@ class NewPositionMasterViews(APIView):
     def get(self, request, *args, **kwargs):
         try:
             position_id = self.kwargs['id']
-            position = NewPositionMaster.objects.get(position_id=position_id, is_deleted=False)
-            serializer = NewPositionMasterSerializer(position)
-            return Response(serializer.data, status=200)
+            if NewPositionMaster.objects.filter(position_id=position_id, is_deleted=False).exists():
+                position = NewPositionMaster.objects.get(position_id=position_id, is_deleted=False)
+                serializer = NewPositionMasterSerializer(position)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"message": "Details Not Found."}, status=401)
         except:
             positions = NewPositionMaster.objects.filter(is_deleted=False)
             serializer = NewPositionMasterSerializer(positions, many=True)
             return Response(serializer.data, status=200)
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs['id']
+        posi = NewPositionMaster.objects.get(position_id=id)
+        data = self.request.data
+        serializer = NewPositionMasterSerializer(posi, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=posi, validated_data=data)
+        return Response(serializer.data, status=200)
 
     def delete(self,request,*args,**kwargs):
         try:
