@@ -7,14 +7,16 @@ from django.http import JsonResponse
 from rest_framework import status
 from user.models import User, RoleMaster, UserRoles, UserProfile, Location, UserEducationDetails, UserExperienceDetails, \
     UserLanguages, UserReference, NeeriRelation, OverseasVisits, PublishedPapers, ProfessionalTraining, UserDocuments, \
-    OtherInformation, UserPermissions, UserAuthentication, NeeriUserProfile, MentorMaster, Trainee
+    OtherInformation, UserPermissions, UserAuthentication, NeeriUserProfile, MentorMaster, Trainee, RelaxationMaster, \
+    RelaxationCategoryMaster
 from job_posting.models import UserJobPositions, JobDocuments, JobPosting, SelectionProcessContent
 from user.serializer import UserSerializer, AuthTokenCustomSerializer, UserProfileSerializer, UserRolesSerializer, \
     CustomUserSerializer, ApplicantUserPersonalInformationSerializer, LocationSerializer, \
     UserEducationDetailsSerializer, UserExperienceDetailsSerializer, NeeriRelationSerializer, \
     OverseasVisitsSerializer, LanguagesSerializer, ReferencesSerializer, PublishedPapersSerializer, \
     ProfessionalTrainingSerializer, UserProfilePreviewSerializer, OtherInformationSerializer, \
-    NeeriUsersSerializer, CompareApplicantSerializer, RoleMasterSerializer, MentorMasterSerializer, TraineeSerializer
+    NeeriUsersSerializer, CompareApplicantSerializer, RoleMasterSerializer, MentorMasterSerializer, TraineeSerializer, \
+    RelaxationMasterSerializer, RelaxationCategoryMasterSerializer
 from job_posting.serializer import ApplicantJobPositionsSerializer
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
@@ -1393,3 +1395,57 @@ class TraineeListView(APIView):
             return Response(data={"message": "This Mentor already added to 4 Trainee, try with another mentor."}, status=401)
 
 
+
+
+
+class RelaxationMasterListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            relaxation_rule_id = self.kwargs['id']
+            if RelaxationMaster.objects.filter(relaxation_rule_id=relaxation_rule_id, is_deleted=False).exists():
+                relax = RelaxationMaster.objects.get(relaxation_rule_id=relaxation_rule_id, is_deleted=False)
+                serializer = RelaxationMasterSerializer(relax)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"message": "Details Not Found."}, status=401)
+        except:
+            relax = RelaxationMaster.objects.filter(is_deleted=False)
+            serializer = RelaxationMasterSerializer(relax, many=True)
+            return Response(serializer.data, status=200)
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['id']
+            relax = RelaxationMaster.objects.get(relaxation_rule_id=id)
+            relax.is_deleted = True
+            relax.save()
+            return Response(data={"message": "Relaxation Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
+class RelaxationCategoryMasterListView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            mentor_id = self.kwargs['id']
+            if RelaxationCategoryMaster.objects.filter(relaxation_cat_id=mentor_id, is_deleted=False).exists():
+                relax = RelaxationCategoryMaster.objects.get(relaxation_cat_id=mentor_id, is_deleted=False)
+                serializer = RelaxationCategoryMasterSerializer(relax)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"message": "Details Not Found."}, status=401)
+        except:
+            relax = RelaxationCategoryMaster.objects.filter(is_deleted=False)
+            serializer = RelaxationCategoryMasterSerializer(relax, many=True)
+            return Response(serializer.data, status=200)
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['id']
+            relax_cat = RelaxationCategoryMaster.objects.get(relaxation_cat_id=id)
+            relax_cat.is_deleted = True
+            relax_cat.save()
+            return Response(data={"message": "Relaxation Category Deleted Successfully(Soft Delete)."}, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)

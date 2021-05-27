@@ -608,3 +608,21 @@ class Trainee(BaseModel):
         #     self.generated_trainee_id = get_random_string(length=9)
         # super(Trainee, self).save(**kwargs)
 
+
+class RelaxationCategoryMaster(BaseModel):
+    relaxation_cat_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    relaxation_category = models.CharField(max_length=150, null=True, blank=True)
+
+    def __str__(self):
+        return self.relaxation_category
+
+
+class RelaxationMaster(BaseModel):
+    relaxation_rule_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    relaxation = models.ForeignKey('user.RelaxationCategoryMaster', on_delete=models.CASCADE, null=True, blank=True, related_name="relaxation")
+    age_relaxation = models.PositiveIntegerField(null=True, blank=True)
+    fee_relaxation = models.PositiveIntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return str(self.relaxation_rule_id)
+

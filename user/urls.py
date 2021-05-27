@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from user.views import UserRegistartionView, NeeriPersonalInformation, CompareApplicantListView, \
     NeeriLoginView, TempLoginView, RoleMasterView, CreateNeeriUserView, MentorMasterListView, NeeriUserListView, \
-    TraineeListView
+    TraineeListView, RelaxationCategoryMasterListView, RelaxationMasterListView
 from user.views import LoginView,LogoutView,UserListView,RetrievetUserView,UpdateUserView,CreateUserView,DeleteUserView,ForgotPassword,\
     ApplicantPersonalInformationView,ApplicantPersonalInformationUpdateView,\
     ApplicantPersonalInformationCreateView,ApplicantAddressView,ApplicantAddressCreateView,\
@@ -108,4 +108,8 @@ urlpatterns = [
     path('mentor/<uuid:id>/', MentorMasterListView.as_view(), name="mentor"),
     path('trainee/', TraineeListView.as_view(), name="trainee-list"),
     path('trainee/<uuid:id>/', TraineeListView.as_view(), name="trainee"),
+    path('relaxation_category/', RelaxationCategoryMasterListView.as_view(), name="relaxation-category"),
+    path('relaxation_category/<uuid:id>/', RelaxationCategoryMasterListView.as_view(), name="relaxation-category"),
+    path('relaxation/', RelaxationMasterListView.as_view(), name="relaxation-list"),
+    path('relaxation/<uuid:id>/', RelaxationMasterListView.as_view(), name="relaxation"),
 ]

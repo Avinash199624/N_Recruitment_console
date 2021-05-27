@@ -1,7 +1,8 @@
 from job_posting.models import UserJobPositions, JobPosting, Division
 from user.models import User, UserProfile, Location, UserRoles, UserPermissions, RoleMaster, UserEducationDetails, \
     UserExperienceDetails, NeeriRelation, UserReference, OverseasVisits, UserLanguages, UserDocuments, \
-    PublishedPapers, ProfessionalTraining, OtherInformation, NeeriUserProfile, MentorMaster, Trainee
+    PublishedPapers, ProfessionalTraining, OtherInformation, NeeriUserProfile, MentorMaster, Trainee, \
+    RelaxationCategoryMaster, RelaxationMaster
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
@@ -2480,6 +2481,51 @@ class MentorMasterSerializer(serializers.ModelSerializer):
             "mentor_id",
             "mentor_name",
         )
+
+class RelaxationCategoryMasterSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RelaxationCategoryMaster
+        fields = (
+            "relaxation_cat_id",
+            "relaxation_category",
+        )
+
+
+class RelaxationMasterSerializer(serializers.ModelSerializer):
+
+    relaxation = serializers.SerializerMethodField(
+        method_name='get_relaxation_name', required=False
+    )
+    age_relaxation = serializers.SerializerMethodField(
+        method_name='get_age_relaxation', required=False
+    )
+    fee_relaxation = serializers.SerializerMethodField(
+        method_name='get_fee_relaxation', required=False
+    )
+
+    class Meta:
+        model = RelaxationMaster
+        fields = (
+            "relaxation_rule_id",
+            "relaxation",
+            "age_relaxation",
+            "fee_relaxation",
+        )
+
+    def get_age_relaxation(self, obj):
+        age_relaxation = str(obj.age_relaxation) + ' years'
+        return age_relaxation
+
+    def get_fee_relaxation(self, obj):
+            fee_relaxation = str(obj.fee_relaxation) + '%'
+            return fee_relaxation
+
+    def get_relaxation_name(self,obj):
+        relaxation = obj.relaxation
+        serializer = RelaxationCategoryMasterSerializer(relaxation)
+        return serializer.data
+
 
 class DivisionSerializer(serializers.ModelSerializer):
 

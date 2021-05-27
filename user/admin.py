@@ -3,7 +3,7 @@ from django.contrib.admin import register
 from user.models import User, UserProfile, RoleMaster, UserRoles, Location, PermissionMaster, \
     UserPermissions, NeeriUserProfile, NeeriRelation, UserEducationDetails, UserExperienceDetails, \
     UserDocuments, UserLanguages, UserReference, OverseasVisits, PublishedPapers, ProfessionalTraining, \
-    OtherInformation, MentorMaster, Trainee
+    OtherInformation, MentorMaster, Trainee, RelaxationMaster, RelaxationCategoryMaster
 
 
 # Register your models here.
@@ -107,3 +107,13 @@ class MentorMasterAdmin(admin.ModelAdmin):
 @register(Trainee)
 class TraineeAdmin(admin.ModelAdmin):
     list_display = ['trainee_id', 'generated_trainee_id', 'trainee_name', 'email', 'mobile_no', 'is_deleted']
+
+
+@register(RelaxationCategoryMaster)
+class RelaxationCategoryMasterAdmin(admin.ModelAdmin):
+    list_display = ['relaxation_cat_id', 'relaxation_category', 'is_deleted']
+
+
+@register(RelaxationMaster)
+class RelaxationMasterAdmin(admin.ModelAdmin):
+    list_display = ['relaxation_rule_id', 'age_relaxation', 'fee_relaxation', 'is_deleted']
