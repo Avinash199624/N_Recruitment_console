@@ -2532,6 +2532,7 @@ class DivisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Division
         fields = (
+            "division_id",
             "division_name",
         )
 
@@ -2573,10 +2574,10 @@ class TraineeSerializer(serializers.ModelSerializer):
     def save(self, validated_data):
         print("validated_data-------------->",validated_data)
 
-        valid_mentor = Trainee.objects.filter(mentor=validated_data['mentor']['mentor_id'])
+        valid_mentor = Trainee.objects.filter(mentor=validated_data['mentor']['mentor_id'], is_deleted=False)
         print("valid_mentor-------------->",valid_mentor)
         print("valid_mentor.count()-------------->",valid_mentor.count())
-        if not valid_mentor.count() > 4:
+        if not valid_mentor.count() >= 4:
 
             trainee = Trainee.objects.create(
                 trainee_name = validated_data['trainee_name'],
