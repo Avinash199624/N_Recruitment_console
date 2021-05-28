@@ -62,7 +62,7 @@ class CommunicationMasterSerializer(serializers.ModelSerializer):
             communication.comm_type = comm_type
             communication.action_type = action_type
             communication.save()
-            return communication
+            return communication.communication_id
 
     def update(self, instance, validated_data):
         com_type = validated_data['comm_type']['communication_type']
@@ -91,3 +91,4 @@ class CommunicationMasterSerializer(serializers.ModelSerializer):
                 validated_data['is_deleted'] if validated_data['is_deleted'] else instance.is_deleted
             )
             instance.save()
+            return instance.communication_id
