@@ -1,13 +1,30 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from communication_template.models import CommunicationMaster
-from communication_template.serializer import CommunicationMasterSerializer
+from communication_template.models import CommunicationMaster, CommunicationType, CommunicationActionType
+from communication_template.serializer import CommunicationMasterSerializer, CommunicationTypeSerializer, \
+    CommunicationActionTypeSerializer
+
+
+class CommunicationTypeListView(APIView):
+    def get(self, request, *args, **kwargs):
+        docs = CommunicationType.objects.filter(is_deleted=False)
+        serializer = CommunicationTypeSerializer(docs, many=True)
+        return Response(serializer.data, status=200)
+
+
+class CommunicationActionTypeListView(APIView):
+    def get(self, request, *args, **kwargs):
+        docs = CommunicationActionType.objects.filter(is_deleted=False)
+        serializer = CommunicationActionTypeSerializer(docs, many=True)
+        return Response(serializer.data, status=200)
+
 
 class CommunicationTemplateListView(APIView):
     def get(self, request, *args, **kwargs):
         docs = CommunicationMaster.objects.filter(is_deleted=False)
         serializer = CommunicationMasterSerializer(docs, many=True)
         return Response(serializer.data, status=200)
+
 
 class CreateCommunicationTemplateView(APIView):
     def post(self, request, *args, **kwargs):

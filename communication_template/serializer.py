@@ -7,6 +7,7 @@ class CommunicationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunicationType
         fields = (
+            "id",
             "communication_type",
         )
 
@@ -15,6 +16,7 @@ class CommunicationActionTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunicationActionType
         fields = (
+            "id",
             "comm_action_type",
         )
 
