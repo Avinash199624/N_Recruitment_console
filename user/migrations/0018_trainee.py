@@ -9,7 +9,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('job_posting', '0010_newpositionmaster_permanentpositionmaster_temporarypositionmaster'),
+        ('job_posting', '0010_auto_20210528_1851'),
         ('user', '0017_mentormaster'),
     ]
 

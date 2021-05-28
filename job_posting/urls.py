@@ -10,7 +10,8 @@ from job_posting.views import DepartmentListView, DivisionListView, ZonalLabList
     GetServiceConditions, \
     GetServiceConditions, \
     ApplicantListByJobPositions, JosPostingListView, UserAppealForJobPositions, AppealReasonMasterViews, \
-    NewPositionMasterViews, PermanentPositionMasterViews, TemporaryPositionMasterViews
+    NewPositionMasterViews, PermanentPositionMasterViews, TemporaryPositionMasterViews, ProjectApprovalStatusListView, \
+    QualificationJobHistoryMasterView
 
 urlpatterns = [
     #     QualificationMaster
@@ -19,6 +20,10 @@ urlpatterns = [
     path('update_qualification/<uuid:id>/', UpdateQualificationMasterView.as_view(), name="update-qualification"),
     path('create_qualification/', CreateQualificationMasterView.as_view(), name="create-qualification"),
     path('qualification_list/', QualificationMasterListView.as_view(), name="qualification-list"),
+
+    #     QualificationJobHistoryMaster
+    path('qualification_job_history/', QualificationJobHistoryMasterView.as_view(), name="qualification-job-history"),
+    path('qualification_job_history/<uuid:id>/', QualificationJobHistoryMasterView.as_view(), name="qualification-list"),
 
     #     manPowerPositionMaster
     path('get_position/<uuid:id>/', RetrievePositionMasterView.as_view(), name="get-position"),
@@ -35,6 +40,7 @@ urlpatterns = [
     path('position_list/', PositionMasterListView.as_view(), name="position-list"),
     path('qualification_list/', QualificationMasterListView.as_view(), name="user-list"),
     path('project_approval_list/', ProjectApprovalListView.as_view(), name="project-approval-list"),
+    path('project_approval_status/<int:id>/', ProjectApprovalStatusListView.as_view(), name="project-approval-status"),
     path('create_project_requirement/', CreateProjectRequirementView.as_view(), name="create-project-requirement"),
     path('update_project_requirement/<int:id>/', UpdateProjectRequirementView.as_view(), name="update-project-requirement"),
     path('delete_project_requirement/<int:id>/', DeleteProjectRequirementView.as_view(), name="delete-project-requirement"),
@@ -56,7 +62,7 @@ urlpatterns = [
     path('positions/', NewPositionMasterViews.as_view(), name="positions-master"),
     path('positions/<uuid:id>/', NewPositionMasterViews.as_view(), name="positions"),
     path('permanent_positions/', PermanentPositionMasterViews.as_view(), name="p-positions-master"),
-    path('permanent_positions/<str:id>/', PermanentPositionMasterViews.as_view(), name="p-positions"),
+    path('permanent_positions/<uuid:id>/', PermanentPositionMasterViews.as_view(), name="p-positions"),
     path('temporary_positions/', TemporaryPositionMasterViews.as_view(), name="t-positions-master"),
-    path('temporary_positions/<str:id>/', TemporaryPositionMasterViews.as_view(), name="t-positions"),
+    path('temporary_positions/<uuid:id>/', TemporaryPositionMasterViews.as_view(), name="t-positions"),
 ]

@@ -3,7 +3,8 @@ from django.contrib.admin import register
 from job_posting.models import Department, Division, ZonalLab, PositionMaster, QualificationMaster, \
     PositionQualificationMapping, JobPosting, JobTemplate, UserJobPositions, JobPostingRequirement, \
     JobPostingRequirementPositions, JobDocuments, SelectionCommitteeMaster, SelectionProcessContent, \
-    ServiceConditions, AppealMaster, TemporaryPositionMaster, PermanentPositionMaster, NewPositionMaster
+    ServiceConditions, AppealMaster, TemporaryPositionMaster, PermanentPositionMaster, NewPositionMaster, \
+    QualificationJobHistoryMaster
 
 
 @register(ServiceConditions)
@@ -42,6 +43,10 @@ class ZonalLabAdmin(admin.ModelAdmin):
 class QualificationMasterAdmin(admin.ModelAdmin):
     list_display = ['qualification_id', 'qualification', 'short_code']
 
+@register(QualificationJobHistoryMaster)
+class QualificationJobHistoryMasterAdmin(admin.ModelAdmin):
+    list_display = ['qualification_job_id', 'qualification', 'short_code']
+
 @register(PositionMaster)
 class PositionMasterAdmin(admin.ModelAdmin):
     list_display = ['position_id', 'position_name', 'position_desc', 'salary']
@@ -76,7 +81,7 @@ class JobPostingRequirementPositionsAdmin(admin.TabularInline):
 
 @register(JobPostingRequirement)
 class JobPostingRequirementAdmin(admin.ModelAdmin):
-    list_display = ['division_name', 'zonal_lab', 'project_title', 'project_number', 'is_deleted',]
+    list_display = ['division_name', 'zonal_lab', 'project_title', 'project_number', 'status', 'is_deleted',]
     inlines = [JobPostingRequirementPositionsAdmin, ]
 
 
@@ -90,9 +95,9 @@ class NewPositionMasterAdmin(admin.ModelAdmin):
 
 @register(PermanentPositionMaster)
 class PermanentPositionMasterAdmin(admin.ModelAdmin):
-    list_display = ['perm_position', 'grade', 'level', 'is_deleted']
+    list_display = ['perm_position_id', 'grade', 'level', 'is_deleted']
 
 
 @register(TemporaryPositionMaster)
 class TemporaryPositionMasterAdmin(admin.ModelAdmin):
-    list_display = ['temp_position', 'allowance', 'salary', 'is_deleted']
+    list_display = ['temp_position_id', 'allowance', 'salary', 'is_deleted']

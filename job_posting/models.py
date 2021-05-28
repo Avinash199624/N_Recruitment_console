@@ -32,7 +32,16 @@ class ZonalLab(BaseModel):
 
 
 class QualificationMaster(BaseModel):
-    qualification_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    qualification_id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True, editable=False)
+    qualification = models.CharField(max_length=300, null=True, blank=True)
+    short_code = ArrayField(CharField(max_length=300, blank=True, null=True), null=True, blank=True)
+
+    def __str__(self):
+        return self.qualification
+
+
+class QualificationJobHistoryMaster(BaseModel):
+    qualification_job_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     qualification = models.CharField(max_length=300, null=True, blank=True)
     short_code = ArrayField(CharField(max_length=300, blank=True, null=True), null=True, blank=True)
 
@@ -58,8 +67,8 @@ class NewPositionMaster(BaseModel):
     max_age = models.PositiveIntegerField(blank=True, null=True)
     documents_required = models.ManyToManyField('document.NewDocumentMaster', blank=True, related_name="required_documents")
     information_required = models.ManyToManyField('document.InformationMaster', blank=True, related_name="required_info")
-    qualification = models.ManyToManyField('user.UserEducationDetails', blank=True, related_name="qualification")
-    qualification_job_history = models.ManyToManyField('user.UserExperienceDetails', blank=True, related_name="qualification_job_history")
+    qualification = models.ManyToManyField('QualificationMaster', blank=True, related_name="qualification_master_position")
+    qualification_job_history = models.ManyToManyField('QualificationJobHistoryMaster', blank=True, related_name="qualification_job_history")
 
     def __str__(self):
         return str(self.position_display_name)
@@ -90,13 +99,15 @@ LEVEL_CHOICES = [
 
 
 class PermanentPositionMaster(BaseModel):
-    perm_position = models.ForeignKey('NewPositionMaster', null=True, blank=True, on_delete=models.SET_NULL,
+    perm_position_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    perm_position_master = models.ForeignKey('NewPositionMaster', null=True, blank=True, on_delete=models.SET_NULL,
                                       related_name="perm_positon")
     grade = models.CharField(max_length=30, choices=GRADE_CHOICES, null=True, blank=True)
     level = models.CharField(max_length=30, choices=LEVEL_CHOICES, null=True, blank=True)
 
     def __str__(self):
-        return self.perm_position.position_name
+        return self.perm_position_master.position_name
 
 
 HRA = 'hra'
@@ -108,13 +119,14 @@ ALLOWANCE_CHOICES = [
 ]
 
 class TemporaryPositionMaster(BaseModel):
-    temp_position = models.ForeignKey('NewPositionMaster', null=True, blank=True, on_delete=models.SET_NULL,
+    temp_position_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    temp_position_master = models.ForeignKey('NewPositionMaster', null=True, blank=True, on_delete=models.SET_NULL,
                                  related_name="temp_positon")
     allowance = models.CharField(max_length=30, choices=ALLOWANCE_CHOICES, null=True, blank=True)
     salary = models.FloatField(null=True, blank=True)
 
     def __str__(self):
-        return self.temp_position.position_name
+        return self.temp_position_master.position_name
 
 
 class PositionMaster(BaseModel):
@@ -294,7 +306,7 @@ class AppealMaster(BaseModel):
 
 
 class JobPostingRequirementPositions(BaseModel):
-    position = models.ForeignKey('PositionMaster', on_delete=models.SET_NULL, null=True, blank=True,
+    position = models.ForeignKey('TemporaryPositionMaster', on_delete=models.SET_NULL, null=True, blank=True,
                                  related_name='positions_position')
     job_posting_requirement = models.ForeignKey('JobPostingRequirement', on_delete=models.SET_NULL, null=True,
                                                 blank=True, related_name='manpower_position')
@@ -308,8 +320,26 @@ class JobPostingRequirementPositions(BaseModel):
     #     super(JobPostingRequirementPositions, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.position.position_name
+        return self.position.temp_position_master.position_name
 
+# Draft, Submit, Lock, Approve, Reject, Cancel
+
+DRAFT = 'draft'
+SUBMIT = 'submit'
+LOCK = 'lock'
+SUSPENDED = 'suspended'
+APPROVE = 'approve'
+REJECT = 'reject'
+CANCEL = 'cancel'
+
+STATUS_CHOICES = [
+    (DRAFT, 'DRAFT'),
+    (SUBMIT, 'SUBMIT'),
+    (LOCK, 'LOCK'),
+    (SUSPENDED, 'SUSPENDED'),
+    (REJECT, 'REJECT'),
+    (CANCEL, 'CANCEL'),
+]
 
 class JobPostingRequirement(BaseModel):
     division_name = models.ForeignKey('Division', on_delete=models.SET_NULL, null=True, blank=True,
@@ -320,13 +350,14 @@ class JobPostingRequirement(BaseModel):
     project_number = models.CharField(max_length=30, null=True, blank=True)
     project_start_date = models.DateField(blank=True, null=True, help_text='Starting date of project')
     project_end_date = models.DateField(blank=True, null=True, help_text='Closing date of project')
-    manpower_positions = models.ManyToManyField('PositionMaster', through=JobPostingRequirementPositions, blank=True,
+    manpower_positions = models.ManyToManyField('TemporaryPositionMaster', through=JobPostingRequirementPositions, blank=True,
                                                 related_name="job_positions")
     provisions_made = models.BooleanField(blank=True, null=True)
     total_estimated_amount = models.IntegerField(null=True, blank=True)
     min_essential_qualification = models.CharField(max_length=200, null=True, blank=True)
     job_requirements = models.CharField(max_length=200, null=True, blank=True)
     desired_qualification = models.CharField(max_length=200, null=True, blank=True)
+    status = models.CharField(null=True, blank=True, choices=STATUS_CHOICES, max_length=30)
 
     def __str__(self):
         return self.project_number
