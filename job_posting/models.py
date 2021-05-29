@@ -77,7 +77,9 @@ class NewPositionMaster(BaseModel):
     min_age = models.PositiveIntegerField(blank=True, null=True)
     max_age = models.PositiveIntegerField(blank=True, null=True)
     documents_required = models.ManyToManyField(
-        "document.NewDocumentMaster", blank=True, related_name="position_master_required_documents"
+        "document.NewDocumentMaster",
+        blank=True,
+        related_name="position_master_required_documents",
     )
     information_required = models.ManyToManyField(
         "document.InformationMaster", blank=True, related_name="required_info"
