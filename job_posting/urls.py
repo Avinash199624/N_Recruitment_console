@@ -3,8 +3,7 @@ from job_posting.views import DepartmentListView, DivisionListView, ZonalLabList
     ProjectApprovalListView, PositionQualificationMappingListView, JobTemplateCreateView, \
     RetrieveQualificationMasterView, CreateQualificationMasterView, \
     UpdateQualificationMasterView, DeleteQualificationMasterView, \
-    RetrievePositionMasterView, DeletePositionMasterView, UpdatePositionMasterView, CreatePositionMasterView, \
-    QualificationMasterListView, PositionMasterListView, JobPostingCreateView, JobPostingUpdateView, \
+    QualificationMasterListView, JobPostingCreateView, JobPostingUpdateView, \
     CreateProjectRequirementView, UpdateProjectRequirementView, \
     DeleteProjectRequirementView, RetrieveProjectRequirementView, ProjectRequirementListView, GetSelectionContent, \
     GetServiceConditions, \
@@ -26,18 +25,12 @@ urlpatterns = [
     path('qualification_job_history/<uuid:id>/', QualificationJobHistoryMasterView.as_view(), name="qualification-list"),
 
     #     manPowerPositionMaster
-    path('get_position/<uuid:id>/', RetrievePositionMasterView.as_view(), name="get-position"),
-    path('delete_position/<uuid:id>/', DeletePositionMasterView.as_view(), name="delete-position"),
-    path('update_position/<uuid:id>/', UpdatePositionMasterView.as_view(), name="update-position"),
-    path('create_position/', CreatePositionMasterView.as_view(), name="create-position"),
-    path('position_list/', PositionMasterListView.as_view(), name="position-list"),
 
     path('department_list/', DepartmentListView.as_view(), name="department-list"),
     path('division_list_and_create/', DivisionListView.as_view(), name="division-list"),
     path('division/<uuid:id>/', DivisionListView.as_view(), name="crud-division"),
     path('zonal_lab_list_and_create/', ZonalLabListView.as_view(), name="zonal-lab-list"),
     path('zonal_lab/<uuid:id>/', ZonalLabListView.as_view(), name="crud-zonal-lab"),
-    path('position_list/', PositionMasterListView.as_view(), name="position-list"),
     path('qualification_list/', QualificationMasterListView.as_view(), name="user-list"),
     path('project_approval_list/', ProjectApprovalListView.as_view(), name="project-approval-list"),
     path('project_approval_status/<int:id>/', ProjectApprovalStatusListView.as_view(), name="project-approval-status"),

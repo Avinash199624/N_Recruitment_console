@@ -1,21 +1,18 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-from document.models import DocumentMaster, InformationMaster, NewDocumentMaster
-from document.serializer import DocumentMasterSerializer
-from job_posting.models import Department, Division, ZonalLab, QualificationMaster, PositionMaster, \
+from job_posting.models import Department, Division, ZonalLab, QualificationMaster, \
     PositionQualificationMapping, JobPostingRequirement, JobTemplate, JobPosting, SelectionProcessContent, \
     ServiceConditions, UserJobPositions, AppealMaster, NewPositionMaster, PermanentPositionMaster, \
     TemporaryPositionMaster, QualificationJobHistoryMaster
 from job_posting.serializer import DepartmentSerializer, DivisionSerializer, ZonalLabSerializer, \
-    PositionMasterSerializer, QualificationMasterSerializer, ProjectApprovalListSerializer, \
+    QualificationMasterSerializer, ProjectApprovalListSerializer, \
     PositionQualificationMappingSerializer, JobTemplateSerializer, JobPostingSerializer, \
     SelectionProcessContentSerializer, \
     ServiceConditionsSerializer, UserJobPositionsSerializer, ProjectRequirementSerializer, \
     UserAppealForJobPositionsSerializer, AppealReasonMasterSerializer, NewPositionMasterSerializer, \
-    InformationMasterSerializer, NewDocumentMasterSerializer, PermanentPositionMasterSerializer, \
-    TemporaryPositionMasterSerializer, ProjectRequirementApprovalStatusSerializer, \
-    QualificationJobHistoryMasterSerializer
+    PermanentPositionMasterSerializer, TemporaryPositionMasterSerializer, \
+    ProjectRequirementApprovalStatusSerializer, QualificationJobHistoryMasterSerializer
 
 from django.http import JsonResponse
 from rest_framework import status
@@ -68,6 +65,7 @@ class QualificationMasterListView(APIView):
         serializer = QualificationMasterSerializer(docs, many=True)
         return Response(serializer.data, status=200)
 
+
 # Qualification Job History
 
 class QualificationJobHistoryMasterView(APIView):
@@ -75,8 +73,10 @@ class QualificationJobHistoryMasterView(APIView):
     def get(self, request, *args, **kwargs):
         try:
             qualification_job_id = self.kwargs['id']
-            if QualificationJobHistoryMaster.objects.filter(qualification_job_id=qualification_job_id, is_deleted=False).exists():
-                qual = QualificationJobHistoryMaster.objects.get(qualification_job_id=qualification_job_id, is_deleted=False)
+            if QualificationJobHistoryMaster.objects.filter(qualification_job_id=qualification_job_id,
+                                                            is_deleted=False).exists():
+                qual = QualificationJobHistoryMaster.objects.get(qualification_job_id=qualification_job_id,
+                                                                 is_deleted=False)
                 serializer = QualificationJobHistoryMasterSerializer(qual)
                 return Response(serializer.data, status=200)
             else:
@@ -85,7 +85,6 @@ class QualificationJobHistoryMasterView(APIView):
             docs = QualificationJobHistoryMaster.objects.filter(is_deleted=False)
             serializer = QualificationJobHistoryMasterSerializer(docs, many=True)
             return Response(serializer.data, status=200)
-
 
     def delete(self, request, *args, **kwargs):
         try:
@@ -111,55 +110,6 @@ class QualificationJobHistoryMasterView(APIView):
         serializer = QualificationJobHistoryMasterSerializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data, status=200)
-
-
-
-# PositionMaster
-class RetrievePositionMasterView(APIView):
-    def get(self, request, *args, **kwargs):
-        id = self.kwargs['id']
-        position = PositionMaster.objects.get(position_id=id, is_deleted=False)
-        serializer = PositionMasterSerializer(position)
-        return Response(serializer.data, status=200)
-
-
-class DeletePositionMasterView(APIView):
-    def delete(self, request, *args, **kwargs):
-        try:
-            id = self.kwargs['id']
-            position = PositionMaster.objects.get(position_id=id)
-            position.is_deleted = True
-            position.save()
-            return Response(data={"message": "Record Deleted Successfully(Soft Delete)."}, status=200)
-        except:
-            return Response(data={"message": "Details Not Found."}, status=401)
-
-
-class UpdatePositionMasterView(APIView):
-    def put(self, request, *args, **kwargs):
-        id = self.kwargs['id']
-        position = PositionMaster.objects.get(position_id=id)
-        data = self.request.data
-        serializer = PositionMasterSerializer(position, data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.update(instance=position, validated_data=data)
-        return Response(serializer.data, status=200)
-
-
-class CreatePositionMasterView(APIView):
-    def post(self, request, *args, **kwargs):
-        data = self.request.data
-        serializer = PositionMasterSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=200)
-
-
-class PositionMasterListView(APIView):
-    def get(self, request, *args, **kwargs):
-        docs = PositionMaster.objects.filter(is_deleted=False)
-        serializer = PositionMasterSerializer(docs, many=True)
         return Response(serializer.data, status=200)
 
 
@@ -190,7 +140,7 @@ class DivisionListView(APIView):
             else:
                 return Response(data={"message": "No Records found"}, status=404)
 
-# class DeleteDivisionMasterView(APIView):
+    # class DeleteDivisionMasterView(APIView):
     def delete(self, request, *args, **kwargs):
         try:
             id = self.kwargs['id']
@@ -201,8 +151,7 @@ class DivisionListView(APIView):
         except:
             return Response(data={"message": "Details Not Found."}, status=401)
 
-
-# class UpdateDivisionMasterView(APIView):
+    # class UpdateDivisionMasterView(APIView):
     def put(self, request, *args, **kwargs):
         id = self.kwargs['id']
         division = Division.objects.get(division_id=id)
@@ -212,7 +161,7 @@ class DivisionListView(APIView):
         serializer.update(instance=division, validated_data=data)
         return Response(serializer.data, status=200)
 
-# class CreateDivisionMasterView(APIView):
+    # class CreateDivisionMasterView(APIView):
     def post(self, request, *args, **kwargs):
         data = self.request.data
         serializer = DivisionSerializer(data=data)
@@ -270,6 +219,7 @@ class ProjectApprovalListView(APIView):
         serializer = ProjectApprovalListSerializer(req, many=True)
         return Response(serializer.data, status=200)
 
+
 class ProjectApprovalStatusListView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs['id']
@@ -287,7 +237,7 @@ class ProjectApprovalStatusListView(APIView):
         serializer = ProjectRequirementApprovalStatusSerializer(project, data=data)
         serializer.is_valid(raise_exception=True)
         result = serializer.update(instance=project, validated_data=data)
-        print("result=========",result)
+        print("result=========", result)
         project = JobPostingRequirement.objects.get(id=result)
         serializer = ProjectRequirementApprovalStatusSerializer(project)
         return Response(serializer.data, status=200)
@@ -331,13 +281,13 @@ class DeleteProjectRequirementView(APIView):
             return Response(data={"message": "Details Not Found."}, status=401)
 
 
-
 class ProjectRequirementListView(APIView):
 
     def get(self, request, *args, **kwargs):
         job = JobPostingRequirement.objects.filter(is_deleted=False)
         serializer = ProjectRequirementSerializer(job, many=True)
         return Response(serializer.data, status=200)
+
 
 class RetrieveProjectRequirementView(APIView):
     def get(self, request, *args, **kwargs):
@@ -357,6 +307,7 @@ class PositionQualificationMappingListView(APIView):
         serializer = PositionQualificationMappingSerializer(projects, many=True)
         return Response(serializer.data, status=200)
 
+
 class JobTemplateCreateView(APIView):
 
     def post(self, request, *args, **kwargs):
@@ -372,6 +323,7 @@ class JobTemplateCreateView(APIView):
     #     serializer = JobTemplateSerializer(projects, many=True)
     #     return Response(serializer.data, status=200)
 
+
 class JobPostingCreateView(APIView):
 
     def post(self, request, *args, **kwargs):
@@ -382,6 +334,7 @@ class JobPostingCreateView(APIView):
         job_posting = JobPosting.objects.get(job_posting_id=result)
         serializer = JobPostingSerializer(job_posting)
         return Response(serializer.data, status=200)
+
 
 class JobPostingUpdateView(APIView):
 
@@ -395,6 +348,7 @@ class JobPostingUpdateView(APIView):
         job_posting = JobPosting.objects.get(job_posting_id=result)
         serializer = JobPostingSerializer(job_posting)
         return Response(serializer.data, status=200)
+
 
 class GetSelectionContent(APIView):
 
@@ -421,12 +375,14 @@ class GetServiceConditions(APIView):
         serializer = ServiceConditionsSerializer(conditions, many=True)
         return Response(serializer.data, status=200)
 
+
 class JosPostingListView(APIView):
 
     def get(self, request, *args, **kwargs):
         postings = JobPosting.objects.filter(is_deleted=False)
         serializer = JobPostingSerializer(postings, many=True)
         return Response(serializer.data, status=200)
+
 
 class ApplicantListByJobPositions(APIView):
 
@@ -456,9 +412,9 @@ class UserAppealForJobPositions(APIView):
                 serializer.update(applicants, validated_data=data)
                 return Response(serializer.data, status=200)
             else:
-                return Response(data = {"message": "You've already appealed for this job..."}, status=200)
+                return Response(data={"message": "You've already appealed for this job..."}, status=200)
         except:
-            return Response(data = {"message": "you are not eligible for the appeal..."}, status=401)
+            return Response(data={"message": "you are not eligible for the appeal..."}, status=401)
 
 
 class AppealReasonMasterViews(APIView):
@@ -539,15 +495,16 @@ class NewPositionMasterViews(APIView):
         serializer.update(instance=posi, validated_data=data)
         return Response(serializer.data, status=200)
 
-    def delete(self,request,*args,**kwargs):
+    def delete(self, request, *args, **kwargs):
         try:
             id = self.kwargs['id']
             posi = NewPositionMaster.objects.get(position_id=id)
             posi.is_deleted = True
             posi.save()
-            return Response(data = {"message": "ManPower Position Deleted Successfully(Soft Delete)."}, status=200)
+            return Response(data={"message": "ManPower Position Deleted Successfully(Soft Delete)."}, status=200)
         except:
             return Response(data={"message": "Details Not Found."}, status=401)
+
 
 class PermanentPositionMasterViews(APIView):
 
@@ -565,13 +522,13 @@ class PermanentPositionMasterViews(APIView):
             serializer = PermanentPositionMasterSerializer(positions, many=True)
             return Response(serializer.data, status=200)
 
-    def delete(self,request,*args,**kwargs):
+    def delete(self, request, *args, **kwargs):
         try:
             id = self.kwargs['id']
             info = PermanentPositionMaster.objects.get(perm_position_id=id)
             info.is_deleted = True
             info.save()
-            return Response(data = {"message": "Permanent Position Deleted Successfully(Soft Delete)."}, status=200)
+            return Response(data={"message": "Permanent Position Deleted Successfully(Soft Delete)."}, status=200)
         except:
             return Response(data={"message": "Details Not Found."}, status=401)
 
@@ -598,10 +555,10 @@ class PermanentPositionMasterViews(APIView):
         data = self.request.data
         print("data ------->", data)
         serializer = PermanentPositionMasterSerializer(data=data)
-        print("serializer ----------->",serializer)
+        print("serializer ----------->", serializer)
         serializer.is_valid(raise_exception=True)
         result = serializer.save(validated_data=data)
-        print("result ----------->",result)
+        print("result ----------->", result)
         posi = PermanentPositionMaster.objects.get(perm_position_id=result)
         serializer = PermanentPositionMasterSerializer(posi)
         return Response(serializer.data, status=200)
@@ -623,13 +580,13 @@ class TemporaryPositionMasterViews(APIView):
             serializer = TemporaryPositionMasterSerializer(positions, many=True)
             return Response(serializer.data, status=200)
 
-    def delete(self,request,*args,**kwargs):
+    def delete(self, request, *args, **kwargs):
         try:
             id = self.kwargs['id']
             info = TemporaryPositionMaster.objects.get(temp_position_id=id)
             info.is_deleted = True
             info.save()
-            return Response(data = {"message": "Temporary Position Deleted Successfully(Soft Delete)."}, status=200)
+            return Response(data={"message": "Temporary Position Deleted Successfully(Soft Delete)."}, status=200)
         except:
             return Response(data={"message": "Details Not Found."}, status=401)
 
@@ -649,7 +606,6 @@ class TemporaryPositionMasterViews(APIView):
         print("serializer ------->", serializer.data)
 
         return Response(serializer.data, status=200)
-
 
     def post(self, request, *args, **kwargs):
         data = self.request.data

@@ -1,18 +1,17 @@
-from job_posting.models import UserJobPositions, QualificationMaster, PositionMaster, JobPostingRequirementPositions, \
+from job_posting.models import UserJobPositions, QualificationMaster, JobPostingRequirementPositions, \
     AppealMaster, NewPositionMaster, PermanentPositionMaster, TemporaryPositionMaster, QualificationJobHistoryMaster
 from rest_framework import serializers
-from job_posting.models import UserJobPositions,Department,Division,ZonalLab,QualificationMaster,\
-    PositionMaster,PositionQualificationMapping,JobPostingRequirement,JobTemplate,JobDocuments,\
-    JobPosting,SelectionProcessContent,SelectionCommitteeMaster,ServiceConditions
-from document.serializer import DocumentMasterSerializer, InformationMasterSerializer, NewDocumentMasterSerializer
-from document.models import DocumentMaster, NewDocumentMaster, InformationMaster
+from job_posting.models import UserJobPositions, Department, Division, ZonalLab, QualificationMaster, \
+    PositionQualificationMapping, JobPostingRequirement, JobTemplate, JobDocuments, \
+    JobPosting, SelectionProcessContent, SelectionCommitteeMaster, ServiceConditions
+from document.serializer import InformationMasterSerializer, NewDocumentMasterSerializer
+from document.models import NewDocumentMaster, InformationMaster
 from user.models import UserEducationDetails, UserExperienceDetails
 from user.serializer import SubjectSpecializationSerializer, EmployeeExperienceSerializer, \
     UserExperienceDetailsSerializer
 
 
 class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
-
     notification_id = serializers.SerializerMethodField(
         method_name="get_notification_id", read_only=True
     )
@@ -34,7 +33,7 @@ class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
     )
 
     user_job_position_id = serializers.SerializerMethodField(
-        method_name='get_user_job_position_id',read_only=True
+        method_name='get_user_job_position_id', read_only=True
     )
 
     class Meta:
@@ -49,32 +48,32 @@ class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
             "user_job_position_id",
         )
 
-    def get_notification_id(self,obj):
+    def get_notification_id(self, obj):
         notification_id = obj.job_posting.notification_id
         return notification_id
 
-    def get_description(self,obj):
+    def get_description(self, obj):
         description = obj.position.position.position_name
         return description
 
-    def get_date_of_application(self,obj):
+    def get_date_of_application(self, obj):
         date_of_application = obj.date_of_application
         return date_of_application
 
-    def get_date_of_closing(self,obj):
+    def get_date_of_closing(self, obj):
         date_of_closing = obj.date_of_closing
         return date_of_closing
 
-    def get_hiring_status(self,obj):
+    def get_hiring_status(self, obj):
         hiring_status = obj.applied_job_status
         return hiring_status
 
-    def get_user_job_position_id(self,obj):
+    def get_user_job_position_id(self, obj):
         user_job_position_id = obj.user_job_position_id
         return user_job_position_id
 
-class DepartmentSerializer(serializers.ModelSerializer):
 
+class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
         fields = (
@@ -82,8 +81,8 @@ class DepartmentSerializer(serializers.ModelSerializer):
             "dept_name",
         )
 
-class DivisionSerializer(serializers.ModelSerializer):
 
+class DivisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Division
         fields = (
@@ -91,14 +90,15 @@ class DivisionSerializer(serializers.ModelSerializer):
             "division_name",
         )
 
-class ZonalLabSerializer(serializers.ModelSerializer):
 
+class ZonalLabSerializer(serializers.ModelSerializer):
     class Meta:
         model = ZonalLab
         fields = (
             "zonal_lab_id",
             "zonal_lab_name",
         )
+
 
 class QualificationMasterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -120,18 +120,7 @@ class QualificationJobHistoryMasterSerializer(serializers.ModelSerializer):
         )
 
 
-class PositionMasterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PositionMaster
-        fields = (
-            "position_id",
-            "position_name",
-            "position_desc",
-            "salary",
-        )
-
 class PositionQualificationMappingSerializer(serializers.ModelSerializer):
-
     position = serializers.SerializerMethodField(
         method_name="get_position", read_only=True
     )
@@ -152,12 +141,11 @@ class PositionQualificationMappingSerializer(serializers.ModelSerializer):
             "extra_note",
         )
 
-    def get_position(self,obj):
+    def get_position(self, obj):
         return obj.position.position_name
 
 
 class JobPostingRequirementPositionsSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = JobPostingRequirementPositions
 
@@ -169,8 +157,8 @@ class JobPostingRequirementPositionsSerializer(serializers.ModelSerializer):
             "total_cost",
         )
 
-class ProjectApprovalListSerializer(serializers.ModelSerializer):
 
+class ProjectApprovalListSerializer(serializers.ModelSerializer):
     project_number = serializers.SerializerMethodField(
         method_name="get_project_number", read_only=True
     )
@@ -181,12 +169,11 @@ class ProjectApprovalListSerializer(serializers.ModelSerializer):
             "project_number",
         )
 
-    def get_project_number(self,obj):
+    def get_project_number(self, obj):
         return obj.project_number
 
 
 class ProjectRequirementApprovalStatusSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = JobPostingRequirement
         fields = (
@@ -195,7 +182,6 @@ class ProjectRequirementApprovalStatusSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-
         instance.status = (
             validated_data["status"] if validated_data["status"] else instance.status
         )
@@ -206,7 +192,6 @@ class ProjectRequirementApprovalStatusSerializer(serializers.ModelSerializer):
 
 
 class ProjectRequirementSerializer(serializers.ModelSerializer):
-
     division_name = serializers.SerializerMethodField(
         method_name='get_division_name', required=False
     )
@@ -223,6 +208,7 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
         method_name="get_project_number", read_only=True
     )
     manpower_position = JobPostingRequirementPositionsSerializer(many=True)
+
     class Meta:
         model = JobPostingRequirement
 
@@ -245,40 +231,38 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {'position': {'required': False}}
 
-
-    def get_project_number(self,obj):
+    def get_project_number(self, obj):
         return obj.project_number
 
-    def get_division_name(self,obj):
+    def get_division_name(self, obj):
         # print("obj*****=",obj)
         division = obj.division_name
         serializer = DivisionSerializer(division)
         return serializer.data
 
-    def get_zonal_lab(self,obj):
+    def get_zonal_lab(self, obj):
         zonal_lab = obj.zonal_lab
         serializer = ZonalLabSerializer(zonal_lab)
         return serializer.data
 
-    def get_manpower_positions(self,obj):
+    def get_manpower_positions(self, obj):
         positions = obj.manpower_positions.filter()
         serializer = TemporaryPositionMasterSerializer(positions, many=True)
         return serializer.data
 
-
     def save(self, validated_data):
 
         requi = JobPostingRequirement.objects.create(
-            project_title = validated_data['project_title'],
-            project_number = validated_data['project_number'],
-            project_start_date = validated_data['project_start_date'],
-            project_end_date = validated_data['project_end_date'],
-            provisions_made = validated_data['provisions_made'],
-            total_estimated_amount = validated_data['total_estimated_amount'],
-            min_essential_qualification = validated_data['min_essential_qualification'],
-            job_requirements = validated_data['job_requirements'],
-            desired_qualification = validated_data['desired_qualification'],
-            status = validated_data['status'],
+            project_title=validated_data['project_title'],
+            project_number=validated_data['project_number'],
+            project_start_date=validated_data['project_start_date'],
+            project_end_date=validated_data['project_end_date'],
+            provisions_made=validated_data['provisions_made'],
+            total_estimated_amount=validated_data['total_estimated_amount'],
+            min_essential_qualification=validated_data['min_essential_qualification'],
+            job_requirements=validated_data['job_requirements'],
+            desired_qualification=validated_data['desired_qualification'],
+            status=validated_data['status'],
         )
 
         division_name = Division.objects.get(division_id=validated_data['division_name']['division_id'])
@@ -312,7 +296,8 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                 validated_data['project_number'] if validated_data['project_number'] else instance.project_number
             )
             instance.project_start_date = (
-                validated_data['project_start_date'] if validated_data['project_start_date'] else instance.project_start_date
+                validated_data['project_start_date'] if validated_data[
+                    'project_start_date'] else instance.project_start_date
             )
             instance.project_end_date = (
                 validated_data['project_end_date'] if validated_data['project_end_date'] else instance.project_end_date
@@ -321,16 +306,19 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                 validated_data['provisions_made'] if validated_data['provisions_made'] else instance.provisions_made
             )
             instance.total_estimated_amount = (
-                validated_data['total_estimated_amount'] if validated_data['total_estimated_amount'] else instance.total_estimated_amount
+                validated_data['total_estimated_amount'] if validated_data[
+                    'total_estimated_amount'] else instance.total_estimated_amount
             )
             instance.min_essential_qualification = (
-                validated_data['min_essential_qualification'] if validated_data['min_essential_qualification'] else instance.min_essential_qualification
+                validated_data['min_essential_qualification'] if validated_data[
+                    'min_essential_qualification'] else instance.min_essential_qualification
             )
             instance.job_requirements = (
                 validated_data['job_requirements'] if validated_data['job_requirements'] else instance.job_requirements
             )
             instance.desired_qualification = (
-                validated_data['desired_qualification'] if validated_data['desired_qualification'] else instance.desired_qualification
+                validated_data['desired_qualification'] if validated_data[
+                    'desired_qualification'] else instance.desired_qualification
             )
             instance.status = (
                 validated_data['status'] if validated_data['status'] else instance.status
@@ -375,7 +363,6 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
 
 
 class JobTemplateSerializer(serializers.ModelSerializer):
-
     position = serializers.SerializerMethodField(
         method_name="get_position", read_only=True
     )
@@ -399,36 +386,35 @@ class JobTemplateSerializer(serializers.ModelSerializer):
         )
 
     def get_position(self, obj):
-        serializer = PositionMasterSerializer(obj.position)
+        serializer = NewPositionMasterSerializer(obj.position)
         return serializer.data
 
     def get_qualification(self, obj):
         qualifications = obj.qualification.filter()
-        serializer = QualificationMasterSerializer(qualifications,many=True)
+        serializer = QualificationMasterSerializer(qualifications, many=True)
         return serializer.data
 
     def save(self, validated_data):
-
         template = JobTemplate.objects.create(
-            template_name = validated_data['template_name'],
-            min_age = validated_data['min_age'],
-            max_age = validated_data['max_age'],
-            number_of_vacancies = validated_data['number_of_vacancies'],
-            monthly_emolements = validated_data['monthly_emolements'],
-            allowance = validated_data['allowance'],
-            extra_note = validated_data['extra_note'],
+            template_name=validated_data['template_name'],
+            min_age=validated_data['min_age'],
+            max_age=validated_data['max_age'],
+            number_of_vacancies=validated_data['number_of_vacancies'],
+            monthly_emolements=validated_data['monthly_emolements'],
+            allowance=validated_data['allowance'],
+            extra_note=validated_data['extra_note'],
         )
 
-        position = PositionMaster.objects.get(position_id=validated_data['position']['position_id'])
+        position = NewPositionMaster.objects.get(position_id=validated_data['position']['position_id'])
         template.position = position
         template.save()
 
         for qualification_data in validated_data['qualification']:
-            qualification = QualificationMaster.objects.get(qualification_id = qualification_data['qualification_id'])
+            qualification = QualificationMaster.objects.get(qualification_id=qualification_data['qualification_id'])
             template.qualification.add(qualification)
 
-class JobDocumentsSerializer(serializers.ModelSerializer):
 
+class JobDocumentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = JobDocuments
         fields = (
@@ -437,37 +423,37 @@ class JobDocumentsSerializer(serializers.ModelSerializer):
             "doc_name",
         )
 
-class JobPostingSerializer(serializers.ModelSerializer):
 
+class JobPostingSerializer(serializers.ModelSerializer):
     manpower_positions = serializers.SerializerMethodField(
-        method_name='get_manpower_positions',required=False
+        method_name='get_manpower_positions', required=False
     )
 
     department = serializers.SerializerMethodField(
-        method_name='get_department',required=False
+        method_name='get_department', required=False
     )
 
     division = serializers.SerializerMethodField(
-        method_name='get_division',required=False
+        method_name='get_division', required=False
     )
 
     zonal_lab = serializers.SerializerMethodField(
-        method_name='get_zonal_lab',required=False
+        method_name='get_zonal_lab', required=False
     )
     office_memorandum = serializers.SerializerMethodField(
-        method_name='get_office_memorandum',required=False
+        method_name='get_office_memorandum', required=False
     )
 
     documents_required = serializers.SerializerMethodField(
-        method_name='get_documents_required',required=False
+        method_name='get_documents_required', required=False
     )
 
     documents_uploaded = serializers.SerializerMethodField(
-        method_name='get_documents_uploaded',required=False
+        method_name='get_documents_uploaded', required=False
     )
 
     project_number = serializers.SerializerMethodField(
-        method_name='get_project_number',required=False
+        method_name='get_project_number', required=False
     )
 
     class Meta:
@@ -491,40 +477,40 @@ class JobPostingSerializer(serializers.ModelSerializer):
             "manpower_positions",
         )
 
-    def get_division(self,obj):
+    def get_division(self, obj):
         division = obj.division
         serializer = DivisionSerializer(division)
         return serializer.data
 
-    def get_department(self,obj):
+    def get_department(self, obj):
         department = obj.department
         serializer = DepartmentSerializer(department)
         return serializer.data
 
-    def get_zonal_lab(self,obj):
+    def get_zonal_lab(self, obj):
         zonal_lab = obj.zonal_lab
         serializer = ZonalLabSerializer(zonal_lab)
         return serializer.data
 
-    def get_project_number(self,obj):
+    def get_project_number(self, obj):
         return obj.project_number.project_number
 
-    def get_manpower_positions(self,obj):
+    def get_manpower_positions(self, obj):
         positions = obj.manpower_positions.filter()
-        serializer = PositionQualificationMappingSerializer(positions,many=True)
+        serializer = PositionQualificationMappingSerializer(positions, many=True)
         return serializer.data
 
-    def get_documents_required(self,obj):
+    def get_documents_required(self, obj):
         documents_required = obj.documents_required.filter()
-        serializer = DocumentMasterSerializer(documents_required,many=True)
+        serializer = NewDocumentMasterSerializer(documents_required, many=True)
         return serializer.data
 
-    def get_documents_uploaded(self,obj):
+    def get_documents_uploaded(self, obj):
         documents_uploaded = obj.documents_uploaded.filter()
-        serializer = JobDocumentsSerializer(documents_uploaded,many=True)
+        serializer = JobDocumentsSerializer(documents_uploaded, many=True)
         return serializer.data
 
-    def get_office_memorandum(self,obj):
+    def get_office_memorandum(self, obj):
         office_memorandum = obj.office_memorandum
         serializer = JobDocumentsSerializer(office_memorandum)
         return serializer.data
@@ -536,7 +522,8 @@ class JobPostingSerializer(serializers.ModelSerializer):
         )
 
         instance.notification_title = (
-            validated_data["notification_title"] if validated_data["notification_title"] else instance.notification_title
+            validated_data["notification_title"] if validated_data[
+                "notification_title"] else instance.notification_title
         )
 
         instance.description = (
@@ -591,21 +578,22 @@ class JobPostingSerializer(serializers.ModelSerializer):
     def save(self, validated_data):
 
         posting = JobPosting.objects.create(
-            notification_id = validated_data['notification_id'],
-            notification_title = validated_data['notification_title'],
-            description = validated_data['description'],
-            publication_date = validated_data['publication_date'],
-            end_date = validated_data['end_date'],
-            status = validated_data['status'],
-            job_type = validated_data['job_type'],
+            notification_id=validated_data['notification_id'],
+            notification_title=validated_data['notification_title'],
+            description=validated_data['description'],
+            publication_date=validated_data['publication_date'],
+            end_date=validated_data['end_date'],
+            status=validated_data['status'],
+            job_type=validated_data['job_type'],
         )
 
         for position_qualification_mapping_data in validated_data['manpower_positions']:
-            position_qualification_mapping = PositionQualificationMapping.objects.get(id=position_qualification_mapping_data['id'])
+            position_qualification_mapping = PositionQualificationMapping.objects.get(
+                id=position_qualification_mapping_data['id'])
             posting.manpower_positions.add(position_qualification_mapping)
 
         for documents_required_data in validated_data['documents_required']:
-            document_required = DocumentMaster.objects.get(doc_id=documents_required_data['doc_id'])
+            document_required = NewDocumentMaster.objects.get(doc_id=documents_required_data['doc_id'])
             posting.documents_required.add(document_required)
 
         project_number = JobPostingRequirement.objects.get(id=validated_data['project_number'])
@@ -621,8 +609,8 @@ class JobPostingSerializer(serializers.ModelSerializer):
 
         return posting.job_posting_id
 
-class SelectionCommitteeSerializer(serializers.ModelSerializer):
 
+class SelectionCommitteeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SelectionCommitteeMaster
         fields = (
@@ -632,9 +620,8 @@ class SelectionCommitteeSerializer(serializers.ModelSerializer):
 
 
 class SelectionProcessContentSerializer(serializers.ModelSerializer):
-
     selection_committee = serializers.SerializerMethodField(
-        method_name='get_selection_committee',required=False
+        method_name='get_selection_committee', required=False
     )
 
     class Meta:
@@ -644,13 +631,13 @@ class SelectionProcessContentSerializer(serializers.ModelSerializer):
             "selection_committee",
         )
 
-    def get_selection_committee(self,obj):
+    def get_selection_committee(self, obj):
         selection_committee = obj.selection_committee
-        serializer = SelectionCommitteeSerializer(selection_committee,many=True)
+        serializer = SelectionCommitteeSerializer(selection_committee, many=True)
         return serializer.data
 
-class ServiceConditionsSerializer(serializers.ModelSerializer):
 
+class ServiceConditionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceConditions
         fields = (
@@ -659,8 +646,8 @@ class ServiceConditionsSerializer(serializers.ModelSerializer):
             "descriprtion",
         )
 
-class UserJobPositionsSerializer(serializers.ModelSerializer):
 
+class UserJobPositionsSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField(
         method_name='get_name', required=False
     )
@@ -684,7 +671,6 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
         method_name='get_contact', required=False
     )
 
-
     class Meta:
         model = UserJobPositions
         fields = (
@@ -696,7 +682,7 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
             "contact",
         )
 
-    def get_name(self,obj):
+    def get_name(self, obj):
         first_name = obj.user.first_name if obj.user.first_name else None
         middle_name = obj.user.middle_name if obj.user.middle_name else None
         last_name = obj.user.last_name if obj.user.last_name else None
@@ -711,10 +697,10 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
     def get_position(self, obj):
         return obj.position.position.position_name
 
-    def get_date_applied(self,obj):
+    def get_date_applied(self, obj):
         return obj.date_of_application
 
-    def get_contact(self,obj):
+    def get_contact(self, obj):
         return obj.user.mobile_no
 
 
@@ -726,8 +712,8 @@ class AppealReasonMasterSerializer(serializers.ModelSerializer):
             "appeal_reason_master",
         )
 
-class UserAppealForJobPositionsSerializer(serializers.ModelSerializer):
 
+class UserAppealForJobPositionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserJobPositions
         fields = (
@@ -737,7 +723,6 @@ class UserAppealForJobPositionsSerializer(serializers.ModelSerializer):
         )
 
         def update(self, instance, validated_data):
-
             instance.reason_to_appeal = (
                 validated_data["reason_to_appeal"] if validated_data["reason_to_appeal"] else instance.reason_to_appeal
             )
@@ -747,11 +732,11 @@ class UserAppealForJobPositionsSerializer(serializers.ModelSerializer):
             return instance.id
 
 
-
 class PermanentPositionMasterSerializer(serializers.ModelSerializer):
     perm_position_master = serializers.SerializerMethodField(
         method_name="get_position", read_only=True
     )
+
     # position_id = serializers.SerializerMethodField(
     #     method_name="get_position_id", read_only=True
     # )
@@ -773,9 +758,9 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
     #     return obj.perm_position.position_id
 
     def save(self, validated_data):
-        print("validated_data------>",validated_data)
+        print("validated_data------>", validated_data)
         posi_id = NewPositionMaster.objects.get(position_name=validated_data['perm_position_master']['position_name'])
-        print("posi_id------>",posi_id)
+        print("posi_id------>", posi_id)
 
         posi = PermanentPositionMaster.objects.create(
             perm_position_master=posi_id,
@@ -804,6 +789,7 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
     temp_position_master = serializers.SerializerMethodField(
         method_name="get_position", read_only=True
     )
+
     class Meta:
         model = TemporaryPositionMaster
         fields = (
@@ -846,15 +832,16 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
 
         return instance.temp_position_id
 
+
 # NewPositionMaster
 
 class P_MasterSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = NewPositionMaster
         fields = (
             "position_name",
         )
+
 
 # class SubjectSpecializationqualificationSerializer(serializers.ModelSerializer):
 #     score = serializers.SerializerMethodField(
@@ -875,7 +862,6 @@ class P_MasterSerializer(serializers.ModelSerializer):
 
 
 class NewPositionMasterSerializer(serializers.ModelSerializer):
-
     documents_required = serializers.SerializerMethodField(
         method_name='get_documents_required', required=False
     )
@@ -920,7 +906,7 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
         serializer = QualificationMasterSerializer(qual, many=True)
         return serializer.data
 
-    def get_qualification_job_history(self,obj):
+    def get_qualification_job_history(self, obj):
         qual_job = obj.qualification_job_history.filter()
         serializer = QualificationJobHistoryMasterSerializer(qual_job, many=True)
         return serializer.data
@@ -928,10 +914,10 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
     def save(self, validated_data):
 
         position = NewPositionMaster.objects.create(
-            position_name = validated_data['position_name'],
+            position_name=validated_data['position_name'],
             position_display_name=validated_data['position_display_name'],
-            min_age = validated_data['min_age'],
-            max_age = validated_data['max_age'],
+            min_age=validated_data['min_age'],
+            max_age=validated_data['max_age'],
         )
 
         # position = PositionMaster.objects.get(position_id=validated_data['position']['position_id'])
@@ -940,13 +926,13 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
         print("validated_data--------->", validated_data)
 
         for qualification_data in validated_data['qualification']:
-            qualification = QualificationMaster.objects.get(qualification_id = qualification_data['qualification_id'])
+            qualification = QualificationMaster.objects.get(qualification_id=qualification_data['qualification_id'])
             position.qualification.add(qualification)
         print("validated_data['qualification_job_history']--------->", validated_data['qualification_job_history'])
 
         for exp in validated_data['qualification_job_history']:
             print("exp--------->", exp)
-            emp_exp = QualificationJobHistoryMaster.objects.get(qualification_job_id = exp['qualification_job_id'])
+            emp_exp = QualificationJobHistoryMaster.objects.get(qualification_job_id=exp['qualification_job_id'])
             position.qualification_job_history.add(emp_exp)
 
         for info_data in validated_data['information_required']:
@@ -968,7 +954,8 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
         )
 
         instance.position_display_name = (
-            validated_data["position_display_name"] if validated_data["position_display_name"] else instance.position_display_name
+            validated_data["position_display_name"] if validated_data[
+                "position_display_name"] else instance.position_display_name
         )
 
         instance.min_age = (
@@ -985,7 +972,7 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
         oldexp = posi.qualification_job_history.filter()
         olddoc = posi.documents_required.filter()
         oldinfo = posi.information_required.filter()
-        print("validated_data['qualification']---------->",validated_data['qualification'])
+        print("validated_data['qualification']---------->", validated_data['qualification'])
         if not validated_data['qualification']:  # working for empty role.
             for oqual in oldqual:
                 instance.qualification.remove(oqual)
@@ -993,14 +980,13 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
 
         for oqual in oldqual:
             for qual_data in validated_data['qualification']:
-                print("qual_data.id-------------->",qual_data["qualification_id"])
+                print("qual_data.id-------------->", qual_data["qualification_id"])
                 if str(oqual.qualification_id) != str(qual_data["qualification_id"]):  # working deletion now
                     print(str(qual_data["qualification_id"]) + " != " + str(oqual.qualification_id))
                     instance.qualification.remove(oqual)
 
         for qual_data in validated_data['qualification']:  # working for addition too.
             instance.qualification.add(qual_data["qualification_id"])
-
 
         # qualification_job_history
         print("validated_data['qualification_job_history']---------->", validated_data['qualification_job_history'])
@@ -1018,8 +1004,6 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
 
         for exp_data in validated_data['qualification_job_history']:  # working for addition too.
             instance.qualification_job_history.add(exp_data["qualification_job_id"])
-
-
 
         # documents_required
         print("validated_data['documents_required']---------->", validated_data['documents_required'])

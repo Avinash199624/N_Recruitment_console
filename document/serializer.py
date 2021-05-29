@@ -1,16 +1,6 @@
 from rest_framework import serializers
-from document.models import DocumentMaster, InformationMaster, NewDocumentMaster
+from document.models import InformationMaster, NewDocumentMaster
 
-
-class DocumentMasterSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = DocumentMaster
-        fields = (
-            "doc_id",
-            "doc_name",
-            "description",
-        )
 
 class NewDocumentMasterSerializer(serializers.ModelSerializer):
 
@@ -21,6 +11,7 @@ class NewDocumentMasterSerializer(serializers.ModelSerializer):
             "doc_name",
             "doc_type",
         )
+
 
 class InformationMasterSerializer(serializers.ModelSerializer):
 

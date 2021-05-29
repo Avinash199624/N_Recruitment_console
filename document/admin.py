@@ -1,10 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin import register
-from document.models import DocumentMaster, NewDocumentMaster, InformationMaster
-
-@register(DocumentMaster)
-class DocumentMasterAdmin(admin.ModelAdmin):
-    list_display = ['doc_id', 'doc_name', 'description', 'is_deleted']
+from document.models import NewDocumentMaster, InformationMaster
 
 
 @register(NewDocumentMaster)
