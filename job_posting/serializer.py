@@ -478,6 +478,10 @@ class JobDocumentsSerializer(serializers.ModelSerializer):
 
 
 class PublicJobPostSerializer(serializers.ModelSerializer):
+    manpower_positions = serializers.SerializerMethodField(
+        method_name="get_manpower_positions", required=False
+    )
+
     class Meta:
         model = JobPosting
         fields = (
@@ -486,7 +490,13 @@ class PublicJobPostSerializer(serializers.ModelSerializer):
             "publication_date",
             "end_date",
             "job_type",
+            "manpower_positions",
         )
+
+    def get_manpower_positions(self, obj):
+        positions = obj.manpower_positions.filter()
+        serializer = PositionQualificationMappingSerializer(positions, many=True)
+        return serializer.data
 
 
 class JobPostingSerializer(serializers.ModelSerializer):

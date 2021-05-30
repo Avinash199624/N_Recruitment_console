@@ -31,6 +31,7 @@ from job_posting.views import (
     ProjectApprovalStatusListView,
     QualificationJobHistoryMasterView,
     PublicJobPostingView,
+    ApplicantJobPositions,
 )
 
 urlpatterns = [
@@ -146,6 +147,11 @@ urlpatterns = [
         "job_posting_list/applicant/",
         PublicJobPostingView.as_view(),
         name="applicant-job-posting-list",
+    ),
+    path(
+        "job_posting/applicant/<uuid:id>",
+        ApplicantJobPositions.as_view(),
+        name="applicant-job-posting-positions",
     ),
     path(
         "applicant_list_by_job/",

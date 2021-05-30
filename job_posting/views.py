@@ -1,4 +1,4 @@
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
@@ -425,6 +425,12 @@ class JobPostingListView(APIView):
 
 
 class PublicJobPostingView(ListAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = PublicJobPostSerializer
+    queryset = JobPosting.objects.filter(is_deleted=False)
+
+
+class ApplicantJobPositions(RetrieveAPIView):
     permission_classes = (AllowAny,)
     serializer_class = PublicJobPostSerializer
     queryset = JobPosting.objects.filter(is_deleted=False)
