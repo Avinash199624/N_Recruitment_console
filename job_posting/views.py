@@ -434,7 +434,8 @@ class ApplicantJobPositions(RetrieveAPIView):
     permission_classes = (AllowAny,)
     serializer_class = PublicJobPostSerializer
     queryset = JobPosting.objects.filter(is_deleted=False)
-    lookup_field = "id"
+    lookup_field = "job_posting_id"
+    lookup_url_kwarg = "id"
 
 
 class ApplicantListByJobPositions(APIView):

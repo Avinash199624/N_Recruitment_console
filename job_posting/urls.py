@@ -149,7 +149,7 @@ urlpatterns = [
         name="applicant-job-posting-list",
     ),
     path(
-        "applicant/<uuid:id>",
+        "applicant/<uuid:id>/",
         ApplicantJobPositions.as_view(),
         name="applicant-job-posting-positions",
     ),
