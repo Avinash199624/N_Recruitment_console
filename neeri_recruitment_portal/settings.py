@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'django_filters',
     'knox',
     'corsheaders',
     'user',
@@ -65,6 +66,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 ]
+AUTOCREATE_VALID_SSL_USERS = True
 
 ROOT_URLCONF = 'neeri_recruitment_portal.urls'
 
@@ -185,6 +187,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["knox.auth.TokenAuthentication"],
     # Default permission to use on all our views
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"]
 
 }
 
@@ -214,9 +217,11 @@ CORS_EXPOSE_HEADERS = config("CORS_EXPOSE_HEADERS", default="", cast=Csv())
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default="", cast=Csv())
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "https://shreyastechnosoft.centralindia.cloudapp.azure.com",
     "https://neeri-findinpi.vercel.app"
 ]
 CORS_ORIGIN_REGEX_WHITELIST = config(
     "CORS_ORIGIN_REGEX_WHITELIST", default="", cast=Csv()
 )
-BASE_URL = 'http://20.198.86.180:8181'
+BASE_URL = 'https://20.198.86.180:8181'
+# BASE_URL = 'http://20.198.86.180:8181'

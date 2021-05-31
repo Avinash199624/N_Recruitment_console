@@ -1,6 +1,7 @@
 from django.shortcuts import render
 
 # Create your views here.
+from rest_framework.generics import ListAPIView
 
 from rest_framework.views import APIView
 from django.http import JsonResponse
@@ -1340,6 +1341,13 @@ class MentorMasterListView(APIView):
             return Response(data={"message": "Mentor Deleted Successfully(Soft Delete)."}, status=200)
         except:
             return Response(data={"message": "Mentor Not Found."}, status=401)
+
+
+class TraineeSearchListView(ListAPIView):
+    queryset = Trainee.objects.all()
+    serializer_class = TraineeSerializer
+    filterset_fields = ['trainee_name', 'division__division_name',
+                        'mentor__mentor_name', 'emp_start_date', 'emp_end_date']
 
 
 class TraineeListView(APIView):
