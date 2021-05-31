@@ -1,9 +1,10 @@
+from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from communication_template.models import CommunicationMaster, CommunicationType, CommunicationActionType
 from communication_template.serializer import CommunicationMasterSerializer, CommunicationTypeSerializer, \
     CommunicationActionTypeSerializer
-
+from rest_framework.filters import SearchFilter
 
 class CommunicationTypeListView(APIView):
     def get(self, request, *args, **kwargs):
@@ -17,6 +18,14 @@ class CommunicationActionTypeListView(APIView):
         docs = CommunicationActionType.objects.filter(is_deleted=False)
         serializer = CommunicationActionTypeSerializer(docs, many=True)
         return Response(serializer.data, status=200)
+
+
+
+class CommunicationTemplateSearchListView(ListAPIView):
+    queryset = CommunicationMaster.objects.all()
+    serializer_class = CommunicationMasterSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ('communication_id', 'communication_name', 'subject', 'body', 'comm_type__communication_type', 'action_type__comm_action_type')
 
 
 class CommunicationTemplateListView(APIView):

@@ -1,10 +1,25 @@
+from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
 from document.models import NewDocumentMaster, InformationMaster
 from document.serializer import NewDocumentMasterSerializer, InformationMasterSerializer
+from rest_framework.filters import OrderingFilter, SearchFilter
 
+
+class DocumentSearchListView(ListAPIView):
+    queryset = NewDocumentMaster.objects.all()
+    serializer_class = NewDocumentMasterSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ('doc_id', 'doc_name', 'doc_type')
+
+
+class InformationSearchListView(ListAPIView):
+    queryset = InformationMaster.objects.all()
+    serializer_class = InformationMasterSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ('info_id', 'info_name', 'info_type')
 
 # New Docs serializer
 class NewDocumentListView(APIView):
