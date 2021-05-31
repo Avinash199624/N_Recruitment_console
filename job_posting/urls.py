@@ -31,11 +31,16 @@ from job_posting.views import (
     ProjectApprovalStatusListView,
     QualificationJobHistoryMasterView,
     PublicJobPostingView,
-    ApplicantJobPositions,
+    ApplicantJobPositions, QualificationMasterSearchListView, QualificationJobHistoryMasterSearchListView,
 )
 
 urlpatterns = [
     #     QualificationMaster
+    path(
+        "search_qualification/",
+        QualificationMasterSearchListView.as_view(),
+        name="search-qualification-list",
+    ),
     path(
         "get_qualification/<uuid:id>/",
         RetrieveQualificationMasterView.as_view(),
@@ -62,6 +67,11 @@ urlpatterns = [
         name="qualification-list",
     ),
     #     QualificationJobHistoryMaster
+    path(
+        "search_qualification_job_history/",
+        QualificationJobHistoryMasterSearchListView.as_view(),
+        name="search-qualification-job-history-list",
+    ),
     path(
         "qualification_job_history/",
         QualificationJobHistoryMasterView.as_view(),

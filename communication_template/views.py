@@ -25,8 +25,13 @@ class CommunicationTemplateSearchListView(ListAPIView):
     queryset = CommunicationMaster.objects.all()
     serializer_class = CommunicationMasterSerializer
     filter_backends = [SearchFilter]
-    search_fields = ('communication_id', 'communication_name', 'subject', 'body', 'comm_type__communication_type', 'action_type__comm_action_type')
+    search_fields = ('subject', 'body')
 
+
+class CommunicationTemplateFilterListView(ListAPIView):
+        queryset = CommunicationMaster.objects.all()
+        serializer_class = CommunicationMasterSerializer
+        filterset_fields = ['communication_name', 'subject', 'comm_type__communication_type', 'action_type__comm_action_type', 'is_active']
 
 class CommunicationTemplateListView(APIView):
     def get(self, request, *args, **kwargs):

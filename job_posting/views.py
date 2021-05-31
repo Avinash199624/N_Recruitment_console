@@ -1,6 +1,8 @@
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
+from django_filters.rest_framework import DjangoFilterBackend
 
 from job_posting.models import (
     Department,
@@ -46,6 +48,20 @@ from job_posting.serializer import (
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
+
+
+class QualificationMasterSearchListView(ListAPIView):
+    queryset = QualificationMaster.objects.all()
+    serializer_class = QualificationMasterSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ('qualification_id', 'qualification', 'short_code')
+
+
+class QualificationJobHistoryMasterSearchListView(ListAPIView):
+    queryset = QualificationJobHistoryMaster.objects.all()
+    serializer_class = QualificationJobHistoryMasterSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ('qualification_job_id', 'qualification', 'short_code')
 
 
 class RetrieveQualificationMasterView(APIView):
@@ -416,8 +432,9 @@ class GetServiceConditions(APIView):
         serializer = ServiceConditionsSerializer(conditions, many=True)
         return Response(serializer.data, status=200)
 
-
+# Filtering on Position, Experience, Job Requirements, Status
 class JobPostingListView(APIView):
+
     def get(self, request, *args, **kwargs):
         postings = JobPosting.objects.filter(is_deleted=False)
         serializer = JobPostingSerializer(postings, many=True)
