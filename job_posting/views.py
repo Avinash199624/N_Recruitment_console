@@ -352,6 +352,20 @@ class ProjectRequirementListView(APIView):
         return Response(serializer.data, status=200)
 
 
+class ProjectApprovalFilterListView(ListAPIView):
+    queryset = JobPostingRequirement.objects.all()
+    serializer_class = ProjectRequirementSerializer
+    filterset_fields = ['division_name__division_name', 'zonal_lab__zonal_lab_name', 'project_number', 'status', 'manpower_position__position', 'project_start_date', 'project_end_date']
+
+
+class ProjectApprovalSearchListView(ListAPIView):
+    queryset = JobPostingRequirement.objects.all()
+    serializer_class = ProjectRequirementSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ('project_title', 'job_requirements', 'desired_qualification')
+
+
+
 class RetrieveProjectRequirementView(APIView):
     def get(self, request, *args, **kwargs):
         id = self.kwargs["id"]

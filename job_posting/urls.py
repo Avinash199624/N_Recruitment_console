@@ -32,6 +32,7 @@ from job_posting.views import (
     QualificationJobHistoryMasterView,
     PublicJobPostingView,
     ApplicantJobPositions, QualificationMasterSearchListView, QualificationJobHistoryMasterSearchListView,
+    ProjectApprovalFilterListView, ProjectApprovalSearchListView,
 )
 
 urlpatterns = [
@@ -127,6 +128,16 @@ urlpatterns = [
         "project_requirements_list/",
         ProjectRequirementListView.as_view(),
         name="project-requirement-list",
+    ),
+    path(
+        "filter_project_requirements_list/",
+        ProjectApprovalFilterListView.as_view(),
+        name="filter-project-requirement-list",
+    ),
+    path(
+        "search_project_requirements_list/",
+        ProjectApprovalSearchListView.as_view(),
+        name="search-project-requirement-list",
     ),
     path(
         "position_qualification_mapping_list/",
