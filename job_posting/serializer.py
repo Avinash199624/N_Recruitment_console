@@ -854,7 +854,7 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
         )
 
     def get_position(self, obj):
-        serializer = P_MasterSerializer(obj.perm_position_master)
+        serializer = NewPositionMasterSerializer(obj.perm_position_master)
         return serializer.data
 
     # def get_position_id(self, obj):
@@ -905,7 +905,7 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
         )
 
     def get_position(self, obj):
-        serializer = P_MasterSerializer(obj.temp_position_master)
+        serializer = NewPositionMasterSerializer(obj.temp_position_master)
         return serializer.data
 
     def save(self, validated_data):
