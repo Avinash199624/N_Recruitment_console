@@ -1,6 +1,7 @@
 from django.shortcuts import render
 
 # Create your views here.
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListAPIView
 
 from rest_framework.views import APIView
@@ -278,6 +279,14 @@ class CreateUserView(APIView):
             serializer.is_valid(raise_exception=True)
             serializer.save(instance=user, validated_data=data)
             return Response(serializer.data, status=200)
+
+
+class NeeriUserSearchListView(ListAPIView):
+    queryset = NeeriUserProfile.objects.all()
+    serializer_class = NeeriUsersSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ('user__first_name', 'user__last_name', 'user__mobile_no')
+
 
 class NeeriUserListView(APIView):
     def get(self, request, *args, **kwargs):
@@ -1077,6 +1086,15 @@ class PublishedPapersDeleteView(APIView):
             return Response(data={"message": "Record Deleted Successfully."}, status=200)
         except:
             return Response(data={"message": "Details Not Found."}, status=401)
+
+# Todo:
+# class ApplicantAppliedJobSearchListView(ListAPIView):
+#     queryset = UserJobPositions.objects.all()
+#     serializer_class = ApplicantJobPositionsSerializer
+#     filter_backends = [SearchFilter]
+#     search_fields = ('notification_id', 'description', 'hiring_status')
+#
+
 
 class ApplicantAppliedJobListView(APIView):
 

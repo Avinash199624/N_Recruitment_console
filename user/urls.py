@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.urls import path
 from user.views import UserRegistartionView, NeeriPersonalInformation, CompareApplicantListView, \
     NeeriLoginView, TempLoginView, RoleMasterView, CreateNeeriUserView, MentorMasterListView, NeeriUserListView, \
-    TraineeListView, RelaxationCategoryMasterListView, RelaxationMasterListView, TraineeSearchListView
+    TraineeListView, RelaxationCategoryMasterListView, RelaxationMasterListView, TraineeSearchListView, \
+    NeeriUserSearchListView
 from user.views import LoginView,LogoutView,UserListView,RetrievetUserView,UpdateUserView,CreateUserView,DeleteUserView,ForgotPassword,\
     ApplicantPersonalInformationView,ApplicantPersonalInformationUpdateView,\
     ApplicantPersonalInformationCreateView,ApplicantAddressView,ApplicantAddressCreateView,\
@@ -31,6 +32,7 @@ urlpatterns = [
     path('update-user/<uuid:id>/', UpdateUserView.as_view(), name="update-user"),
     path('create-user/', CreateUserView.as_view(), name="create-user"),
     path('create_neeri_user/', CreateNeeriUserView.as_view(), name="create-neeri-user"),
+    path('search_neeri_user/', NeeriUserSearchListView.as_view(), name="search-neeri-user"),
     path('neeri_user/', NeeriUserListView.as_view(), name="neeri-user"),
     path('neeri_user/<uuid:id>/', CreateNeeriUserView.as_view(), name="neeri-user-api"),
     path('user-list/', UserListView.as_view(), name="user-list"),
