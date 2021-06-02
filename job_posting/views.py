@@ -609,6 +609,20 @@ class NewPositionMasterViews(APIView):
         except:
             return Response(data={"message": "Details Not Found."}, status=401)
 
+#Permanent Position
+class PermanentPositionMasterFilterListView(ListAPIView):
+    queryset = PermanentPositionMaster.objects.all()
+    serializer_class = PermanentPositionMasterSerializer
+    filterset_fields = ['perm_position_master__position_name', 'perm_position_master__position_display_name', 'perm_position_master__qualification',
+                        'perm_position_master__qualification_job_history', 'grade', 'level']
+
+
+class PermanentPositionMasterSearchListView(ListAPIView):
+    queryset = PermanentPositionMaster.objects.all()
+    serializer_class = PermanentPositionMasterSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ('perm_position_master__position_name', 'perm_position_master__position_display_name',)
+
 
 class PermanentPositionMasterViews(APIView):
     def get(self, request, *args, **kwargs):
@@ -676,6 +690,20 @@ class PermanentPositionMasterViews(APIView):
         posi = PermanentPositionMaster.objects.get(perm_position_id=result)
         serializer = PermanentPositionMasterSerializer(posi)
         return Response(serializer.data, status=200)
+
+#Temporary Position
+class TemporaryPositionMasterFilterListView(ListAPIView):
+    queryset = TemporaryPositionMaster.objects.filter(is_deleted=False)
+    serializer_class = TemporaryPositionMasterSerializer
+    filterset_fields = ['temp_position_master__position_name', 'temp_position_master__position_display_name', 'temp_position_master__qualification',
+                        'temp_position_master__qualification_job_history', 'salary', 'allowance']
+
+
+class TemporaryPositionMasterSearchListView(ListAPIView):
+    queryset = TemporaryPositionMaster.objects.filter(is_deleted=False)
+    serializer_class = TemporaryPositionMasterSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ('temp_position_master__position_name', 'temp_position_master__position_display_name')
 
 
 class TemporaryPositionMasterViews(APIView):

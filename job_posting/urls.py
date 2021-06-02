@@ -32,7 +32,8 @@ from job_posting.views import (
     QualificationJobHistoryMasterView,
     PublicJobPostingView,
     ApplicantJobPositions, QualificationMasterSearchListView, QualificationJobHistoryMasterSearchListView,
-    ProjectApprovalFilterListView, ProjectApprovalSearchListView,
+    ProjectApprovalFilterListView, ProjectApprovalSearchListView, TemporaryPositionMasterSearchListView,
+    TemporaryPositionMasterFilterListView, PermanentPositionMasterFilterListView, PermanentPositionMasterSearchListView,
 )
 
 urlpatterns = [
@@ -202,6 +203,16 @@ urlpatterns = [
     path("positions/", NewPositionMasterViews.as_view(), name="positions-master"),
     path("positions/<uuid:id>/", NewPositionMasterViews.as_view(), name="positions"),
     path(
+        "filter_permanent_positions/",
+        PermanentPositionMasterFilterListView.as_view(),
+        name="filter-p-positions-master",
+    ),
+    path(
+        "search_permanent_positions/",
+        PermanentPositionMasterSearchListView.as_view(),
+        name="search-p-positions-master",
+    ),
+    path(
         "permanent_positions/",
         PermanentPositionMasterViews.as_view(),
         name="p-positions-master",
@@ -210,6 +221,16 @@ urlpatterns = [
         "permanent_positions/<uuid:id>/",
         PermanentPositionMasterViews.as_view(),
         name="p-positions",
+    ),
+    path(
+        "filter_temporary_positions/",
+        TemporaryPositionMasterFilterListView.as_view(),
+        name="filter-t-positions-master",
+    ),
+    path(
+        "search_temporary_positions/",
+        TemporaryPositionMasterSearchListView.as_view(),
+        name="search-t-positions-master",
     ),
     path(
         "temporary_positions/",
