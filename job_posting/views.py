@@ -447,6 +447,21 @@ class GetServiceConditions(APIView):
         return Response(serializer.data, status=200)
 
 # Filtering on Position, Experience, Job Requirements, Status
+
+
+class JobPostingSearchListView(ListAPIView):
+    queryset = JobPosting.objects.filter(is_deleted=False)
+    serializer_class = JobPostingSerializer
+    filter_backends = [SearchFilter]
+    search_fields = ('notification_id', 'notification_title', 'status')
+
+
+class JobPostingFilterListView(ListAPIView):
+    queryset = JobPosting.objects.filter(is_deleted=False)
+    serializer_class = JobPostingSerializer
+    filterset_fields = ['status']
+
+
 class JobPostingListView(APIView):
 
     def get(self, request, *args, **kwargs):

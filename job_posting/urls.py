@@ -34,6 +34,7 @@ from job_posting.views import (
     ApplicantJobPositions, QualificationMasterSearchListView, QualificationJobHistoryMasterSearchListView,
     ProjectApprovalFilterListView, ProjectApprovalSearchListView, TemporaryPositionMasterSearchListView,
     TemporaryPositionMasterFilterListView, PermanentPositionMasterFilterListView, PermanentPositionMasterSearchListView,
+    JobPostingSearchListView, JobPostingFilterListView,
 )
 
 urlpatterns = [
@@ -163,6 +164,16 @@ urlpatterns = [
         "job_posting_update/<uuid:id>/",
         JobPostingUpdateView.as_view(),
         name="job-posting-update",
+    ),
+    path(
+        "filter_job_posting_list/",
+        JobPostingFilterListView.as_view(),
+        name="filter-job-posting-list",
+    ),
+    path(
+        "search_job_posting_list/",
+        JobPostingSearchListView.as_view(),
+        name="search-job-posting-list",
     ),
     path("job_posting_list/", JobPostingListView.as_view(), name="job-posting-list"),
     path(
