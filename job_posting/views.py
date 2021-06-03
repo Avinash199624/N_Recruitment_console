@@ -476,6 +476,22 @@ class PublicJobPostingView(ListAPIView):
     queryset = JobPosting.objects.filter(is_deleted=False)
 
 
+class PublicJobPostingFilterListView(ListAPIView):
+    permission_classes = (AllowAny,)
+    queryset = JobPosting.objects.filter(is_deleted=False)
+    serializer_class = PublicJobPostSerializer
+    filterset_fields = ['description', 'publication_date', 'end_date']
+
+
+class PublicJobPostingSearchListView(ListAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = PublicJobPostSerializer
+    queryset = JobPosting.objects.filter(is_deleted=False)
+    filter_backends = [SearchFilter]
+    search_fields = ('description', )
+
+
+
 class ApplicantJobPositions(RetrieveAPIView):
     permission_classes = (AllowAny,)
     serializer_class = PublicJobPostSerializer

@@ -34,7 +34,7 @@ from job_posting.views import (
     ApplicantJobPositions, QualificationMasterSearchListView, QualificationJobHistoryMasterSearchListView,
     ProjectApprovalFilterListView, ProjectApprovalSearchListView, TemporaryPositionMasterSearchListView,
     TemporaryPositionMasterFilterListView, PermanentPositionMasterFilterListView, PermanentPositionMasterSearchListView,
-    JobPostingSearchListView, JobPostingFilterListView,
+    JobPostingSearchListView, JobPostingFilterListView, PublicJobPostingFilterListView, PublicJobPostingSearchListView,
 )
 
 urlpatterns = [
@@ -176,6 +176,16 @@ urlpatterns = [
         name="search-job-posting-list",
     ),
     path("job_posting_list/", JobPostingListView.as_view(), name="job-posting-list"),
+    path(
+        "search_job_posting_list/applicant/",
+        PublicJobPostingSearchListView.as_view(),
+        name="search-applicant-job-posting-list",
+    ),
+    path(
+        "filter_job_posting_list/applicant/",
+        PublicJobPostingFilterListView.as_view(),
+        name="filter-applicant-job-posting-list",
+    ),
     path(
         "job_posting_list/applicant/",
         PublicJobPostingView.as_view(),
