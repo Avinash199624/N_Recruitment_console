@@ -26,7 +26,7 @@ from job_posting.models import (
 )
 from document.serializer import InformationMasterSerializer, NewDocumentMasterSerializer
 from document.models import NewDocumentMaster, InformationMaster
-from user.models import UserEducationDetails, UserExperienceDetails
+from user.models import UserEducationDetails, UserExperienceDetails, UserProfile
 from user.serializer import (
     SubjectSpecializationSerializer,
     EmployeeExperienceSerializer,
@@ -755,6 +755,12 @@ class ServiceConditionsSerializer(serializers.ModelSerializer):
 class UserJobPositionsSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField(method_name="get_name", required=False)
 
+    user_id = serializers.SerializerMethodField(
+        method_name="get_user_id", required=False
+    )
+    profile_photo = serializers.SerializerMethodField(
+        method_name="get_user_photo", required=False
+    )
     department = serializers.SerializerMethodField(
         method_name="get_department", required=False
     )
@@ -775,6 +781,8 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserJobPositions
         fields = (
+            "user_id",
+            "profile_photo",
             "name",
             "department",
             "status",
@@ -788,6 +796,14 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
         middle_name = obj.user.middle_name if obj.user.middle_name else None
         last_name = obj.user.last_name if obj.user.last_name else None
         return first_name + " " + middle_name + " " + last_name
+
+    def get_user_id(self, obj):
+        return obj.user.user_id
+
+    def get_user_photo(self, obj):
+        profile = UserProfile.objects.get(user__user_id=obj.user.user_id)
+        user_profile = profile.profile_photo
+        return user_profile
 
     def get_department(self, obj):
         return obj.job_posting.department.dept_name
