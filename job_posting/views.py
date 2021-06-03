@@ -636,7 +636,7 @@ class PermanentPositionMasterSearchListView(ListAPIView):
     queryset = PermanentPositionMaster.objects.all()
     serializer_class = PermanentPositionMasterSerializer
     filter_backends = [SearchFilter]
-    search_fields = ('perm_position_master__position_name', 'perm_position_master__position_display_name',)
+    search_fields = ('perm_position_master__qualification__qualification_id', 'perm_position_master__position_display_name',)
 
 
 class PermanentPositionMasterViews(APIView):
@@ -710,7 +710,8 @@ class PermanentPositionMasterViews(APIView):
 class TemporaryPositionMasterFilterListView(ListAPIView):
     queryset = TemporaryPositionMaster.objects.filter(is_deleted=False)
     serializer_class = TemporaryPositionMasterSerializer
-    filterset_fields = ['temp_position_master__position_name', 'temp_position_master__position_display_name', 'temp_position_master__qualification',
+    filterset_fields = ['temp_position_master__position_name', 'temp_position_master__position_display_name',
+                        'temp_position_master__qualification',
                         'temp_position_master__qualification_job_history', 'salary', 'allowance']
 
 
@@ -718,7 +719,7 @@ class TemporaryPositionMasterSearchListView(ListAPIView):
     queryset = TemporaryPositionMaster.objects.filter(is_deleted=False)
     serializer_class = TemporaryPositionMasterSerializer
     filter_backends = [SearchFilter]
-    search_fields = ('temp_position_master__position_name', 'temp_position_master__position_display_name')
+    search_fields = ('temp_position_master__qualification__qualification_id', 'temp_position_master__position_display_name')
 
 
 class TemporaryPositionMasterViews(APIView):
