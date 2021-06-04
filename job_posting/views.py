@@ -54,14 +54,14 @@ class QualificationMasterSearchListView(ListAPIView):
     queryset = QualificationMaster.objects.all()
     serializer_class = QualificationMasterSerializer
     filter_backends = [SearchFilter]
-    search_fields = ('qualification_id', 'qualification', 'short_code')
+    search_fields = ("qualification_id", "qualification", "short_code")
 
 
 class QualificationJobHistoryMasterSearchListView(ListAPIView):
     queryset = QualificationJobHistoryMaster.objects.all()
     serializer_class = QualificationJobHistoryMasterSerializer
     filter_backends = [SearchFilter]
-    search_fields = ('qualification_job_id', 'qualification', 'short_code')
+    search_fields = ("qualification_job_id", "qualification", "short_code")
 
 
 class RetrieveQualificationMasterView(APIView):
@@ -355,15 +355,22 @@ class ProjectRequirementListView(APIView):
 class ProjectApprovalFilterListView(ListAPIView):
     queryset = JobPostingRequirement.objects.all()
     serializer_class = ProjectRequirementSerializer
-    filterset_fields = ['division_name__division_name', 'zonal_lab__zonal_lab_name', 'project_number', 'status', 'manpower_position__position', 'project_start_date', 'project_end_date']
+    filterset_fields = [
+        "division_name__division_name",
+        "zonal_lab__zonal_lab_name",
+        "project_number",
+        "status",
+        "manpower_position__position",
+        "project_start_date",
+        "project_end_date",
+    ]
 
 
 class ProjectApprovalSearchListView(ListAPIView):
     queryset = JobPostingRequirement.objects.all()
     serializer_class = ProjectRequirementSerializer
     filter_backends = [SearchFilter]
-    search_fields = ('project_title', 'job_requirements', 'desired_qualification')
-
+    search_fields = ("project_title", "job_requirements", "desired_qualification")
 
 
 class RetrieveProjectRequirementView(APIView):
@@ -446,6 +453,7 @@ class GetServiceConditions(APIView):
         serializer = ServiceConditionsSerializer(conditions, many=True)
         return Response(serializer.data, status=200)
 
+
 # Filtering on Position, Experience, Job Requirements, Status
 
 
@@ -453,21 +461,19 @@ class JobPostingSearchListView(ListAPIView):
     queryset = JobPosting.objects.filter(is_deleted=False)
     serializer_class = JobPostingSerializer
     filter_backends = [SearchFilter]
-    search_fields = ('notification_id', 'notification_title', 'status')
+    search_fields = ("notification_id", "notification_title", "status")
 
 
 class JobPostingFilterListView(ListAPIView):
     queryset = JobPosting.objects.filter(is_deleted=False)
     serializer_class = JobPostingSerializer
-    filterset_fields = ['status']
+    filterset_fields = ["status"]
 
 
-class JobPostingListView(APIView):
-
-    def get(self, request, *args, **kwargs):
-        postings = JobPosting.objects.filter(is_deleted=False)
-        serializer = JobPostingSerializer(postings, many=True)
-        return Response(serializer.data, status=200)
+class JobPostingListView(ListAPIView):
+    queryset = JobPosting.objects.filter(is_deleted=False)
+    serializer_class = JobPostingSerializer
+    filterset_fields = ["job_type", "status"]
 
 
 class PublicJobPostingView(ListAPIView):
@@ -480,7 +486,7 @@ class PublicJobPostingFilterListView(ListAPIView):
     permission_classes = (AllowAny,)
     queryset = JobPosting.objects.filter(is_deleted=False)
     serializer_class = PublicJobPostSerializer
-    filterset_fields = ['description', 'publication_date', 'end_date']
+    filterset_fields = ["description", "publication_date", "end_date"]
 
 
 class PublicJobPostingSearchListView(ListAPIView):
@@ -488,8 +494,7 @@ class PublicJobPostingSearchListView(ListAPIView):
     serializer_class = PublicJobPostSerializer
     queryset = JobPosting.objects.filter(is_deleted=False)
     filter_backends = [SearchFilter]
-    search_fields = ('description', )
-
+    search_fields = ("description",)
 
 
 class ApplicantJobPositions(RetrieveAPIView):
@@ -640,19 +645,29 @@ class NewPositionMasterViews(APIView):
         except:
             return Response(data={"message": "Details Not Found."}, status=401)
 
-#Permanent Position
+
+# Permanent Position
 class PermanentPositionMasterFilterListView(ListAPIView):
     queryset = PermanentPositionMaster.objects.all()
     serializer_class = PermanentPositionMasterSerializer
-    filterset_fields = ['perm_position_master__position_name', 'perm_position_master__position_display_name', 'perm_position_master__qualification',
-                        'perm_position_master__qualification_job_history', 'grade', 'level']
+    filterset_fields = [
+        "perm_position_master__position_name",
+        "perm_position_master__position_display_name",
+        "perm_position_master__qualification",
+        "perm_position_master__qualification_job_history",
+        "grade",
+        "level",
+    ]
 
 
 class PermanentPositionMasterSearchListView(ListAPIView):
     queryset = PermanentPositionMaster.objects.all()
     serializer_class = PermanentPositionMasterSerializer
     filter_backends = [SearchFilter]
-    search_fields = ('perm_position_master__qualification__qualification', 'perm_position_master__position_display_name',)
+    search_fields = (
+        "perm_position_master__qualification__qualification",
+        "perm_position_master__position_display_name",
+    )
 
 
 class PermanentPositionMasterViews(APIView):
@@ -722,20 +737,29 @@ class PermanentPositionMasterViews(APIView):
         serializer = PermanentPositionMasterSerializer(posi)
         return Response(serializer.data, status=200)
 
-#Temporary Position
+
+# Temporary Position
 class TemporaryPositionMasterFilterListView(ListAPIView):
     queryset = TemporaryPositionMaster.objects.filter(is_deleted=False)
     serializer_class = TemporaryPositionMasterSerializer
-    filterset_fields = ['temp_position_master__position_name', 'temp_position_master__position_display_name',
-                        'temp_position_master__qualification',
-                        'temp_position_master__qualification_job_history', 'salary', 'allowance']
+    filterset_fields = [
+        "temp_position_master__position_name",
+        "temp_position_master__position_display_name",
+        "temp_position_master__qualification",
+        "temp_position_master__qualification_job_history",
+        "salary",
+        "allowance",
+    ]
 
 
 class TemporaryPositionMasterSearchListView(ListAPIView):
     queryset = TemporaryPositionMaster.objects.filter(is_deleted=False)
     serializer_class = TemporaryPositionMasterSerializer
     filter_backends = [SearchFilter]
-    search_fields = ('temp_position_master__qualification__qualification', 'temp_position_master__position_display_name')
+    search_fields = (
+        "temp_position_master__qualification__qualification",
+        "temp_position_master__position_display_name",
+    )
 
 
 class TemporaryPositionMasterViews(APIView):

@@ -508,13 +508,20 @@ class JobPostingSerializer(serializers.ModelSerializer):
         method_name="get_department", required=False
     )
 
+    dept_id = serializers.UUIDField(write_only=True, required=False)
+
     division = serializers.SerializerMethodField(
-        method_name="get_division", required=False
+        method_name="get_division", read_only=True, required=False
     )
 
+    division_id = serializers.UUIDField(write_only=True, required=False)
+
     zonal_lab = serializers.SerializerMethodField(
-        method_name="get_zonal_lab", required=False
+        method_name="get_zonal_lab", read_only=True, required=False
     )
+
+    zonal_lab_id = serializers.UUIDField(write_only=True, required=False)
+
     office_memorandum = serializers.SerializerMethodField(
         method_name="get_office_memorandum", required=False
     )
@@ -537,11 +544,16 @@ class JobPostingSerializer(serializers.ModelSerializer):
             "job_posting_id",
             "notification_id",
             "notification_title",
-            "description",
+            "ad_approval_id",
+            "pre_ad_description",
+            "post_ad_description",
             "project_number",
             "department",
+            "dept_id",
             "division",
+            "division_id",
             "zonal_lab",
+            "zonal_lab_id",
             "publication_date",
             "end_date",
             "documents_required",
@@ -632,15 +644,9 @@ class JobPostingSerializer(serializers.ModelSerializer):
             else instance.job_type
         )
 
-        department = Department.objects.get(
-            dept_id=validated_data["department"]["dept_id"]
-        )
-        division = Division.objects.get(
-            division_id=validated_data["division"]["division_id"]
-        )
-        zonal_lab = ZonalLab.objects.get(
-            zonal_lab_id=validated_data["zonal_lab"]["zonal_lab_id"]
-        )
+        department = Department.objects.get(dept_id=validated_data["dept_id"])
+        division = Division.objects.get(division_id=validated_data["division_id"])
+        zonal_lab = ZonalLab.objects.get(zonal_lab_id=validated_data["zonal_lab_id"])
         project_number = JobPostingRequirement.objects.get(
             project_number__icontains=validated_data["project_number"]
         )
@@ -696,15 +702,9 @@ class JobPostingSerializer(serializers.ModelSerializer):
         project_number = JobPostingRequirement.objects.get(
             id=validated_data["project_number"]
         )
-        department = Department.objects.get(
-            dept_id=validated_data["department"]["dept_id"]
-        )
-        division = Division.objects.get(
-            division_id=validated_data["division"]["division_id"]
-        )
-        zonal_lab = ZonalLab.objects.get(
-            zonal_lab_id=validated_data["zonal_lab"]["zonal_lab_id"]
-        )
+        department = Department.objects.get(dept_id=validated_data["dept_id"])
+        division = Division.objects.get(division_id=validated_data["division_id"])
+        zonal_lab = ZonalLab.objects.get(zonal_lab_id=validated_data["zonal_lab_id"])
 
         posting.project_number = project_number
         posting.department = department

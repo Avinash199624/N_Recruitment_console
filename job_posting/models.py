@@ -290,7 +290,9 @@ class JobPosting(BaseModel):
     )
     notification_id = models.CharField(max_length=100, null=True, blank=True)
     notification_title = models.CharField(max_length=50, null=True, blank=True)
-    description = models.CharField(max_length=50, null=True, blank=True)
+    ad_approval_id = models.CharField(max_length=50, null=True, blank=True)
+    pre_ad_description = models.TextField(null=True, blank=True)
+    post_ad_description = models.TextField(null=True, blank=True)
     project_number = models.ForeignKey(
         "JobPostingRequirement",
         null=True,
