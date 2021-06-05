@@ -674,7 +674,7 @@ class PermanentPositionMasterSearchListView(ListAPIView):
     filter_backends = [SearchFilter]
     search_fields = (
         "perm_position_master__qualification__qualification",
-        "perm_position_master__position_display_name",
+        "perm_position_master__qualification_desc",
     )
 
 
@@ -766,7 +766,7 @@ class TemporaryPositionMasterSearchListView(ListAPIView):
     filter_backends = [SearchFilter]
     search_fields = (
         "temp_position_master__qualification__qualification",
-        "temp_position_master__position_display_name",
+        "temp_position_master__qualification_desc",
     )
 
 

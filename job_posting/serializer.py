@@ -894,14 +894,48 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
     #     return obj.perm_position.position_id
 
     def save(self, validated_data):
-        print("validated_data------>", validated_data)
-        posi_id = NewPositionMaster.objects.get(
-            position_name=validated_data["perm_position_master"]["position_name"]
+        posi = NewPositionMaster.objects.create(
+            position_name=validated_data["perm_position_master"]["position_name"],
+            position_display_name=validated_data["perm_position_master"]["position_display_name"],
+            min_age=validated_data["perm_position_master"]["min_age"],
+            max_age=validated_data["perm_position_master"]["max_age"],
+            qualification_desc=validated_data["perm_position_master"]["qualification_desc"],
         )
-        print("posi_id------>", posi_id)
+        print("validated_data--------->", validated_data)
+
+        for qualification_data in validated_data["perm_position_master"]["qualification"]:
+            qualification = QualificationMaster.objects.get(
+                qualification_id=qualification_data["qualification_id"]
+            )
+            posi.qualification.add(qualification)
+        print(
+            "validated_data['qualification_job_history']--------->",
+            validated_data["perm_position_master"]["qualification_job_history"],
+        )
+
+        for exp in validated_data["perm_position_master"]["qualification_job_history"]:
+            print("exp--------->", exp)
+            emp_exp = QualificationJobHistoryMaster.objects.get(
+                qualification_job_id=exp["qualification_job_id"]
+            )
+            posi.qualification_job_history.add(emp_exp)
+
+        for info_data in validated_data["perm_position_master"]["information_required"]:
+            info = InformationMaster.objects.get(info_id=info_data["info_id"])
+            posi.information_required.add(info)
+
+        for doc in validated_data["perm_position_master"]["documents_required"]:
+            docs = NewDocumentMaster.objects.get(doc_id=doc["doc_id"])
+            posi.documents_required.add(docs)
+
+        print("validated_data------>", validated_data)
+        # posi_id = NewPositionMaster.objects.get(
+        #     position_name=validated_data["perm_position_master"]["position_name"]
+        # )
+        # print("posi_id------>", posi_id)
 
         posi = PermanentPositionMaster.objects.create(
-            perm_position_master=posi_id,
+            perm_position_master=posi,
             grade=validated_data["grade"],
             level=validated_data["level"],
         )
@@ -910,6 +944,8 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
         return posi.perm_position_id
 
     def update(self, instance, validated_data):
+        print("instance ----->", instance)
+        print("validated_data ---->", validated_data)
         if instance:
             instance.grade = (
                 validated_data["grade"] if validated_data["grade"] else instance.grade
@@ -917,8 +953,142 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
             instance.level = (
                 validated_data["level"] if validated_data["level"] else instance.level
             )
+            # instance.save()
+            print(instance.perm_position_master.position_name)
+            print("validated_data['perm_position_master']['position_name']------------>",validated_data["perm_position_master"]["position_name"])
+            instance.perm_position_master.position_name = (
+                validated_data["perm_position_master"]["position_name"]
+                if validated_data["perm_position_master"]["position_name"]
+                else instance.perm_position_master.position_name
+            )
+
+            instance.perm_position_master.position_display_name = (
+                validated_data["perm_position_master"]["position_display_name"]
+                if validated_data["perm_position_master"]["position_display_name"]
+                else instance.perm_position_master.position_display_name
+            )
+
+            instance.perm_position_master.min_age = (
+                validated_data["perm_position_master"]["min_age"] if validated_data["perm_position_master"]["min_age"] else instance.perm_position_master.min_age
+            )
+
+            instance.perm_position_master.max_age = (
+                validated_data["perm_position_master"]["max_age"] if validated_data["perm_position_master"]["max_age"] else instance.perm_position_master.max_age
+            )
+            instance.perm_position_master.qualification_desc = (
+                validated_data["perm_position_master"]["qualification_desc"] if validated_data["perm_position_master"]["qualification_desc"] else instance.perm_position_master.qualification_desc
+            )
+            instance.perm_position_master.save()
             instance.save()
-        print("Done")
+        posi = NewPositionMaster.objects.get(position_id=validated_data["perm_position_master"]["position_id"])
+        oldqual = posi.qualification.filter()
+        oldexp = posi.qualification_job_history.filter()
+        olddoc = posi.documents_required.filter()
+        oldinfo = posi.information_required.filter()
+        # print(
+        #     "validated_data['perm_position_master']['qualification']---------->",
+        #     validated_data["perm_position_master"]["qualification"],
+        # )
+        if not validated_data["perm_position_master"]["qualification"]:  # working for empty role.
+            for oqual in oldqual:
+                instance.perm_position_master.qualification.remove(oqual)
+                # print("qual deleted")
+
+        for oqual in oldqual:
+            for qual_data in validated_data["perm_position_master"]["qualification"]:
+                # print("qual_data.id-------------->", qual_data["qualification_id"])
+                if str(oqual.qualification_id) != str(
+                        qual_data["qualification_id"]
+                ):  # working deletion now
+                    # print(
+                    #     str(qual_data["qualification_id"])
+                    #     + " != "
+                    #     + str(oqual.qualification_id)
+                    # )
+                    instance.perm_position_master.qualification.remove(oqual)
+
+        for qual_data in validated_data["perm_position_master"]["qualification"]:  # working for addition too.
+            instance.perm_position_master.qualification.add(qual_data["qualification_id"])
+
+        # qualification_job_history
+        # print(
+        #     "validated_data['perm_position_master']['qualification_job_history']---------->",
+        #     validated_data["perm_position_master"]["qualification_job_history"],
+        # )
+        if not validated_data["perm_position_master"]["qualification_job_history"]:  # working for empty role.
+            for oexp in oldexp:
+                instance.perm_position_master.qualification_job_history.remove(oexp)
+                # print("exp deleted")
+
+        for oexp in oldexp:
+            for exp_data in validated_data["perm_position_master"]["qualification_job_history"]:
+                # print(
+                #     "qual_data.qualification_job_id-------------->",
+                #     exp_data["qualification_job_id"],
+                # )
+                if str(oexp.qualification_job_id) != str(
+                        exp_data["qualification_job_id"]
+                ):  # working deletion now
+                    # print(
+                    #     str(exp_data["qualification_job_id"])
+                    #     + " != "
+                    #     + str(oexp.qualification_job_id)
+                    # )
+                    instance.perm_position_master.qualification_job_history.remove(oexp)
+
+        for exp_data in validated_data["perm_position_master"][
+            "qualification_job_history"
+        ]:  # working for addition too.
+            instance.perm_position_master.qualification_job_history.add(exp_data["qualification_job_id"])
+
+        # documents_required
+        # print(
+        #     "validated_data['perm_position_master']['documents_required']---------->",
+        #     validated_data["perm_position_master"]["documents_required"],
+        # )
+        if not validated_data["perm_position_master"]["documents_required"]:  # working for empty role.
+            for odoc in olddoc:
+                instance.perm_position_master.documents_required.remove(odoc)
+                # print("doc deleted")
+
+        for odoc in olddoc:
+            for doc_data in validated_data["perm_position_master"]["documents_required"]:
+                # print("doc_data.doc_id-------------->", doc_data["doc_id"])
+                if str(odoc.doc_id) != str(doc_data["doc_id"]):  # working deletion now
+                    # print(str(doc_data["doc_id"]) + " != " + str(odoc.doc_id))
+                    instance.perm_position_master.documents_required.remove(odoc)
+
+        for doc_data in validated_data["perm_position_master"][
+            "documents_required"
+        ]:  # working for addition too.
+            instance.perm_position_master.documents_required.add(doc_data["doc_id"])
+
+        # information_required
+        # print(
+        #     "validated_data['information_required']---------->",
+        #     validated_data["perm_position_master"]["information_required"],
+        # )
+        if not validated_data["perm_position_master"]["information_required"]:  # working for empty role.
+            for oinfo in oldinfo:
+                instance.perm_position_master.information_required.remove(oinfo)
+                # print("info deleted")
+
+        for oinfo in oldinfo:
+            for info_data in validated_data["perm_position_master"]["information_required"]:
+                # print("doc_data.info_id-------------->", info_data["info_id"])
+                if str(oinfo.info_id) != str(
+                        info_data["info_id"]
+                ):  # working deletion now
+                    # print(str(info_data["info_id"]) + " != " + str(oinfo.info_id))
+                    instance.perm_position_master.information_required.remove(oinfo)
+
+        for info_data in validated_data["perm_position_master"][
+            "information_required"
+        ]:  # working for addition too.
+            instance.perm_position_master.information_required.add(info_data["info_id"])
+
+        instance.save()
+
 
         return instance.perm_position_id
 
@@ -941,40 +1111,239 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
         serializer = NewPositionMasterSerializer(obj.temp_position_master)
         return serializer.data
 
+    # def save(self, validated_data):
+    #     print("validated_data------>", validated_data)
+    #     posi_id = NewPositionMaster.objects.get(
+    #         position_name=validated_data["temp_position_master"]["position_name"]
+    #     )
+    #     print("posi_id------>", posi_id)
+    #
+    #     posi = TemporaryPositionMaster.objects.create(
+    #         temp_position_master=posi_id,
+    #         salary=validated_data["salary"],
+    #         allowance="hra",
+    #     )
+    #     print("Done")
+    #
+    #     return posi.temp_position_id
+
+    # def update(self, instance, validated_data):
+    #     print("validated_data------>", validated_data)
+    #
+    #     if instance:
+    #         instance.salary = (
+    #             validated_data["salary"]
+    #             if validated_data["salary"]
+    #             else instance.salary
+    #         )
+    #         # insta
+    #         # instance.allowance = (
+    #         #     validated_data["allowance"]
+    #         #     if validated_data["allowance"]
+    #         #     else instance.allowance
+    #         # )
+    #         instance.save()
+    #     print("Done")
+    #
+    #     return instance.temp_position_id
+
     def save(self, validated_data):
-        print("validated_data------>", validated_data)
-        posi_id = NewPositionMaster.objects.get(
-            position_name=validated_data["temp_position_master"]["position_name"]
+        posi = NewPositionMaster.objects.create(
+            position_name=validated_data["temp_position_master"]["position_name"],
+            position_display_name=validated_data["temp_position_master"]["position_display_name"],
+            min_age=validated_data["temp_position_master"]["min_age"],
+            max_age=validated_data["temp_position_master"]["max_age"],
+            qualification_desc=validated_data["temp_position_master"]["qualification_desc"],
         )
-        print("posi_id------>", posi_id)
+        print("validated_data--------->", validated_data)
+
+        for qualification_data in validated_data["temp_position_master"]["qualification"]:
+            qualification = QualificationMaster.objects.get(
+                qualification_id=qualification_data["qualification_id"]
+            )
+            posi.qualification.add(qualification)
+        print(
+            "validated_data['qualification_job_history']--------->",
+            validated_data["temp_position_master"]["qualification_job_history"],
+        )
+
+        for exp in validated_data["temp_position_master"]["qualification_job_history"]:
+            print("exp--------->", exp)
+            emp_exp = QualificationJobHistoryMaster.objects.get(
+                qualification_job_id=exp["qualification_job_id"]
+            )
+            posi.qualification_job_history.add(emp_exp)
+
+        for info_data in validated_data["temp_position_master"]["information_required"]:
+            info = InformationMaster.objects.get(info_id=info_data["info_id"])
+            posi.information_required.add(info)
+
+        for doc in validated_data["temp_position_master"]["documents_required"]:
+            docs = NewDocumentMaster.objects.get(doc_id=doc["doc_id"])
+            posi.documents_required.add(docs)
+
+        print("validated_data------>", validated_data)
+        # posi_id = NewPositionMaster.objects.get(
+        #     position_name=validated_data["temp_position_master"]["position_name"]
+        # )
+        # print("posi_id------>", posi_id)
 
         posi = TemporaryPositionMaster.objects.create(
-            temp_position_master=posi_id,
+            temp_position_master=posi,
             salary=validated_data["salary"],
-            allowance=validated_data["allowance"],
+            allowance="hra",
         )
         print("Done")
 
         return posi.temp_position_id
 
-    def update(self, instance, validated_data):
-        print("validated_data------>", validated_data)
 
+    def update(self, instance, validated_data):
+        print("instance ----->", instance)
+        print("validated_data ---->", validated_data)
         if instance:
             instance.salary = (
-                validated_data["salary"]
-                if validated_data["salary"]
-                else instance.salary
+                validated_data["salary"] if validated_data["salary"] else instance.salary
             )
-            instance.allowance = (
-                validated_data["allowance"]
-                if validated_data["allowance"]
-                else instance.allowance
+            # for base table entry
+            print(instance.temp_position_master.position_name)
+            print("validated_data['temp_position_master']['position_name']------------>",validated_data["temp_position_master"]["position_name"])
+            instance.temp_position_master.position_name = (
+                validated_data["temp_position_master"]["position_name"]
+                if validated_data["temp_position_master"]["position_name"]
+                else instance.temp_position_master.position_name
             )
+
+            instance.temp_position_master.position_display_name = (
+                validated_data["temp_position_master"]["position_display_name"]
+                if validated_data["temp_position_master"]["position_display_name"]
+                else instance.temp_position_master.position_display_name
+            )
+
+            instance.temp_position_master.min_age = (
+                validated_data["temp_position_master"]["min_age"] if validated_data["temp_position_master"]["min_age"] else instance.temp_position_master.min_age
+            )
+
+            instance.temp_position_master.max_age = (
+                validated_data["temp_position_master"]["max_age"] if validated_data["temp_position_master"]["max_age"] else instance.temp_position_master.max_age
+            )
+            instance.temp_position_master.qualification_desc = (
+                validated_data["temp_position_master"]["qualification_desc"] if validated_data["temp_position_master"]["qualification_desc"] else instance.temp_position_master.qualification_desc
+            )
+            instance.temp_position_master.save()
             instance.save()
-        print("Done")
+        posi = NewPositionMaster.objects.get(position_id=validated_data["temp_position_master"]["position_id"])
+        oldqual = posi.qualification.filter()
+        oldexp = posi.qualification_job_history.filter()
+        olddoc = posi.documents_required.filter()
+        oldinfo = posi.information_required.filter()
+        # print(
+        #     "validated_data['temp_position_master']['qualification']---------->",
+        #     validated_data["temp_position_master"]["qualification"],
+        # )
+        if not validated_data["temp_position_master"]["qualification"]:  # working for empty role.
+            for oqual in oldqual:
+                instance.temp_position_master.qualification.remove(oqual)
+                # print("qual deleted")
+
+        for oqual in oldqual:
+            for qual_data in validated_data["temp_position_master"]["qualification"]:
+                # print("qual_data.id-------------->", qual_data["qualification_id"])
+                if str(oqual.qualification_id) != str(
+                        qual_data["qualification_id"]
+                ):  # working deletion now
+                    # print(
+                    #     str(qual_data["qualification_id"])
+                    #     + " != "
+                    #     + str(oqual.qualification_id)
+                    # )
+                    instance.temp_position_master.qualification.remove(oqual)
+
+        for qual_data in validated_data["temp_position_master"]["qualification"]:  # working for addition too.
+            instance.temp_position_master.qualification.add(qual_data["qualification_id"])
+
+        # qualification_job_history
+        # print(
+        #     "validated_data['temp_position_master']['qualification_job_history']---------->",
+        #     validated_data["temp_position_master"]["qualification_job_history"],
+        # )
+        if not validated_data["temp_position_master"]["qualification_job_history"]:  # working for empty role.
+            for oexp in oldexp:
+                instance.temp_position_master.qualification_job_history.remove(oexp)
+                # print("exp deleted")
+
+        for oexp in oldexp:
+            for exp_data in validated_data["temp_position_master"]["qualification_job_history"]:
+                # print(
+                #     "qual_data.qualification_job_id-------------->",
+                #     exp_data["qualification_job_id"],
+                # )
+                if str(oexp.qualification_job_id) != str(
+                        exp_data["qualification_job_id"]
+                ):  # working deletion now
+                    # print(
+                    #     str(exp_data["qualification_job_id"])
+                    #     + " != "
+                    #     + str(oexp.qualification_job_id)
+                    # )
+                    instance.temp_position_master.qualification_job_history.remove(oexp)
+
+        for exp_data in validated_data["temp_position_master"][
+            "qualification_job_history"
+        ]:  # working for addition too.
+            instance.temp_position_master.qualification_job_history.add(exp_data["qualification_job_id"])
+
+        # documents_required
+        # print(
+        #     "validated_data['temp_position_master']['documents_required']---------->",
+        #     validated_data["temp_position_master"]["documents_required"],
+        # )
+        if not validated_data["temp_position_master"]["documents_required"]:  # working for empty role.
+            for odoc in olddoc:
+                instance.temp_position_master.documents_required.remove(odoc)
+                # print("doc deleted")
+
+        for odoc in olddoc:
+            for doc_data in validated_data["temp_position_master"]["documents_required"]:
+                # print("doc_data.doc_id-------------->", doc_data["doc_id"])
+                if str(odoc.doc_id) != str(doc_data["doc_id"]):  # working deletion now
+                    # print(str(doc_data["doc_id"]) + " != " + str(odoc.doc_id))
+                    instance.temp_position_master.documents_required.remove(odoc)
+
+        for doc_data in validated_data["temp_position_master"][
+            "documents_required"
+        ]:  # working for addition too.
+            instance.temp_position_master.documents_required.add(doc_data["doc_id"])
+
+        # information_required
+        # print(
+        #     "validated_data['information_required']---------->",
+        #     validated_data["temp_position_master"]["information_required"],
+        # )
+        if not validated_data["temp_position_master"]["information_required"]:  # working for empty role.
+            for oinfo in oldinfo:
+                instance.temp_position_master.information_required.remove(oinfo)
+                # print("info deleted")
+
+        for oinfo in oldinfo:
+            for info_data in validated_data["temp_position_master"]["information_required"]:
+                # print("doc_data.info_id-------------->", info_data["info_id"])
+                if str(oinfo.info_id) != str(
+                        info_data["info_id"]
+                ):  # working deletion now
+                    # print(str(info_data["info_id"]) + " != " + str(oinfo.info_id))
+                    instance.temp_position_master.information_required.remove(oinfo)
+
+        for info_data in validated_data["temp_position_master"][
+            "information_required"
+        ]:  # working for addition too.
+            instance.temp_position_master.information_required.add(info_data["info_id"])
+
+        instance.save()
+
 
         return instance.temp_position_id
+
 
 
 # NewPositionMaster
@@ -1028,6 +1397,7 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
             "position_display_name",
             "min_age",
             "max_age",
+            "qualification_desc",
             "documents_required",
             "information_required",
             "qualification",
@@ -1061,6 +1431,7 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
             position_display_name=validated_data["position_display_name"],
             min_age=validated_data["min_age"],
             max_age=validated_data["max_age"],
+            qualification_desc=validated_data["qualification_desc"],
         )
 
         # position = PositionMaster.objects.get(position_id=validated_data['position']['position_id'])
@@ -1117,6 +1488,9 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
 
         instance.max_age = (
             validated_data["max_age"] if validated_data["max_age"] else instance.max_age
+        )
+        instance.qualification_desc = (
+            validated_data["qualification_desc"] if validated_data["qualification_desc"] else instance.qualification_desc
         )
 
         instance.save()
