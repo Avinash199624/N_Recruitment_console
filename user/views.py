@@ -1514,7 +1514,7 @@ class FileUpload(APIView):
             )
             temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}applicant_documents/{user.user_id}/{filename}"
             doc = UserDocuments.objects.create(
-                doc_file_path=temp_path, doc_name=file.name
+                doc_file_path=temp_path, doc_name=filename
             )
 
         elif doc_type == "office_memo":
@@ -1524,12 +1524,22 @@ class FileUpload(APIView):
                 f"{settings.MEDIA_ROOT}/job_posting_documents/{job_posting.job_posting_id}/{filename}",
                 ContentFile(file.read()),
             )
-            temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}job_posting_documents/{job_posting.job_posting_id}/{filename})"
+            temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}job_posting_documents/{job_posting.job_posting_id}/{filename}"
             doc = JobDocuments.objects.create(
-                doc_file_path=temp_path, doc_name=file.name
+                doc_file_path=temp_path, doc_name=filename
             )
             job_posting.office_memorandum = doc
             job_posting.save()
+
+        elif doc_type == "job_docs":
+            default_storage.save(
+                f"{settings.MEDIA_ROOT}/job_posting_documents/{filename}",
+                ContentFile(file.read()),
+            )
+            temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}job_posting_documents/{filename}"
+            doc = JobDocuments.objects.create(
+                doc_file_path=temp_path, doc_name=filename
+            )
 
         return Response(
             data={

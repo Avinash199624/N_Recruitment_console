@@ -580,7 +580,7 @@ class JobPostingSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def get_project_number(self, obj):
-        return obj.project_number.project_number
+        return None  # obj.project_number.project_number
 
     def get_manpower_positions(self, obj):
         positions = obj.manpower_positions.filter()
@@ -616,10 +616,16 @@ class JobPostingSerializer(serializers.ModelSerializer):
             else instance.notification_title
         )
 
-        instance.description = (
-            validated_data["description"]
-            if validated_data["description"]
-            else instance.description
+        instance.pre_ad_description = (
+            validated_data["pre_ad_description"]
+            if validated_data["pre_ad_description"]
+            else instance.pre_ad_description
+        )
+
+        instance.post_ad_description = (
+            validated_data["post_ad_description"]
+            if validated_data["post_ad_description"]
+            else instance.post_ad_description
         )
 
         instance.publication_date = (
@@ -647,9 +653,9 @@ class JobPostingSerializer(serializers.ModelSerializer):
         department = Department.objects.get(dept_id=validated_data["dept_id"])
         division = Division.objects.get(division_id=validated_data["division_id"])
         zonal_lab = ZonalLab.objects.get(zonal_lab_id=validated_data["zonal_lab_id"])
-        project_number = JobPostingRequirement.objects.get(
-            project_number__icontains=validated_data["project_number"]
-        )
+        # project_number = JobPostingRequirement.objects.get(
+        #     project_number__icontains=validated_data["project_number"]
+        # )
 
         if instance.department == department:
             pass
@@ -666,13 +672,12 @@ class JobPostingSerializer(serializers.ModelSerializer):
         else:
             instance.zonal_lab = zonal_lab
 
-        if instance.project_number == project_number:
-            pass
-        else:
-            instance.project_number = project_number
+        # if instance.project_number == project_number:
+        #     pass
+        # else:
+        #     instance.project_number = project_number
 
         instance.save()
-
         return instance.job_posting_id
 
     def save(self, validated_data):
@@ -680,7 +685,8 @@ class JobPostingSerializer(serializers.ModelSerializer):
         posting = JobPosting.objects.create(
             notification_id=validated_data["notification_id"],
             notification_title=validated_data["notification_title"],
-            description=validated_data["description"],
+            pre_ad_description=validated_data["pre_ad_description"],
+            post_ad_description=validated_data["post_ad_description"],
             publication_date=validated_data["publication_date"],
             end_date=validated_data["end_date"],
             status=validated_data["status"],
@@ -694,19 +700,30 @@ class JobPostingSerializer(serializers.ModelSerializer):
             posting.manpower_positions.add(position_qualification_mapping)
 
         for documents_required_data in validated_data["documents_required"]:
-            document_required = NewDocumentMaster.objects.get(
-                doc_id=documents_required_data["doc_id"]
+            document_required, created = NewDocumentMaster.objects.get(
+                doc_id=documents_required_data["doc_id"], defaults={}
             )
             posting.documents_required.add(document_required)
 
-        project_number = JobPostingRequirement.objects.get(
-            id=validated_data["project_number"]
-        )
+        for document_uploaded in validated_data["documents_uploaded"]:
+            job_doc, created = JobDocuments.objects.get_or_create(
+                doc_id=document_uploaded["doc_id"],
+                defaults={
+                    "doc_file_path": document_uploaded["doc_file_path"],
+                    "doc_name": document_uploaded["doc_name"],
+                },
+            )
+            if created:
+                posting.documents_uploaded.add(job_doc)
+
+        # project_number = JobPostingRequirement.objects.get(
+        #     id=validated_data["project_number"]
+        # )
         department = Department.objects.get(dept_id=validated_data["dept_id"])
         division = Division.objects.get(division_id=validated_data["division_id"])
         zonal_lab = ZonalLab.objects.get(zonal_lab_id=validated_data["zonal_lab_id"])
 
-        posting.project_number = project_number
+        # posting.project_number = project_number
         posting.department = department
         posting.division = division
         posting.zonal_lab = zonal_lab

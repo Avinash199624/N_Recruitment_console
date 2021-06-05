@@ -1,3 +1,4 @@
+from django.db.transaction import atomic
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
@@ -407,17 +408,24 @@ class JobTemplateCreateView(APIView):
 
 
 class JobPostingCreateView(APIView):
+    @atomic
     def post(self, request, *args, **kwargs):
-        data = self.request.data
-        serializer = JobPostingSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        result = serializer.save(validated_data=data)
-        job_posting = JobPosting.objects.get(job_posting_id=result)
-        serializer = JobPostingSerializer(job_posting)
-        return Response(serializer.data, status=200)
+        try:
+            data = self.request.data
+            serializer = JobPostingSerializer(data=data)
+            if serializer.is_valid():
+                result = serializer.save(validated_data=data)
+                job_posting = JobPosting.objects.get(job_posting_id=result)
+                serializer = JobPostingSerializer(job_posting)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"errors": serializer.errors})
+        except Exception as e:
+            return Response(data={"errors": str(e)})
 
 
 class JobPostingUpdateView(APIView):
+    @atomic
     def put(self, request, *args, **kwargs):
         data = self.request.data
         job_posting_id = self.kwargs["id"]

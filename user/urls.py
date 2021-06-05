@@ -103,7 +103,7 @@ urlpatterns = [
     path('public/profile_details/<uuid:id>/', ProfileDetailView.as_view(), name="user-profile-details"),
     path('public/applicant_list/', ApplicantListView.as_view(), name="applicant-list"),
 
-    path('public/file_upload/',FileUpload.as_view(), name="file_upload"),
+    path('public/file_upload/', FileUpload.as_view(), name="file_upload"),
     path('public/compare_applicants_for_job/', CompareApplicantListView.as_view(), name="compare-applicants-for-job"),
     path('public/role_master/', RoleMasterView.as_view(), name="role-master-list"),
     path('mentor/', MentorMasterListView.as_view(), name="mentor-list"),
