@@ -925,20 +925,25 @@ class ApplicantExperiencesListView(APIView):
         id = self.kwargs["id"]
         user = User.objects.get(user_id=id)
         try:
-            if user.user_profile.experiences.filter(is_deleted=False).count() > 0:
-                experiences = user.user_profile.experiences.filter(is_deleted=False)
-                serializer = UserExperienceDetailsSerializer(experiences, many=True)
-                return Response(serializer.data, status=200)
+            if not user.user_profile.is_fresher:
+                if user.user_profile.experiences.filter(is_deleted=False).count() > 0:
+                    experiences = user.user_profile.experiences.filter(is_deleted=False)
+                    serializer = UserExperienceDetailsSerializer(experiences, many=True)
+                    return Response(serializer.data, status=200)
+                else:
+                    return Response(data={"message": "User Experiences not found", "isEmpty": "true"}, status=200)
             else:
-                return Response(
-                    data={"messege": "User Experiences not found", "isEmpty": "true"},
-                    status=200,
-                )
+                experiences = user.user_profile.experiences.filter(is_deleted=False)
+                print("experiences ------------------>", experiences)
+                for experience_data in experiences:
+                    print("experience_data------------------>", experience_data)
+                    experience = user.user_profile.experiences.update(is_deleted=True)
+                    print("experiences zero------------------>", experience)
+                    experience.is_deleted = True
+                    experience.save()
+                return Response(data={"message": "User is not an Experienced Candidate.", "isEmpty": "true"}, status=200)
         except:
-            return Response(
-                data={"messege": "User Experiences not found", "isEmpty": "true"},
-                status=200,
-            )
+            return Response(data={"message": "User Experiences not found", "isEmpty": "true"}, status=200)
 
 
 class ApplicantExperienceUpdateView(APIView):

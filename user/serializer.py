@@ -805,8 +805,14 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         method_name="get_first_name", read_only=True
     )
 
-    nationality = serializers.SerializerMethodField(
-        method_name="get_nationality", read_only=True
+    # nationality = serializers.SerializerMethodField(
+    #     method_name="get_nationality", read_only=True
+    # )
+    relaxation_rule = serializers.SerializerMethodField(
+        method_name="get_relaxation_rules", read_only=True
+    )
+    is_fresher = serializers.SerializerMethodField(
+        method_name="get_is_fresher", read_only=True
     )
 
     class Meta:
@@ -832,17 +838,26 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             "passport_number",
             "passport_expiry",
             "fax_number",
-            "nationality",
+            # "nationality",
+            "relaxation_rule",
             "is_indian_citizen",
             "profile_photo",
             "whatsapp_id",
             "skype_id",
+            "is_fresher",
         )
 
     def get_user_id(self, obj):
         try:
             user_id = obj.user.user_id
             return user_id
+        except:
+            return None
+
+    def get_is_fresher(self, obj):
+        try:
+            is_fresher = obj.is_fresher
+            return is_fresher
         except:
             return None
 
@@ -1012,12 +1027,16 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         except:
             return None
 
-    def get_nationality(self,obj):
-        try:
-            nationality = obj.nationality
-            return nationality
-        except:
-            return None
+    # def get_nationality(self,obj):
+    #     try:
+    #         nationality = obj.nationality
+    #         return nationality
+    #     except:
+    #         return None
+
+    def get_relaxation_rules(self, obj):
+        serializer = RelaxationMasterSerializer(obj.relaxation_rule)
+        return serializer.data
 
     def update(self, instance, validated_data):
 
@@ -1089,8 +1108,11 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             validated_data["is_indian_citizen"] if validated_data["is_indian_citizen"] else instance.is_indian_citizen
         )
 
-        instance.nationality = (
-            validated_data["nationality"] if validated_data["nationality"] else instance.nationality
+        # instance.nationality = (
+        #     validated_data["nationality"] if validated_data["nationality"] else instance.nationality
+        # )
+        instance.is_fresher = (
+            validated_data["is_fresher"] if validated_data["is_fresher"] else instance.is_fresher
         )
 
         instance.user.first_name = (
@@ -1104,9 +1126,12 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         instance.user.middle_name = (
             validated_data["middle_name"] if validated_data["middle_name"] else instance.user.middle_name
         )
-
+        instance.is_fresher = validated_data["is_fresher"]
         instance.is_indian_citizen = validated_data["is_indian_citizen"]
         instance.user.save()
+        relaxation_rule = RelaxationMaster.objects.get(
+            relaxation__relaxation_category=validated_data['relaxation_rule']['relaxation']['relaxation_category'])
+        instance.relaxation_rule = relaxation_rule
         instance.save()
 
         # if instance.local_address:
@@ -1318,12 +1343,17 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             is_indian_citizen = validated_data['is_indian_citizen'] if 'is_indian_citizen' in validated_data else None,
             whatsapp_id = validated_data['whatsapp_id'] if 'whatsapp_id' in validated_data else None,
             skype_id = validated_data['skype_id'] if 'skype_id' in validated_data else None,
-            nationality = validated_data['nationality'] if 'nationality' in validated_data else None,
+            is_fresher = validated_data['is_fresher'] if 'is_fresher' in validated_data else None,
+            # nationality = validated_data['nationality'] if 'nationality' in validated_data else None,
             # local_address = local_address if local_address else None,
             # permanent_address = permanent_address if local_address else None,
             # father_address = father_address if local_address else None,
         )
-        return user_profile
+        relaxation_rule = RelaxationMaster.objects.get(relaxation__relaxation_category=validated_data['relaxation_rule'])
+        user_profile.relaxation_rule = relaxation_rule
+        user_profile.save()
+
+        return user_profile.user.user_id
 
 
 # class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
@@ -2463,7 +2493,7 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def get_languages(self,obj):
-        languages = obj.languages.filter()
+        languages = obj.languages.filte
         serializer = LanguagesSerializer(languages,many=True)
         return serializer.data
 

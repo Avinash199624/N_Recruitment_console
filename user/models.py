@@ -192,7 +192,9 @@ class UserProfile(BaseModel):
     is_indian_citizen = models.BooleanField(blank=True, null=True, default=True)
     whatsapp_id = models.CharField(max_length=50, null=True, blank=True)
     skype_id = models.CharField(max_length=50, null=True, blank=True)
-    nationality = models.CharField(max_length=50, null=True, blank=True)
+    # nationality = models.CharField(max_length=50, null=True, blank=True)
+    relaxation_rule = models.ForeignKey('user.RelaxationMaster', on_delete=models.CASCADE, null=True, blank=True, related_name="m_relaxation_rules")
+
     roles = models.ManyToManyField('user.RoleMaster', blank=True, null=True, related_name="user_roles")
     neeri_relation = models.ManyToManyField('NeeriRelation', blank=True, related_name="neeri_relations")
     documents = models.ManyToManyField('user.UserDocuments', blank=True, null=True, related_name="documents")
@@ -210,6 +212,7 @@ class UserProfile(BaseModel):
                                                     related_name="professional_tarinings")
     other_info = models.OneToOneField('user.OtherInformation', on_delete=models.CASCADE, blank=True, null=True,
                                       related_name="other_info")
+    is_fresher = models.BooleanField(blank=True, null=True, default=False)
 
     @property
     def profile_percentage(self):
@@ -624,5 +627,5 @@ class RelaxationMaster(BaseModel):
     fee_relaxation = models.PositiveIntegerField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.relaxation_rule_id)
+        return self.relaxation.relaxation_category
 
