@@ -76,6 +76,7 @@ class NewPositionMaster(BaseModel):
     position_display_name = models.CharField(max_length=300, null=True, blank=True)
     min_age = models.PositiveIntegerField(blank=True, null=True)
     max_age = models.PositiveIntegerField(blank=True, null=True)
+    qualification_desc = models.TextField(null=True, blank=True)
     documents_required = models.ManyToManyField(
         "document.NewDocumentMaster",
         blank=True,

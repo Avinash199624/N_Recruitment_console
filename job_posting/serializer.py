@@ -882,6 +882,7 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
             position_display_name=validated_data["perm_position_master"]["position_display_name"],
             min_age=validated_data["perm_position_master"]["min_age"],
             max_age=validated_data["perm_position_master"]["max_age"],
+            qualification_desc=validated_data["perm_position_master"]["qualification_desc"],
         )
         print("validated_data--------->", validated_data)
 
@@ -956,6 +957,9 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
 
             instance.perm_position_master.max_age = (
                 validated_data["perm_position_master"]["max_age"] if validated_data["perm_position_master"]["max_age"] else instance.perm_position_master.max_age
+            )
+            instance.perm_position_master.qualification_desc = (
+                validated_data["perm_position_master"]["qualification_desc"] if validated_data["perm_position_master"]["qualification_desc"] else instance.perm_position_master.qualification_desc
             )
             instance.perm_position_master.save()
             instance.save()
@@ -1132,6 +1136,7 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
             position_display_name=validated_data["temp_position_master"]["position_display_name"],
             min_age=validated_data["temp_position_master"]["min_age"],
             max_age=validated_data["temp_position_master"]["max_age"],
+            qualification_desc=validated_data["temp_position_master"]["qualification_desc"],
         )
         print("validated_data--------->", validated_data)
 
@@ -1204,6 +1209,9 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
 
             instance.temp_position_master.max_age = (
                 validated_data["temp_position_master"]["max_age"] if validated_data["temp_position_master"]["max_age"] else instance.temp_position_master.max_age
+            )
+            instance.temp_position_master.qualification_desc = (
+                validated_data["temp_position_master"]["qualification_desc"] if validated_data["temp_position_master"]["qualification_desc"] else instance.temp_position_master.qualification_desc
             )
             instance.temp_position_master.save()
             instance.save()
@@ -1372,6 +1380,7 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
             "position_display_name",
             "min_age",
             "max_age",
+            "qualification_desc",
             "documents_required",
             "information_required",
             "qualification",
@@ -1405,6 +1414,7 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
             position_display_name=validated_data["position_display_name"],
             min_age=validated_data["min_age"],
             max_age=validated_data["max_age"],
+            qualification_desc=validated_data["qualification_desc"],
         )
 
         # position = PositionMaster.objects.get(position_id=validated_data['position']['position_id'])
@@ -1461,6 +1471,9 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
 
         instance.max_age = (
             validated_data["max_age"] if validated_data["max_age"] else instance.max_age
+        )
+        instance.qualification_desc = (
+            validated_data["qualification_desc"] if validated_data["qualification_desc"] else instance.qualification_desc
         )
 
         instance.save()
