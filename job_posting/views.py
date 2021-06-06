@@ -1,6 +1,6 @@
 from django.db.transaction import atomic
 from rest_framework.filters import SearchFilter
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
@@ -424,18 +424,11 @@ class JobPostingCreateView(APIView):
             return Response(data={"errors": str(e)})
 
 
-class JobPostingUpdateView(APIView):
-    @atomic
-    def put(self, request, *args, **kwargs):
-        data = self.request.data
-        job_posting_id = self.kwargs["id"]
-        job_posting = JobPosting.objects.get(job_posting_id=job_posting_id)
-        serializer = JobPostingSerializer(job_posting, data=data)
-        serializer.is_valid(raise_exception=True)
-        result = serializer.update(job_posting, validated_data=data)
-        job_posting = JobPosting.objects.get(job_posting_id=result)
-        serializer = JobPostingSerializer(job_posting)
-        return Response(serializer.data, status=200)
+class JobPostingDetailView(RetrieveUpdateAPIView):
+    queryset = JobPosting.objects.all()
+    serializer_class = JobPostingSerializer
+    lookup_field = "job_posting_id"
+    lookup_url_kwarg = "id"
 
 
 class GetSelectionContent(APIView):

@@ -12,7 +12,7 @@ from job_posting.views import (
     DeleteQualificationMasterView,
     QualificationMasterListView,
     JobPostingCreateView,
-    JobPostingUpdateView,
+    JobPostingDetailView,
     CreateProjectRequirementView,
     UpdateProjectRequirementView,
     DeleteProjectRequirementView,
@@ -31,10 +31,19 @@ from job_posting.views import (
     ProjectApprovalStatusListView,
     QualificationJobHistoryMasterView,
     PublicJobPostingView,
-    ApplicantJobPositions, QualificationMasterSearchListView, QualificationJobHistoryMasterSearchListView,
-    ProjectApprovalFilterListView, ProjectApprovalSearchListView, TemporaryPositionMasterSearchListView,
-    TemporaryPositionMasterFilterListView, PermanentPositionMasterFilterListView, PermanentPositionMasterSearchListView,
-    JobPostingSearchListView, JobPostingFilterListView, PublicJobPostingFilterListView, PublicJobPostingSearchListView,
+    ApplicantJobPositions,
+    QualificationMasterSearchListView,
+    QualificationJobHistoryMasterSearchListView,
+    ProjectApprovalFilterListView,
+    ProjectApprovalSearchListView,
+    TemporaryPositionMasterSearchListView,
+    TemporaryPositionMasterFilterListView,
+    PermanentPositionMasterFilterListView,
+    PermanentPositionMasterSearchListView,
+    JobPostingSearchListView,
+    JobPostingFilterListView,
+    PublicJobPostingFilterListView,
+    PublicJobPostingSearchListView,
 )
 
 urlpatterns = [
@@ -161,8 +170,8 @@ urlpatterns = [
         "job_posting_create/", JobPostingCreateView.as_view(), name="job-posting-create"
     ),
     path(
-        "job_posting_update/<uuid:id>/",
-        JobPostingUpdateView.as_view(),
+        "job_posting/<uuid:id>/",
+        JobPostingDetailView.as_view(),
         name="job-posting-update",
     ),
     path(
