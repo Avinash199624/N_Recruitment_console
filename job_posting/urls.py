@@ -170,9 +170,9 @@ urlpatterns = [
         "job_posting_create/", JobPostingCreateView.as_view(), name="job-posting-create"
     ),
     path(
-        "job_posting/<uuid:id>/",
+        "detail/<uuid:id>/",
         JobPostingDetailView.as_view(),
-        name="job-posting-update",
+        name="job-posting-detail",
     ),
     path(
         "filter_job_posting_list/",
