@@ -678,7 +678,7 @@ class JobPostingSerializer(serializers.ModelSerializer):
         #     instance.project_number = project_number
 
         instance.save()
-        return instance.job_posting_id
+        return validated_data
 
     def save(self, validated_data):
 
@@ -896,14 +896,20 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
     def save(self, validated_data):
         posi = NewPositionMaster.objects.create(
             position_name=validated_data["perm_position_master"]["position_name"],
-            position_display_name=validated_data["perm_position_master"]["position_display_name"],
+            position_display_name=validated_data["perm_position_master"][
+                "position_display_name"
+            ],
             min_age=validated_data["perm_position_master"]["min_age"],
             max_age=validated_data["perm_position_master"]["max_age"],
-            qualification_desc=validated_data["perm_position_master"]["qualification_desc"],
+            qualification_desc=validated_data["perm_position_master"][
+                "qualification_desc"
+            ],
         )
         print("validated_data--------->", validated_data)
 
-        for qualification_data in validated_data["perm_position_master"]["qualification"]:
+        for qualification_data in validated_data["perm_position_master"][
+            "qualification"
+        ]:
             qualification = QualificationMaster.objects.get(
                 qualification_id=qualification_data["qualification_id"]
             )
@@ -955,7 +961,10 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
             )
             # instance.save()
             print(instance.perm_position_master.position_name)
-            print("validated_data['perm_position_master']['position_name']------------>",validated_data["perm_position_master"]["position_name"])
+            print(
+                "validated_data['perm_position_master']['position_name']------------>",
+                validated_data["perm_position_master"]["position_name"],
+            )
             instance.perm_position_master.position_name = (
                 validated_data["perm_position_master"]["position_name"]
                 if validated_data["perm_position_master"]["position_name"]
@@ -969,18 +978,26 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
             )
 
             instance.perm_position_master.min_age = (
-                validated_data["perm_position_master"]["min_age"] if validated_data["perm_position_master"]["min_age"] else instance.perm_position_master.min_age
+                validated_data["perm_position_master"]["min_age"]
+                if validated_data["perm_position_master"]["min_age"]
+                else instance.perm_position_master.min_age
             )
 
             instance.perm_position_master.max_age = (
-                validated_data["perm_position_master"]["max_age"] if validated_data["perm_position_master"]["max_age"] else instance.perm_position_master.max_age
+                validated_data["perm_position_master"]["max_age"]
+                if validated_data["perm_position_master"]["max_age"]
+                else instance.perm_position_master.max_age
             )
             instance.perm_position_master.qualification_desc = (
-                validated_data["perm_position_master"]["qualification_desc"] if validated_data["perm_position_master"]["qualification_desc"] else instance.perm_position_master.qualification_desc
+                validated_data["perm_position_master"]["qualification_desc"]
+                if validated_data["perm_position_master"]["qualification_desc"]
+                else instance.perm_position_master.qualification_desc
             )
             instance.perm_position_master.save()
             instance.save()
-        posi = NewPositionMaster.objects.get(position_id=validated_data["perm_position_master"]["position_id"])
+        posi = NewPositionMaster.objects.get(
+            position_id=validated_data["perm_position_master"]["position_id"]
+        )
         oldqual = posi.qualification.filter()
         oldexp = posi.qualification_job_history.filter()
         olddoc = posi.documents_required.filter()
@@ -989,7 +1006,9 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
         #     "validated_data['perm_position_master']['qualification']---------->",
         #     validated_data["perm_position_master"]["qualification"],
         # )
-        if not validated_data["perm_position_master"]["qualification"]:  # working for empty role.
+        if not validated_data["perm_position_master"][
+            "qualification"
+        ]:  # working for empty role.
             for oqual in oldqual:
                 instance.perm_position_master.qualification.remove(oqual)
                 # print("qual deleted")
@@ -998,7 +1017,7 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
             for qual_data in validated_data["perm_position_master"]["qualification"]:
                 # print("qual_data.id-------------->", qual_data["qualification_id"])
                 if str(oqual.qualification_id) != str(
-                        qual_data["qualification_id"]
+                    qual_data["qualification_id"]
                 ):  # working deletion now
                     # print(
                     #     str(qual_data["qualification_id"])
@@ -1007,27 +1026,35 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
                     # )
                     instance.perm_position_master.qualification.remove(oqual)
 
-        for qual_data in validated_data["perm_position_master"]["qualification"]:  # working for addition too.
-            instance.perm_position_master.qualification.add(qual_data["qualification_id"])
+        for qual_data in validated_data["perm_position_master"][
+            "qualification"
+        ]:  # working for addition too.
+            instance.perm_position_master.qualification.add(
+                qual_data["qualification_id"]
+            )
 
         # qualification_job_history
         # print(
         #     "validated_data['perm_position_master']['qualification_job_history']---------->",
         #     validated_data["perm_position_master"]["qualification_job_history"],
         # )
-        if not validated_data["perm_position_master"]["qualification_job_history"]:  # working for empty role.
+        if not validated_data["perm_position_master"][
+            "qualification_job_history"
+        ]:  # working for empty role.
             for oexp in oldexp:
                 instance.perm_position_master.qualification_job_history.remove(oexp)
                 # print("exp deleted")
 
         for oexp in oldexp:
-            for exp_data in validated_data["perm_position_master"]["qualification_job_history"]:
+            for exp_data in validated_data["perm_position_master"][
+                "qualification_job_history"
+            ]:
                 # print(
                 #     "qual_data.qualification_job_id-------------->",
                 #     exp_data["qualification_job_id"],
                 # )
                 if str(oexp.qualification_job_id) != str(
-                        exp_data["qualification_job_id"]
+                    exp_data["qualification_job_id"]
                 ):  # working deletion now
                     # print(
                     #     str(exp_data["qualification_job_id"])
@@ -1039,20 +1066,26 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
         for exp_data in validated_data["perm_position_master"][
             "qualification_job_history"
         ]:  # working for addition too.
-            instance.perm_position_master.qualification_job_history.add(exp_data["qualification_job_id"])
+            instance.perm_position_master.qualification_job_history.add(
+                exp_data["qualification_job_id"]
+            )
 
         # documents_required
         # print(
         #     "validated_data['perm_position_master']['documents_required']---------->",
         #     validated_data["perm_position_master"]["documents_required"],
         # )
-        if not validated_data["perm_position_master"]["documents_required"]:  # working for empty role.
+        if not validated_data["perm_position_master"][
+            "documents_required"
+        ]:  # working for empty role.
             for odoc in olddoc:
                 instance.perm_position_master.documents_required.remove(odoc)
                 # print("doc deleted")
 
         for odoc in olddoc:
-            for doc_data in validated_data["perm_position_master"]["documents_required"]:
+            for doc_data in validated_data["perm_position_master"][
+                "documents_required"
+            ]:
                 # print("doc_data.doc_id-------------->", doc_data["doc_id"])
                 if str(odoc.doc_id) != str(doc_data["doc_id"]):  # working deletion now
                     # print(str(doc_data["doc_id"]) + " != " + str(odoc.doc_id))
@@ -1068,16 +1101,20 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
         #     "validated_data['information_required']---------->",
         #     validated_data["perm_position_master"]["information_required"],
         # )
-        if not validated_data["perm_position_master"]["information_required"]:  # working for empty role.
+        if not validated_data["perm_position_master"][
+            "information_required"
+        ]:  # working for empty role.
             for oinfo in oldinfo:
                 instance.perm_position_master.information_required.remove(oinfo)
                 # print("info deleted")
 
         for oinfo in oldinfo:
-            for info_data in validated_data["perm_position_master"]["information_required"]:
+            for info_data in validated_data["perm_position_master"][
+                "information_required"
+            ]:
                 # print("doc_data.info_id-------------->", info_data["info_id"])
                 if str(oinfo.info_id) != str(
-                        info_data["info_id"]
+                    info_data["info_id"]
                 ):  # working deletion now
                     # print(str(info_data["info_id"]) + " != " + str(oinfo.info_id))
                     instance.perm_position_master.information_required.remove(oinfo)
@@ -1088,7 +1125,6 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
             instance.perm_position_master.information_required.add(info_data["info_id"])
 
         instance.save()
-
 
         return instance.perm_position_id
 
@@ -1150,14 +1186,20 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
     def save(self, validated_data):
         posi = NewPositionMaster.objects.create(
             position_name=validated_data["temp_position_master"]["position_name"],
-            position_display_name=validated_data["temp_position_master"]["position_display_name"],
+            position_display_name=validated_data["temp_position_master"][
+                "position_display_name"
+            ],
             min_age=validated_data["temp_position_master"]["min_age"],
             max_age=validated_data["temp_position_master"]["max_age"],
-            qualification_desc=validated_data["temp_position_master"]["qualification_desc"],
+            qualification_desc=validated_data["temp_position_master"][
+                "qualification_desc"
+            ],
         )
         print("validated_data--------->", validated_data)
 
-        for qualification_data in validated_data["temp_position_master"]["qualification"]:
+        for qualification_data in validated_data["temp_position_master"][
+            "qualification"
+        ]:
             qualification = QualificationMaster.objects.get(
                 qualification_id=qualification_data["qualification_id"]
             )
@@ -1197,17 +1239,21 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
 
         return posi.temp_position_id
 
-
     def update(self, instance, validated_data):
         print("instance ----->", instance)
         print("validated_data ---->", validated_data)
         if instance:
             instance.salary = (
-                validated_data["salary"] if validated_data["salary"] else instance.salary
+                validated_data["salary"]
+                if validated_data["salary"]
+                else instance.salary
             )
             # for base table entry
             print(instance.temp_position_master.position_name)
-            print("validated_data['temp_position_master']['position_name']------------>",validated_data["temp_position_master"]["position_name"])
+            print(
+                "validated_data['temp_position_master']['position_name']------------>",
+                validated_data["temp_position_master"]["position_name"],
+            )
             instance.temp_position_master.position_name = (
                 validated_data["temp_position_master"]["position_name"]
                 if validated_data["temp_position_master"]["position_name"]
@@ -1221,18 +1267,26 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
             )
 
             instance.temp_position_master.min_age = (
-                validated_data["temp_position_master"]["min_age"] if validated_data["temp_position_master"]["min_age"] else instance.temp_position_master.min_age
+                validated_data["temp_position_master"]["min_age"]
+                if validated_data["temp_position_master"]["min_age"]
+                else instance.temp_position_master.min_age
             )
 
             instance.temp_position_master.max_age = (
-                validated_data["temp_position_master"]["max_age"] if validated_data["temp_position_master"]["max_age"] else instance.temp_position_master.max_age
+                validated_data["temp_position_master"]["max_age"]
+                if validated_data["temp_position_master"]["max_age"]
+                else instance.temp_position_master.max_age
             )
             instance.temp_position_master.qualification_desc = (
-                validated_data["temp_position_master"]["qualification_desc"] if validated_data["temp_position_master"]["qualification_desc"] else instance.temp_position_master.qualification_desc
+                validated_data["temp_position_master"]["qualification_desc"]
+                if validated_data["temp_position_master"]["qualification_desc"]
+                else instance.temp_position_master.qualification_desc
             )
             instance.temp_position_master.save()
             instance.save()
-        posi = NewPositionMaster.objects.get(position_id=validated_data["temp_position_master"]["position_id"])
+        posi = NewPositionMaster.objects.get(
+            position_id=validated_data["temp_position_master"]["position_id"]
+        )
         oldqual = posi.qualification.filter()
         oldexp = posi.qualification_job_history.filter()
         olddoc = posi.documents_required.filter()
@@ -1241,7 +1295,9 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
         #     "validated_data['temp_position_master']['qualification']---------->",
         #     validated_data["temp_position_master"]["qualification"],
         # )
-        if not validated_data["temp_position_master"]["qualification"]:  # working for empty role.
+        if not validated_data["temp_position_master"][
+            "qualification"
+        ]:  # working for empty role.
             for oqual in oldqual:
                 instance.temp_position_master.qualification.remove(oqual)
                 # print("qual deleted")
@@ -1250,7 +1306,7 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
             for qual_data in validated_data["temp_position_master"]["qualification"]:
                 # print("qual_data.id-------------->", qual_data["qualification_id"])
                 if str(oqual.qualification_id) != str(
-                        qual_data["qualification_id"]
+                    qual_data["qualification_id"]
                 ):  # working deletion now
                     # print(
                     #     str(qual_data["qualification_id"])
@@ -1259,27 +1315,35 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
                     # )
                     instance.temp_position_master.qualification.remove(oqual)
 
-        for qual_data in validated_data["temp_position_master"]["qualification"]:  # working for addition too.
-            instance.temp_position_master.qualification.add(qual_data["qualification_id"])
+        for qual_data in validated_data["temp_position_master"][
+            "qualification"
+        ]:  # working for addition too.
+            instance.temp_position_master.qualification.add(
+                qual_data["qualification_id"]
+            )
 
         # qualification_job_history
         # print(
         #     "validated_data['temp_position_master']['qualification_job_history']---------->",
         #     validated_data["temp_position_master"]["qualification_job_history"],
         # )
-        if not validated_data["temp_position_master"]["qualification_job_history"]:  # working for empty role.
+        if not validated_data["temp_position_master"][
+            "qualification_job_history"
+        ]:  # working for empty role.
             for oexp in oldexp:
                 instance.temp_position_master.qualification_job_history.remove(oexp)
                 # print("exp deleted")
 
         for oexp in oldexp:
-            for exp_data in validated_data["temp_position_master"]["qualification_job_history"]:
+            for exp_data in validated_data["temp_position_master"][
+                "qualification_job_history"
+            ]:
                 # print(
                 #     "qual_data.qualification_job_id-------------->",
                 #     exp_data["qualification_job_id"],
                 # )
                 if str(oexp.qualification_job_id) != str(
-                        exp_data["qualification_job_id"]
+                    exp_data["qualification_job_id"]
                 ):  # working deletion now
                     # print(
                     #     str(exp_data["qualification_job_id"])
@@ -1291,20 +1355,26 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
         for exp_data in validated_data["temp_position_master"][
             "qualification_job_history"
         ]:  # working for addition too.
-            instance.temp_position_master.qualification_job_history.add(exp_data["qualification_job_id"])
+            instance.temp_position_master.qualification_job_history.add(
+                exp_data["qualification_job_id"]
+            )
 
         # documents_required
         # print(
         #     "validated_data['temp_position_master']['documents_required']---------->",
         #     validated_data["temp_position_master"]["documents_required"],
         # )
-        if not validated_data["temp_position_master"]["documents_required"]:  # working for empty role.
+        if not validated_data["temp_position_master"][
+            "documents_required"
+        ]:  # working for empty role.
             for odoc in olddoc:
                 instance.temp_position_master.documents_required.remove(odoc)
                 # print("doc deleted")
 
         for odoc in olddoc:
-            for doc_data in validated_data["temp_position_master"]["documents_required"]:
+            for doc_data in validated_data["temp_position_master"][
+                "documents_required"
+            ]:
                 # print("doc_data.doc_id-------------->", doc_data["doc_id"])
                 if str(odoc.doc_id) != str(doc_data["doc_id"]):  # working deletion now
                     # print(str(doc_data["doc_id"]) + " != " + str(odoc.doc_id))
@@ -1320,16 +1390,20 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
         #     "validated_data['information_required']---------->",
         #     validated_data["temp_position_master"]["information_required"],
         # )
-        if not validated_data["temp_position_master"]["information_required"]:  # working for empty role.
+        if not validated_data["temp_position_master"][
+            "information_required"
+        ]:  # working for empty role.
             for oinfo in oldinfo:
                 instance.temp_position_master.information_required.remove(oinfo)
                 # print("info deleted")
 
         for oinfo in oldinfo:
-            for info_data in validated_data["temp_position_master"]["information_required"]:
+            for info_data in validated_data["temp_position_master"][
+                "information_required"
+            ]:
                 # print("doc_data.info_id-------------->", info_data["info_id"])
                 if str(oinfo.info_id) != str(
-                        info_data["info_id"]
+                    info_data["info_id"]
                 ):  # working deletion now
                     # print(str(info_data["info_id"]) + " != " + str(oinfo.info_id))
                     instance.temp_position_master.information_required.remove(oinfo)
@@ -1341,9 +1415,7 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
 
         instance.save()
 
-
         return instance.temp_position_id
-
 
 
 # NewPositionMaster
@@ -1490,7 +1562,9 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
             validated_data["max_age"] if validated_data["max_age"] else instance.max_age
         )
         instance.qualification_desc = (
-            validated_data["qualification_desc"] if validated_data["qualification_desc"] else instance.qualification_desc
+            validated_data["qualification_desc"]
+            if validated_data["qualification_desc"]
+            else instance.qualification_desc
         )
 
         instance.save()

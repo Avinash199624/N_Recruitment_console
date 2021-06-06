@@ -430,6 +430,19 @@ class JobPostingDetailView(RetrieveUpdateAPIView):
     lookup_field = "job_posting_id"
     lookup_url_kwarg = "id"
 
+    @atomic
+    def put(self, request, *args, **kwargs):
+        data = self.request.data
+        job_posting_id = self.kwargs["id"]
+        job_posting = JobPosting.objects.get(job_posting_id=job_posting_id)
+        serializer = JobPostingSerializer(job_posting, data=data)
+        if serializer.is_valid():
+            return Response(
+                data=serializer.update(job_posting, validated_data=data), status=200
+            )
+        else:
+            return Response(data={"errors": serializer.errors})
+
 
 class GetSelectionContent(APIView):
     def get(self, request, *args, **kwargs):
