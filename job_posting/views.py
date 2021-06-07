@@ -43,7 +43,7 @@ from job_posting.serializer import (
     TemporaryPositionMasterSerializer,
     ProjectRequirementApprovalStatusSerializer,
     QualificationJobHistoryMasterSerializer,
-    PublicJobPostSerializer,
+    PublicJobPostSerializer, ApplicationCountForJobPositionSerializer,
 )
 
 from django.http import JsonResponse
@@ -423,7 +423,6 @@ class JobPostingCreateView(APIView):
         except Exception as e:
             return Response(data={"errors": str(e)})
 
-
 class JobPostingDetailView(RetrieveUpdateAPIView):
     queryset = JobPosting.objects.all()
     serializer_class = JobPostingSerializer
@@ -519,6 +518,26 @@ class ApplicantJobPositions(RetrieveAPIView):
     lookup_url_kwarg = "id"
 
 
+class ApplicationCountByJobPositions(APIView):
+    def get(self, request, *args, **kwargs):
+        job_posting_id = self.kwargs["id"]
+        try:
+            if UserJobPositions.objects.filter(job_posting__job_posting_id=job_posting_id, is_deleted=False).exists():
+                applicant_count = UserJobPositions.objects.filter(job_posting__job_posting_id=job_posting_id, is_deleted=False).count()
+                print("applicants---------->", applicant_count)
+                return Response(applicant_count, status=200)
+            else:
+                return Response(
+                    data={"message": "No Application for this job..."},
+                    status=200,
+                )
+        except:
+            return Response(
+                data={"message": "No Application for this job..."},
+                status=200,
+            )
+
+
 class ApplicantListByJobPositions(APIView):
     def get(self, request, *args, **kwargs):
         try:
@@ -532,6 +551,51 @@ class ApplicantListByJobPositions(APIView):
             applicants = UserJobPositions.objects.filter(is_deleted=False)
             serializer = UserJobPositionsSerializer(applicants, many=True)
             return Response(serializer.data, status=200)
+
+
+class ApproveRejectApplicantView(RetrieveUpdateAPIView):
+    queryset = UserJobPositions.objects.all()
+    serializer_class = UserJobPositionsSerializer
+    lookup_url_kwarg = "id"
+
+    @atomic
+    def put(self, request, *args, **kwargs):
+        data = self.request.data
+        application_id = self.kwargs["id"]
+        applicant = UserJobPositions.objects.get(id=application_id)
+        serializer = UserJobPositionsSerializer(applicant, data=data)
+        if serializer.is_valid():
+            return Response(
+                data=serializer.update(applicant, validated_data=data), status=200
+            )
+        else:
+            return Response(data={"errors": serializer.errors})
+
+
+class ApproveRejectApplicantForJobPositions(APIView):
+    def put(self, request, *args, **kwargs):
+        data = self.request.data
+        appeal_id = self.kwargs["id"]
+        try:
+            applicants = UserJobPositions.objects.get(id=appeal_id)
+            if (
+                applicants.applied_job_status == "rejected"
+            ):
+                applicants.appealed = True
+                applicants.save()
+                serializer = UserAppealForJobPositionsSerializer(applicants, data=data)
+                serializer.is_valid(raise_exception=True)
+                serializer.update(applicants, validated_data=data)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(
+                    data={"message": "You've already appealed for this job..."},
+                    status=200,
+                )
+        except:
+            return Response(
+                data={"message": "you are not eligible for the appeal..."}, status=401
+            )
 
 
 class UserAppealForJobPositions(APIView):
