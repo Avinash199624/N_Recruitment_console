@@ -564,13 +564,9 @@ class ApproveRejectApplicantView(RetrieveUpdateAPIView):
         application_id = self.kwargs["id"]
         applicant = UserJobPositions.objects.get(id=application_id)
         serializer = UserJobPositionsSerializer(applicant, data=data)
-        if serializer.is_valid():
-            return Response(
-                data=serializer.update(applicant, validated_data=data), status=200
-            )
-        else:
-            return Response(data={"errors": serializer.errors})
-
+        serializer.is_valid(raise_exception=True)
+        serializer.update(applicant, validated_data=data)
+        return Response(serializer.data, status=200)
 
 class ApproveRejectApplicantForJobPositions(APIView):
     def put(self, request, *args, **kwargs):
