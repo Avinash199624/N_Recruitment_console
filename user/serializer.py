@@ -1130,7 +1130,7 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         instance.is_indian_citizen = validated_data["is_indian_citizen"]
         instance.user.save()
         relaxation_rule = RelaxationMaster.objects.get(
-            relaxation__relaxation_category=validated_data['relaxation_rule']['relaxation']['relaxation_category'])
+            relaxation_rule_id=validated_data['relaxation_rule']['relaxation_rule_id'])
         instance.relaxation_rule = relaxation_rule
         instance.save()
 
@@ -1349,7 +1349,7 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             # permanent_address = permanent_address if local_address else None,
             # father_address = father_address if local_address else None,
         )
-        relaxation_rule = RelaxationMaster.objects.get(relaxation__relaxation_category=validated_data['relaxation_rule'])
+        relaxation_rule = RelaxationMaster.objects.get(relaxation_rule_id=validated_data['relaxation_rule']['relaxation_rule_id'])
         user_profile.relaxation_rule = relaxation_rule
         user_profile.save()
 

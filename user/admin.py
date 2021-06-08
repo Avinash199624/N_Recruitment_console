@@ -20,7 +20,7 @@ class UserEducationDetailsAdmin(admin.ModelAdmin):
 
 @register(UserExperienceDetails)
 class UserExperienceDetailsAdmin(admin.ModelAdmin):
-    list_display = ['employer_name', 'post', 'employed_from', 'employed_to', 'employment_type', 'salary', 'grade']
+    list_display = ['employer_name', 'post', 'employment_type', 'salary', 'grade', 'is_deleted']
 
 
 @register(UserDocuments)
@@ -99,6 +99,11 @@ class LocationAdmin(admin.ModelAdmin):
     list_display = ['address1', 'address2', 'address3', 'city', 'state', 'country', 'postcode']
 
 
+# @register(UserAuthentication)
+# class UserAuthenticationAdmin(admin.ModelAdmin):
+#     list_display = ['user', 'email_verified', 'mobile_verified', 'email_otp', 'mobile_otp', 'email_otp_expiry', 'mobile_otp_expiry']
+#
+#
 @register(MentorMaster)
 class MentorMasterAdmin(admin.ModelAdmin):
     list_display = ['mentor_id', 'mentor_name', 'is_deleted']

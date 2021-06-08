@@ -217,7 +217,7 @@ class UserProfile(BaseModel):
     @property
     def profile_percentage(self):
 
-        percent = {'gender': 2, 'mobile_no': 5, 'date_of_birth': 5, 'local_address': 5,
+        percent = {'gender': 2, 'is_fresher': 5, 'date_of_birth': 5, 'local_address': 5,
                    'permanent_address': 5, 'father_address': 5, 'date_of_birth_in_words': 2,
                    'place_of_birth': 2, 'father_name': 2, 'father_occupation': 2, 'religion': 2,
                    'caste': 2, 'passport_number': 2, 'passport_expiry': 2, 'profile_photo': 5,
@@ -230,8 +230,8 @@ class UserProfile(BaseModel):
         if self.gender:
             total += percent.get('gender', 0)
 
-        if self.mobile_no:
-            total += percent.get('mobile_no', 0)
+        if self.is_fresher:
+            total += percent.get('is_fresher', 0)
 
         if self.date_of_birth:
             total += percent.get('date_of_birth', 0)
