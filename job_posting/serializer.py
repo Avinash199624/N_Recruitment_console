@@ -486,7 +486,8 @@ class PublicJobPostSerializer(serializers.ModelSerializer):
         model = JobPosting
         fields = (
             "job_posting_id",
-            "description",
+            "pre_ad_description",
+            "post_ad_description",
             "publication_date",
             "end_date",
             "job_type",
@@ -866,7 +867,7 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
         method_name="get_division", required=False
     )
 
-    applied_job_status = serializers.SerializerMethodField(
+    status = serializers.SerializerMethodField(
         method_name="get_applied_job_status", required=False
     )
 
@@ -895,7 +896,7 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
             "profile_photo",
             "name",
             "division",
-            "applied_job_status",
+            "status",
             "job_posting_id",
             "position",
             "date_applied",
@@ -944,8 +945,8 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.applied_job_status = (
-            validated_data["applied_job_status"]
-            if validated_data["applied_job_status"]
+            validated_data["status"]
+            if validated_data["status"]
             else instance.applied_job_status
         )
 

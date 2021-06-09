@@ -207,7 +207,7 @@ urlpatterns = [
         name="applicant-job-posting-positions",
     ),
     path(
-        "applicant/<int:id>/", ApproveRejectApplicantView.as_view(), name="approve-reject-applicant-for-job"
+        "applicant_status/<int:id>/", ApproveRejectApplicantView.as_view(), name="approve-reject-applicant-for-job"
     ),
     path(
         "applicant_list_by_job/",
