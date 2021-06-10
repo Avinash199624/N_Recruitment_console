@@ -507,7 +507,7 @@ class PublicJobPostingSearchListView(ListAPIView):
     serializer_class = PublicJobPostSerializer
     queryset = JobPosting.objects.filter(is_deleted=False)
     filter_backends = [SearchFilter]
-    search_fields = ("pre_ad_description","post_ad_description",)
+    search_fields = ("pre_ad_description", "post_ad_description",)
 
 
 class ApplicantJobPositions(RetrieveAPIView):

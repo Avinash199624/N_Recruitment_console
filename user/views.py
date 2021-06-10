@@ -63,7 +63,7 @@ from user.serializer import (
     MentorMasterSerializer,
     TraineeSerializer,
     RelaxationMasterSerializer,
-    RelaxationCategoryMasterSerializer,
+    RelaxationCategoryMasterSerializer, ApplicantIsFresherSerializer,
 )
 from job_posting.serializer import ApplicantJobPositionsSerializer
 from knox.views import LoginView as KnoxLoginView
@@ -536,6 +536,44 @@ class ApplicantPersonalInformationUpdateView(APIView):
                 status=200,
             )
         serializer = ApplicantUserPersonalInformationSerializer(user_profile, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=user_profile, validated_data=data)
+        return Response(serializer.data, status=200)
+
+
+class ApplicantIsFresherUpdateView(APIView):
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs["id"]
+        user = User.objects.get(user_id=id)
+        try:
+            if user.user_profile:
+                user_profile = user.user_profile
+                serializer = ApplicantIsFresherSerializer(user_profile)
+                return Response(serializer.data, status=200)
+        except:
+            return Response(
+                data={
+                    "messege": "UserProfile not created",
+                    "isEmpty": "true",
+                    "mobile_no": user.mobile_no,
+                },
+                status=200,
+            )
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs["id"]
+        user = User.objects.get(user_id=id)
+        data = self.request.data
+        try:
+            user_profile = user.user_profile
+        except:
+            return Response(
+                data={
+                    "messege": "UserProfile does not exist for the given user,create UserProfile first."
+                },
+                status=200,
+            )
+        serializer = ApplicantIsFresherSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=user_profile, validated_data=data)
         return Response(serializer.data, status=200)

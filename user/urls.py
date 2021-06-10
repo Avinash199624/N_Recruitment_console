@@ -3,7 +3,7 @@ from django.urls import path
 from user.views import UserRegistartionView, NeeriPersonalInformation, CompareApplicantListView, \
     NeeriLoginView, TempLoginView, RoleMasterView, CreateNeeriUserView, MentorMasterListView, NeeriUserListView, \
     TraineeListView, RelaxationCategoryMasterListView, RelaxationMasterListView, TraineeSearchListView, \
-    NeeriUserSearchListView
+    NeeriUserSearchListView, ApplicantIsFresherUpdateView
 from user.views import LoginView,LogoutView,UserListView,RetrievetUserView,UpdateUserView,CreateUserView,DeleteUserView,ForgotPassword,\
     ApplicantPersonalInformationView,ApplicantPersonalInformationUpdateView,\
     ApplicantPersonalInformationCreateView,ApplicantAddressView,ApplicantAddressCreateView,\
@@ -42,6 +42,7 @@ urlpatterns = [
     #### Public Portal User URL's
 
     path('public/personal_info/<uuid:id>/', ApplicantPersonalInformationView.as_view(), name="get-applicant-personal-info"),
+    path('public/applicant_is_fresher/<uuid:id>/', ApplicantIsFresherUpdateView.as_view(), name="update-applicant-is-fresher-detail"),
     path('public/personal_info_update/<uuid:id>/', ApplicantPersonalInformationUpdateView.as_view(), name="update-applicant-personal-info"),
     path('public/personal_info_create/<uuid:id>/', ApplicantPersonalInformationCreateView.as_view(), name="create-applicant-personal-info"),
 

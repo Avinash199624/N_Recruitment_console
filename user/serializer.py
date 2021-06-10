@@ -1356,6 +1356,49 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         return user_profile.user.user_id
 
 
+class ApplicantIsFresherSerializer(serializers.ModelSerializer):
+
+
+    user_id = serializers.SerializerMethodField(
+        method_name="get_user_id", read_only=True
+    )
+
+    is_fresher = serializers.SerializerMethodField(
+        method_name="get_is_fresher", read_only=True
+    )
+
+    class Meta:
+        model = UserProfile
+        fields = (
+            "user_id",
+            "is_fresher",
+        )
+
+    def get_user_id(self, obj):
+        try:
+            user_id = obj.user.user_id
+            return user_id
+        except:
+            return None
+
+    def get_is_fresher(self, obj):
+        try:
+            is_fresher = obj.is_fresher
+            return is_fresher
+        except:
+            return None
+
+
+    def update(self, instance, validated_data):
+
+
+        instance.is_fresher = (
+            validated_data["is_fresher"] if validated_data["is_fresher"] else instance.is_fresher
+        )
+        instance.is_fresher = validated_data["is_fresher"]
+        instance.save()
+
+
 # class NeeriUserPersonalInformationSerializer(serializers.ModelSerializer):
 #     gender = serializers.SerializerMethodField(
 #         method_name="get_gender", read_only=True
