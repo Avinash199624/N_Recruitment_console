@@ -673,7 +673,10 @@ class JobPostingSerializer(serializers.ModelSerializer):
                 )
             )
             for qualification in position_mapping["qualification"]:
-                position_qualification_mapping.qualification.add(qualification)
+                qualification_obj = QualificationMaster.objects.get(
+                    qualification_id=qualification
+                )
+                position_qualification_mapping.qualification.add(qualification_obj)
             posting.manpower_positions.add(position_qualification_mapping)
 
         for documents_required_data in validated_data["documents_required"]:
