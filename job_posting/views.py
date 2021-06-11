@@ -43,7 +43,8 @@ from job_posting.serializer import (
     TemporaryPositionMasterSerializer,
     ProjectRequirementApprovalStatusSerializer,
     QualificationJobHistoryMasterSerializer,
-    PublicJobPostSerializer, ApplicationCountForJobPositionSerializer,
+    PublicJobPostSerializer,
+    ApplicationCountForJobPositionSerializer,
 )
 
 from django.http import JsonResponse
@@ -423,6 +424,7 @@ class JobPostingCreateView(APIView):
         except Exception as e:
             return Response(data={"errors": str(e)})
 
+
 class JobPostingDetailView(RetrieveUpdateAPIView):
     queryset = JobPosting.objects.all()
     serializer_class = JobPostingSerializer
@@ -507,7 +509,10 @@ class PublicJobPostingSearchListView(ListAPIView):
     serializer_class = PublicJobPostSerializer
     queryset = JobPosting.objects.filter(is_deleted=False)
     filter_backends = [SearchFilter]
-    search_fields = ("pre_ad_description", "post_ad_description",)
+    search_fields = (
+        "pre_ad_description",
+        "post_ad_description",
+    )
 
 
 class ApplicantJobPositions(RetrieveAPIView):
@@ -522,8 +527,12 @@ class ApplicationCountByJobPositions(APIView):
     def get(self, request, *args, **kwargs):
         job_posting_id = self.kwargs["id"]
         try:
-            if UserJobPositions.objects.filter(job_posting__job_posting_id=job_posting_id, is_deleted=False).exists():
-                applicant_count = UserJobPositions.objects.filter(job_posting__job_posting_id=job_posting_id, is_deleted=False).count()
+            if UserJobPositions.objects.filter(
+                job_posting__job_posting_id=job_posting_id, is_deleted=False
+            ).exists():
+                applicant_count = UserJobPositions.objects.filter(
+                    job_posting__job_posting_id=job_posting_id, is_deleted=False
+                ).count()
                 print("applicants---------->", applicant_count)
                 return Response(applicant_count, status=200)
             else:
@@ -562,24 +571,28 @@ class ApproveRejectApplicantView(RetrieveUpdateAPIView):
     def put(self, request, *args, **kwargs):
         data = self.request.data
         application_id = self.kwargs["id"]
-        print("data------------->",data)
+        print("data------------->", data)
         try:
             applicant = UserJobPositions.objects.get(id=application_id)
             # for status_data in data:
-            print("status_data------------->", data['status'])
-            print("applicant.applied_job_status == data['status']------------->",applicant.applied_job_status, data['status'])
+            print("status_data------------->", data["status"])
+            print(
+                "applicant.applied_job_status == data['status']------------->",
+                applicant.applied_job_status,
+                data["status"],
+            )
 
-            if data['status'] == "rejected" and applicant.applied_job_status:
-                serializer = UserJobPositionsSerializer(applicant, data=data)
-                serializer.is_valid(raise_exception=True) #approve/reject/draft
-                serializer.update(applicant, validated_data=data)
-                return Response(serializer.data, status=200)
-            elif data['status'] == "accepted" and applicant.applied_job_status:
+            if data["status"] == "rejected" and applicant.applied_job_status:
                 serializer = UserJobPositionsSerializer(applicant, data=data)
                 serializer.is_valid(raise_exception=True)  # approve/reject/draft
                 serializer.update(applicant, validated_data=data)
                 return Response(serializer.data, status=200)
-            elif data['status'] == "awaiting review" and applicant.applied_job_status:
+            elif data["status"] == "accepted" and applicant.applied_job_status:
+                serializer = UserJobPositionsSerializer(applicant, data=data)
+                serializer.is_valid(raise_exception=True)  # approve/reject/draft
+                serializer.update(applicant, validated_data=data)
+                return Response(serializer.data, status=200)
+            elif data["status"] == "awaiting review" and applicant.applied_job_status:
                 serializer = UserJobPositionsSerializer(applicant, data=data)
                 serializer.is_valid(raise_exception=True)  # approve/reject/draft
                 serializer.update(applicant, validated_data=data)
@@ -590,9 +603,7 @@ class ApproveRejectApplicantView(RetrieveUpdateAPIView):
                     status=200,
                 )
         except:
-            return Response(
-                data={"message": "Detail not found"}, status=401
-            )
+            return Response(data={"message": "Detail not found"}, status=401)
 
 
 class ApproveRejectApplicantForJobPositions(APIView):
@@ -601,9 +612,7 @@ class ApproveRejectApplicantForJobPositions(APIView):
         appeal_id = self.kwargs["id"]
         try:
             applicants = UserJobPositions.objects.get(id=appeal_id)
-            if (
-                applicants.applied_job_status == "rejected"
-            ):
+            if applicants.applied_job_status == "rejected":
                 applicants.appealed = True
                 applicants.save()
                 serializer = UserAppealForJobPositionsSerializer(applicants, data=data)

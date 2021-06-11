@@ -143,18 +143,19 @@ class QualificationJobHistoryMasterSerializer(serializers.ModelSerializer):
         )
 
 
-class PositionQualificationMappingSerializer(serializers.ModelSerializer):
-    position = serializers.SerializerMethodField(
-        method_name="get_position", read_only=True
+class AdminPositionQualificationMappingSerializer(serializers.ModelSerializer):
+    position_id = serializers.UUIDField(source="position.position_id", required=False)
+    position_name = serializers.CharField(
+        source="position.position_display_name", read_only=True
     )
-
-    qualification = QualificationMasterSerializer(many=True)
+    qualification = serializers.SerializerMethodField()
 
     class Meta:
         model = PositionQualificationMapping
         fields = (
             "id",
-            "position",
+            "position_id",
+            "position_name",
             "qualification",
             "min_age",
             "max_age",
@@ -164,8 +165,31 @@ class PositionQualificationMappingSerializer(serializers.ModelSerializer):
             "extra_note",
         )
 
-    def get_position(self, obj):
-        return obj.position.position_name
+    def get_qualification(self, obj):
+        return obj.qualification.all().values_list("qualification_id", flat=True)
+
+
+class PositionQualificationMappingSerializer(serializers.ModelSerializer):
+    position_id = serializers.UUIDField(source="position.position_id", required=False)
+    position_name = serializers.CharField(
+        source="position.position_display_name", read_only=True
+    )
+    qualification = QualificationMasterSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = PositionQualificationMapping
+        fields = (
+            "id",
+            "position_id",
+            "position_name",
+            "qualification",
+            "min_age",
+            "max_age",
+            "number_of_vacancies",
+            "monthly_emolements",
+            "allowance",
+            "extra_note",
+        )
 
 
 class JobPostingRequirementPositionsSerializer(serializers.ModelSerializer):
@@ -256,7 +280,6 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
         return obj.project_number
 
     def get_division_name(self, obj):
-        # print("obj*****=",obj)
         division = obj.division_name
         serializer = DivisionSerializer(division)
         return serializer.data
@@ -481,6 +504,15 @@ class PublicJobPostSerializer(serializers.ModelSerializer):
     manpower_positions = serializers.SerializerMethodField(
         method_name="get_manpower_positions", required=False
     )
+    division = serializers.SerializerMethodField(
+        method_name="get_division", read_only=True, required=False
+    )
+    zonal_lab = serializers.SerializerMethodField(
+        method_name="get_zonal_lab", read_only=True, required=False
+    )
+    documents_required = serializers.SerializerMethodField(
+        method_name="get_documents_required", required=False
+    )
 
     class Meta:
         model = JobPosting
@@ -488,10 +520,18 @@ class PublicJobPostSerializer(serializers.ModelSerializer):
             "job_posting_id",
             "pre_ad_description",
             "post_ad_description",
+            "notification_id",
+            "notification_title",
+            "ad_approval_id",
             "publication_date",
             "end_date",
             "job_type",
             "manpower_positions",
+            "division",
+            "zonal_lab",
+            "status",
+            "job_type",
+            "documents_required",
         )
 
     def get_manpower_positions(self, obj):
@@ -499,45 +539,38 @@ class PublicJobPostSerializer(serializers.ModelSerializer):
         serializer = PositionQualificationMappingSerializer(positions, many=True)
         return serializer.data
 
+    def get_division(self, obj):
+        division = obj.division
+        serializer = DivisionSerializer(division)
+        return serializer.data
+
+    def get_zonal_lab(self, obj):
+        zonal_lab = obj.zonal_lab
+        serializer = ZonalLabSerializer(zonal_lab)
+        return serializer.data
+
+    def get_documents_required(self, obj):
+        documents_required = obj.documents_required.filter()
+        serializer = NewDocumentMasterSerializer(documents_required, many=True)
+        return serializer.data
+
 
 class JobPostingSerializer(serializers.ModelSerializer):
     manpower_positions = serializers.SerializerMethodField(
         method_name="get_manpower_positions", required=False
     )
-
-    department = serializers.SerializerMethodField(
-        method_name="get_department", required=False
-    )
-
-    dept_id = serializers.UUIDField(write_only=True, required=False)
-
-    division = serializers.SerializerMethodField(
-        method_name="get_division", read_only=True, required=False
-    )
-
-    division_id = serializers.UUIDField(write_only=True, required=False)
-
-    zonal_lab = serializers.SerializerMethodField(
-        method_name="get_zonal_lab", read_only=True, required=False
-    )
-
-    zonal_lab_id = serializers.UUIDField(write_only=True, required=False)
-
+    division_id = serializers.UUIDField(required=False)
+    zonal_lab_id = serializers.UUIDField(required=False)
     office_memorandum = serializers.SerializerMethodField(
         method_name="get_office_memorandum", required=False
     )
-
     documents_required = serializers.SerializerMethodField(
         method_name="get_documents_required", required=False
     )
-
     documents_uploaded = serializers.SerializerMethodField(
         method_name="get_documents_uploaded", required=False
     )
-
-    project_number = serializers.SerializerMethodField(
-        method_name="get_project_number", required=False
-    )
+    is_deleted = serializers.BooleanField(default=False, write_only=True)
 
     class Meta:
         model = JobPosting
@@ -548,12 +581,7 @@ class JobPostingSerializer(serializers.ModelSerializer):
             "ad_approval_id",
             "pre_ad_description",
             "post_ad_description",
-            "project_number",
-            "department",
-            "dept_id",
-            "division",
             "division_id",
-            "zonal_lab",
             "zonal_lab_id",
             "publication_date",
             "end_date",
@@ -563,40 +591,21 @@ class JobPostingSerializer(serializers.ModelSerializer):
             "status",
             "job_type",
             "manpower_positions",
+            "is_deleted",
         )
-
-    def get_division(self, obj):
-        division = obj.division
-        serializer = DivisionSerializer(division)
-        return serializer.data
-
-    def get_department(self, obj):
-        department = obj.department
-        serializer = DepartmentSerializer(department)
-        return serializer.data
-
-    def get_zonal_lab(self, obj):
-        zonal_lab = obj.zonal_lab
-        serializer = ZonalLabSerializer(zonal_lab)
-        return serializer.data
-
-    def get_project_number(self, obj):
-        return None  # obj.project_number.project_number
 
     def get_manpower_positions(self, obj):
         positions = obj.manpower_positions.filter()
-        serializer = PositionQualificationMappingSerializer(positions, many=True)
+        serializer = AdminPositionQualificationMappingSerializer(positions, many=True)
         return serializer.data
 
     def get_documents_required(self, obj):
         documents_required = obj.documents_required.filter()
-        serializer = NewDocumentMasterSerializer(documents_required, many=True)
-        return serializer.data
+        return documents_required.values_list("doc_id", flat=True)
 
     def get_documents_uploaded(self, obj):
         documents_uploaded = obj.documents_uploaded.filter()
-        serializer = JobDocumentsSerializer(documents_uploaded, many=True)
-        return serializer.data
+        return documents_uploaded.values_list("doc_id", flat=True)
 
     def get_office_memorandum(self, obj):
         office_memorandum = obj.office_memorandum
@@ -604,85 +613,40 @@ class JobPostingSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def update(self, instance, validated_data):
-
         instance.notification_id = (
-            validated_data["notification_id"]
-            if validated_data["notification_id"]
-            else instance.notification_id
+            validated_data.get("notification_id") or instance.notification_id
         )
-
         instance.notification_title = (
-            validated_data["notification_title"]
-            if validated_data["notification_title"]
-            else instance.notification_title
+            validated_data.get("notification_title") or instance.notification_title
         )
-
         instance.pre_ad_description = (
-            validated_data["pre_ad_description"]
-            if validated_data["pre_ad_description"]
-            else instance.pre_ad_description
+            validated_data.get("pre_ad_description") or instance.pre_ad_description
         )
-
         instance.post_ad_description = (
-            validated_data["post_ad_description"]
-            if validated_data["post_ad_description"]
-            else instance.post_ad_description
+            validated_data.get("post_ad_description") or instance.post_ad_description
         )
-
         instance.publication_date = (
-            validated_data["publication_date"]
-            if validated_data["publication_date"]
-            else instance.publication_date
+            validated_data.get("publication_date") or instance.publication_date
         )
-
-        instance.end_date = (
-            validated_data["end_date"]
-            if validated_data["end_date"]
-            else instance.end_date
+        instance.end_date = validated_data.get("end_date") or instance.end_date
+        instance.status = validated_data.get("status") or instance.status
+        instance.job_type = validated_data.get("job_type") or instance.job_type
+        instance.division_id = validated_data.get("division_id") or instance.division_id
+        instance.zonal_lab_id = (
+            validated_data.get("zonal_lab_id") or instance.zonal_lab_id
         )
-
-        instance.status = (
-            validated_data["status"] if validated_data["status"] else instance.status
+        if validated_data.get("is_deleted") is not None:
+            instance.is_deleted = validated_data["is_deleted"]
+        """
+        project_number = JobPostingRequirement.objects.get(
+            project_number__icontains=validated_data["project_number"]
         )
-
-        instance.job_type = (
-            validated_data["job_type"]
-            if validated_data["job_type"]
-            else instance.job_type
-        )
-
-        department = Department.objects.get(dept_id=validated_data["dept_id"])
-        division = Division.objects.get(division_id=validated_data["division_id"])
-        zonal_lab = ZonalLab.objects.get(zonal_lab_id=validated_data["zonal_lab_id"])
-        # project_number = JobPostingRequirement.objects.get(
-        #     project_number__icontains=validated_data["project_number"]
-        # )
-
-        if instance.department == department:
-            pass
-        else:
-            instance.department = department
-
-        if instance.division == division:
-            pass
-        else:
-            instance.division = division
-
-        if instance.zonal_lab == zonal_lab:
-            pass
-        else:
-            instance.zonal_lab = zonal_lab
-
-        # if instance.project_number == project_number:
-        #     pass
-        # else:
-        #     instance.project_number = project_number
-
+        instance.project_number = validated_data["project_number"] or instance.project_number
+        """
         instance.save()
         return validated_data
 
     def save(self, validated_data):
-
         posting = JobPosting.objects.create(
             notification_id=validated_data["notification_id"],
             notification_title=validated_data["notification_title"],
@@ -694,42 +658,43 @@ class JobPostingSerializer(serializers.ModelSerializer):
             job_type=validated_data["job_type"],
         )
 
-        for position_qualification_mapping_data in validated_data["manpower_positions"]:
-            position_qualification_mapping = PositionQualificationMapping.objects.get(
-                id=position_qualification_mapping_data["id"]
+        for position_mapping in validated_data["manpower_positions"]:
+            position = NewPositionMaster.objects.get(
+                position_id=position_mapping["position_id"]
             )
+            position_qualification_mapping = (
+                PositionQualificationMapping.objects.create(
+                    position=position,
+                    min_age=position_mapping["min_age"],
+                    max_age=position_mapping.get("max_age"),
+                    monthly_emolements=position_mapping.get("monthly_emolements"),
+                    allowance=position_mapping["allowance"],
+                    extra_note=position_mapping["extra_note"],
+                )
+            )
+            for qualification in position_mapping["qualification"]:
+                position_qualification_mapping.qualification.add(qualification)
             posting.manpower_positions.add(position_qualification_mapping)
 
         for documents_required_data in validated_data["documents_required"]:
-            document_required, created = NewDocumentMaster.objects.get(
-                doc_id=documents_required_data["doc_id"], defaults={}
+            document_required = NewDocumentMaster.objects.get(
+                doc_id=documents_required_data
             )
             posting.documents_required.add(document_required)
 
         for document_uploaded in validated_data["documents_uploaded"]:
-            job_doc, created = JobDocuments.objects.get_or_create(
-                doc_id=document_uploaded["doc_id"],
-                defaults={
-                    "doc_file_path": document_uploaded["doc_file_path"],
-                    "doc_name": document_uploaded["doc_name"],
-                },
-            )
-            if created:
-                posting.documents_uploaded.add(job_doc)
+            job_doc = JobDocuments.objects.get(doc_id=document_uploaded)
+            posting.documents_uploaded.add(job_doc)
 
-        # project_number = JobPostingRequirement.objects.get(
-        #     id=validated_data["project_number"]
-        # )
-        department = Department.objects.get(dept_id=validated_data["dept_id"])
-        division = Division.objects.get(division_id=validated_data["division_id"])
-        zonal_lab = ZonalLab.objects.get(zonal_lab_id=validated_data["zonal_lab_id"])
-
-        # posting.project_number = project_number
-        posting.department = department
-        posting.division = division
-        posting.zonal_lab = zonal_lab
+        """
+        project_number = JobPostingRequirement.objects.get(
+            id=validated_data["project_number"]
+        )
+        posting.project_number = project_number
+        """
+        posting.division_id = validated_data["division_id"]
+        posting.zonal_lab_id = validated_data["zonal_lab_id"]
         posting.save()
-
         return posting.job_posting_id
 
 
@@ -846,9 +811,7 @@ class ApplicationCountForJobPositionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserJobPositions
-        fields = (
-            "count",
-        )
+        fields = ("count",)
 
     def get_application_id(self, obj):
         return obj.id
@@ -885,8 +848,8 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
         method_name="get_contact", required=False
     )
     application_id = serializers.SerializerMethodField(
-            method_name="get_application_id", required=False
-        )
+        method_name="get_application_id", required=False
+    )
 
     class Meta:
         model = UserJobPositions
@@ -923,8 +886,7 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
     def get_division(self, obj):
         return obj.job_posting.division.division_name
 
-
-    def get_applied_job_status(self,obj):
+    def get_applied_job_status(self, obj):
         try:
             applied_job_status = obj.applied_job_status
             return applied_job_status

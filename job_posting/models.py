@@ -301,13 +301,6 @@ class JobPosting(BaseModel):
         on_delete=models.SET_NULL,
         related_name="job_posting_project_number",
     )
-    department = models.ForeignKey(
-        "Department",
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name="job_posting_department",
-    )
     division = models.ForeignKey(
         "Division",
         on_delete=models.CASCADE,

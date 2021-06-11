@@ -98,7 +98,6 @@ class JobPostingAdmin(admin.ModelAdmin):
         "notification_id",
         "notification_title",
         "project_number",
-        "department",
         "division",
         "zonal_lab",
         "publication_date",
