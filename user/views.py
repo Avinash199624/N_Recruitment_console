@@ -63,7 +63,8 @@ from user.serializer import (
     MentorMasterSerializer,
     TraineeSerializer,
     RelaxationMasterSerializer,
-    RelaxationCategoryMasterSerializer, ApplicantIsFresherSerializer,
+    RelaxationCategoryMasterSerializer,
+    ApplicantIsFresherSerializer,
 )
 from job_posting.serializer import ApplicantJobPositionsSerializer
 from knox.views import LoginView as KnoxLoginView
@@ -969,7 +970,13 @@ class ApplicantExperiencesListView(APIView):
                     serializer = UserExperienceDetailsSerializer(experiences, many=True)
                     return Response(serializer.data, status=200)
                 else:
-                    return Response(data={"message": "User Experiences not found", "isEmpty": "true"}, status=200)
+                    return Response(
+                        data={
+                            "message": "User Experiences not found",
+                            "isEmpty": "true",
+                        },
+                        status=200,
+                    )
             else:
                 experiences = user.user_profile.experiences.filter(is_deleted=False)
                 print("experiences ------------------>", experiences)
@@ -979,9 +986,18 @@ class ApplicantExperiencesListView(APIView):
                     print("experiences zero------------------>", experience)
                     experience.is_deleted = True
                     experience.save()
-                return Response(data={"message": "User is not an Experienced Candidate.", "isEmpty": "true"}, status=200)
+                return Response(
+                    data={
+                        "message": "User is not an Experienced Candidate.",
+                        "isEmpty": "true",
+                    },
+                    status=200,
+                )
         except:
-            return Response(data={"message": "User Experiences not found", "isEmpty": "true"}, status=200)
+            return Response(
+                data={"message": "User Experiences not found", "isEmpty": "true"},
+                status=200,
+            )
 
 
 class ApplicantExperienceUpdateView(APIView):
@@ -1528,7 +1544,7 @@ class FileUpload(APIView):
         doc_type = self.request.GET["doc_type"]
         filename, extension = os.path.splitext(file.name)
         timestamp = int(datetime.datetime.now().timestamp())
-        filename = f"{filename}_{timestamp}.{extension}"
+        filename = f"{filename}_{timestamp}{extension}"
         if doc_type == "profile_photo":
             allowed_extensions = ["jpg", "jpeg", "png"]
             user = User.objects.get(user_id=self.request.GET["user_id"])
@@ -1581,9 +1597,7 @@ class FileUpload(APIView):
                 ContentFile(file.read()),
             )
             temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}job_posting_documents/{filename}"
-            doc = JobDocuments.objects.create(
-                doc_file_path=temp_path, doc_name=name
-            )
+            doc = JobDocuments.objects.create(doc_file_path=temp_path, doc_name=name)
 
         return Response(
             data={
