@@ -28,13 +28,13 @@ class NewDocumentListView(APIView):
         try:
             id = self.kwargs['id']
             if NewDocumentMaster.objects.filter(doc_id=id, is_deleted=False).exists():
-                doc = NewDocumentMaster.objects.get(doc_id=id, is_deleted=False).order_by('doc_name')
+                doc = NewDocumentMaster.objects.get(doc_id=id, is_deleted=False)
                 serializer = NewDocumentMasterSerializer(doc)
                 return Response(serializer.data, status=200)
             else:
                 return Response(data={"message": "Details Not Found."}, status=401)
         except:
-            docs = NewDocumentMaster.objects.filter(is_deleted=False).order_by('doc_name')
+            docs = NewDocumentMaster.objects.filter(is_deleted=False)
             serializer = NewDocumentMasterSerializer(docs, many=True)
             return Response(serializer.data, status=200)
 
@@ -71,13 +71,13 @@ class InformationListView(APIView):
         try:
             id = self.kwargs['id']
             if InformationMaster.objects.filter(info_id=id, is_deleted=False).exists():
-                info = InformationMaster.objects.get(info_id=id, is_deleted=False).order_by('info_name')
+                info = InformationMaster.objects.get(info_id=id, is_deleted=False)
                 serializer = InformationMasterSerializer(info)
                 return Response(serializer.data, status=200)
             else:
                 return Response(data={"message": "Details Not Found."}, status=401)
         except:
-            info = InformationMaster.objects.filter(is_deleted=False).order_by('info_name')
+            info = InformationMaster.objects.filter(is_deleted=False)
             serializer = InformationMasterSerializer(info, many=True)
             return Response(serializer.data, status=200)
 
