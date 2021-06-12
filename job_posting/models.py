@@ -216,6 +216,12 @@ class PositionQualificationMapping(BaseModel):
     allowance = models.CharField(
         max_length=30, choices=ALLOWANCE_CHOICES, null=True, blank=True
     )
+    grade = models.CharField(
+        max_length=30, choices=GRADE_CHOICES, null=True, blank=True
+    )
+    level = models.CharField(
+        max_length=30, choices=LEVEL_CHOICES, null=True, blank=True
+    )
     extra_note = models.TextField(null=True, blank=True)
 
     def __str__(self):

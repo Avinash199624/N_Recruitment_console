@@ -169,6 +169,8 @@ class AdminPositionQualificationMappingSerializer(serializers.ModelSerializer):
             "monthly_emolements",
             "allowance",
             "extra_note",
+            "grade",
+            "level",
         )
 
     def get_qualification(self, obj):
@@ -212,6 +214,8 @@ class PositionQualificationMappingSerializer(serializers.ModelSerializer):
             "monthly_emolements",
             "allowance",
             "extra_note",
+            "grade",
+            "level",
         )
 
 
@@ -684,6 +688,8 @@ class JobPostingSerializer(serializers.ModelSerializer):
                         allowance=position_mapping["allowance"],
                         extra_note=position_mapping["extra_note"],
                         number_of_vacancies=position_mapping["number_of_vacancies"],
+                        grade=position_mapping.get("grade"),
+                        level=position_mapping.get("level"),
                     )
                 )
 
@@ -742,6 +748,8 @@ class JobPostingSerializer(serializers.ModelSerializer):
                     allowance=position_mapping["allowance"],
                     extra_note=position_mapping["extra_note"],
                     number_of_vacancies=position_mapping["number_of_vacancies"],
+                    grade=position_mapping.get("grade"),
+                    level=position_mapping.get("level"),
                 )
             )
             for qualification in position_mapping["qualification"]:
