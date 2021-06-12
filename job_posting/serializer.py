@@ -598,7 +598,7 @@ class JobPostingSerializer(serializers.ModelSerializer):
         method_name="get_documents_uploaded", required=False
     )
     applied_applicants = serializers.SerializerMethodField(
-        method_name="get_applied_applicants", required=False
+        method_name="get_applied_applicants", required=False, read_only=True
     )
     is_deleted = serializers.BooleanField(default=False, write_only=True)
 
@@ -626,9 +626,7 @@ class JobPostingSerializer(serializers.ModelSerializer):
         )
 
     def get_applied_applicants(self, obj):
-        UserJobPositions.objects.prefetch_related("job_posting_applicants").filter(is_deleted=False)
-        count = len(obj.job_posting_applicants.all())
-        return count
+        return len(obj.job_posting_applicants.all())
 
     def get_manpower_positions(self, obj):
         positions = obj.manpower_positions.filter()
