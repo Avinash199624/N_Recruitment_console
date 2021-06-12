@@ -1,10 +1,10 @@
 import datetime
 
-from django.shortcuts import render
+from django.db.transaction import atomic
 
 # Create your views here.
 from rest_framework.filters import SearchFilter
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from rest_framework.views import APIView
 from django.http import JsonResponse
@@ -26,7 +26,6 @@ from user.models import (
     UserDocuments,
     OtherInformation,
     UserPermissions,
-    UserAuthentication,
     NeeriUserProfile,
     MentorMaster,
     Trainee,
@@ -37,13 +36,10 @@ from job_posting.models import (
     UserJobPositions,
     JobDocuments,
     JobPosting,
-    SelectionProcessContent,
 )
 from user.serializer import (
     UserSerializer,
     AuthTokenCustomSerializer,
-    UserProfileSerializer,
-    UserRolesSerializer,
     CustomUserSerializer,
     ApplicantUserPersonalInformationSerializer,
     LocationSerializer,
@@ -65,6 +61,7 @@ from user.serializer import (
     RelaxationMasterSerializer,
     RelaxationCategoryMasterSerializer,
     ApplicantIsFresherSerializer,
+    UserDocumentsSerializer,
 )
 from job_posting.serializer import ApplicantJobPositionsSerializer
 from knox.views import LoginView as KnoxLoginView
@@ -127,11 +124,11 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
             serializer = AuthTokenCustomSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data["user"]
-            print("aam user", serializer.data)
-            # return Response(serializer.data, status=400)
+            # return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(
-                data={"message": "You're not authorized to login.."}, status=400
+                data={"message": "You're not authorized to login.."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if not getattr(user, "is_active", None):
@@ -147,7 +144,7 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
         result.data["permissions"] = permissions
         # result.data['email_verified'] = authentication.email_verified
         # result.data['mobile_verified'] = authentication.mobile_verified
-        return Response(result.data, status=200)
+        return Response(result.data)
 
 
 class TempLoginView(KnoxLoginView, LoginResponseViewMixin):
@@ -175,16 +172,13 @@ class TempLoginView(KnoxLoginView, LoginResponseViewMixin):
         serializer = AuthTokenCustomSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
-        print("aam user", serializer.data)
-        # return Response(serializer.data, status=400)
+        # return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
         # else:
-        #     return Response(data={"message": "You're not authorized to login.."}, status=400)
+        #     return Response(data={"message": "You're not authorized to login.."}, status=status.HTTP_400_BAD_REQUEST)
 
         if not getattr(user, "is_active", None):
             raise AuthenticationFailed(INACTIVE_ACCOUNT_ERROR, code="account_disabled")
         res = login(request, user)
-        print("res", res)
-
         result = super(TempLoginView, self).post(request, format=None)
         serializer = UserSerializer(user)
         # authentication = UserAuthentication.objects.get(user=user)
@@ -193,7 +187,7 @@ class TempLoginView(KnoxLoginView, LoginResponseViewMixin):
         result.data["permissions"] = permissions
         # result.data['email_verified'] = authentication.email_verified
         # result.data['mobile_verified'] = authentication.mobile_verified
-        return Response(result.data, status=200)
+        return Response(result.data)
 
 
 class NeeriLoginView(KnoxLoginView, LoginResponseViewMixin):
@@ -223,11 +217,11 @@ class NeeriLoginView(KnoxLoginView, LoginResponseViewMixin):
             serializer = AuthTokenCustomSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data["user"]
-            print("welcome neeri user", serializer.data)
-            # return Response(serializer.data, status=400)
+            # return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(
-                data={"message": "You're not authorized to login.."}, status=400
+                data={"message": "You're not authorized to login.."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         if not getattr(user, "is_active", None):
@@ -243,7 +237,9 @@ class NeeriLoginView(KnoxLoginView, LoginResponseViewMixin):
         result.data["permissions"] = permissions
         # result.data['email_verified'] = authentication.email_verified
         # result.data['mobile_verified'] = authentication.mobile_verified
-        return Response(result.data, status=200)
+        return Response(
+            result.data,
+        )
 
 
 # class NeeriLoginView(KnoxLoginView, LoginResponseViewMixin):
@@ -267,9 +263,9 @@ class NeeriLoginView(KnoxLoginView, LoginResponseViewMixin):
 #             serializer.is_valid(raise_exception=True)
 #             user = serializer.validated_data["user"]
 #             print('welcome neeri user', serializer.data)
-#             # return Response(serializer.data, status=400)
+#             # return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
 #         else:
-#             return Response(data={"message": "You're not authorized to login.."}, status=400)
+#             return Response(data={"message": "You're not authorized to login.."}, status=status.HTTP_400_BAD_REQUEST)
 #
 #         if not getattr(user, "is_active", None):
 #             raise AuthenticationFailed(INACTIVE_ACCOUNT_ERROR, code="account_disabled")
@@ -284,7 +280,7 @@ class NeeriLoginView(KnoxLoginView, LoginResponseViewMixin):
 #         result.data['permissions'] = permissions
 #         # result.data['email_verified'] = authentication.email_verified
 #         # result.data['mobile_verified'] = authentication.mobile_verified
-#         return Response(result.data, status=200)
+#         return Response(result.data, )
 
 
 class LogoutView(KnoxLogoutView):
@@ -292,7 +288,9 @@ class LogoutView(KnoxLogoutView):
     def post(self, request, *args, **kwargs):
         request._auth.delete()
         logout(request)
-        return Response(data={"messege": "Logged out successfully"}, status=200)
+        return Response(
+            data={"messege": "Logged out successfully"},
+        )
 
 
 class UserRegistartionView(APIView):
@@ -306,10 +304,12 @@ class UserRegistartionView(APIView):
         password = self.request.data["password"]
         role = RoleMaster.objects.get(role_name__exact="applicant")
         if User.objects.filter(email=email).exists():
-            return JsonResponse(data={"messege": "User Already Exist"}, status=200)
+            return JsonResponse(
+                data={"messege": "User Already Exist"},
+            )
         elif User.objects.filter(mobile_no=mobile_no).exists():
             return JsonResponse(
-                data={"messege": "Mobile Number Already Exist"}, status=200
+                data={"messege": "Mobile Number Already Exist"},
             )
         else:
             user = User.objects.create_user(mobile_no, email, password)
@@ -332,22 +332,19 @@ class UserRegistartionView(APIView):
             result["permissions"] = permissions
             # result['email_verified'] = authentication.email_verified
             # result['mobile_verified'] = authentication.mobile_verified
-            return JsonResponse(data=result, status=200, safe=False)
+            return JsonResponse(data=result, safe=False)
 
 
-class UserListView(APIView):
-    def get(self, request, *args, **kwargs):
-        users = User.objects.filter(is_deleted=False)
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data, status=200)
+class UserListView(ListAPIView):
+    serializer_class = UserSerializer
+    queryset = User.objects.filter(is_deleted=False)
 
 
-class RetrievetUserView(APIView):
-    def get(self, request, *args, **kwargs):
-        id = self.kwargs["id"]
-        user = User.objects.get(user_id=id)
-        serializer = CustomUserSerializer(user)
-        return Response(serializer.data, status=200)
+class RetrieveUserView(RetrieveAPIView):
+    queryset = User.objects.filter(is_deleted=False)
+    serializer_class = CustomUserSerializer
+    lookup_field = "user_id"
+    lookup_url_kwarg = "id"
 
 
 class CreateUserView(APIView):
@@ -356,15 +353,19 @@ class CreateUserView(APIView):
         mobile_no = data["mobile_no"]
         email = data["email"]
         if User.objects.filter(email=email).exists():
-            return JsonResponse(data={"messege": "User Already Exist"}, status=200)
+            return JsonResponse(
+                data={"messege": "User Already Exist"},
+            )
         elif User.objects.filter(mobile_no=mobile_no).exists():
-            return JsonResponse(data={"messege": "User Already Exist"}, status=200)
+            return JsonResponse(
+                data={"messege": "User Already Exist"},
+            )
         else:
             user = User.objects.create_user(mobile_no=mobile_no, email=email)
             serializer = CustomUserSerializer(user, data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save(instance=user, validated_data=data)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
 
 
 class NeeriUserSearchListView(ListAPIView):
@@ -378,7 +379,7 @@ class NeeriUserListView(APIView):
     def get(self, request, *args, **kwargs):
         neeri_user = NeeriUserProfile.objects.filter(is_deleted=False)
         serializer = NeeriUsersSerializer(neeri_user, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class CreateNeeriUserView(APIView):
@@ -386,7 +387,7 @@ class CreateNeeriUserView(APIView):
         id = self.kwargs["id"]
         user = NeeriUserProfile.objects.get(user_id=id, is_deleted=False)
         serializer = NeeriUsersSerializer(user)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
     def post(self, request, *args, **kwargs):
         data = self.request.data
@@ -394,21 +395,21 @@ class CreateNeeriUserView(APIView):
         email = data["email"]
         # password = data['password']
         if User.objects.filter(email=email).exists():
-            return JsonResponse(data={"messege": "email Already Exist"}, status=200)
+            return JsonResponse(
+                data={"messege": "email Already Exist"},
+            )
         elif User.objects.filter(mobile_no=mobile_no).exists():
             return JsonResponse(
-                data={"messege": "mobile no. Already Exist"}, status=200
+                data={"messege": "mobile no. Already Exist"},
             )
         else:
             # user = User.objects.create_user(mobile_no=mobile_no, email=email, password=password)
             serializer = NeeriUsersSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             result = serializer.save(validated_data=data)
-            print("result---->", result)
             neeri_user_profile = NeeriUserProfile.objects.get(user=result)
             result_serializer = NeeriUsersSerializer(neeri_user_profile)
-            print("result_serializer.data---->", result_serializer.data)
-            return Response(result_serializer.data, status=200)
+            return Response(result_serializer.data)
 
     def put(self, request, *args, **kwargs):
         id = self.kwargs["id"]
@@ -417,7 +418,7 @@ class CreateNeeriUserView(APIView):
         serializer = NeeriUsersSerializer(user, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=user, validated_data=data)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
     def delete(self, request, *args, **kwargs):
         try:
@@ -430,10 +431,12 @@ class CreateNeeriUserView(APIView):
             n_user.save()
             return Response(
                 data={"message": "Neeri User Deleted Successfully.(soft deleted)"},
-                status=200,
             )
         except:
-            return Response(data={"message": "Neeri User Not Found."}, status=404)
+            return Response(
+                data={"message": "Neeri User Not Found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
 
 class UpdateUserView(APIView):
@@ -444,7 +447,7 @@ class UpdateUserView(APIView):
         serializer = CustomUserSerializer(user, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=user, validated_data=data)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class DeleteUserView(APIView):
@@ -452,20 +455,20 @@ class DeleteUserView(APIView):
         try:
             id = self.kwargs["id"]
             user = User.objects.get(user_id=id)
-            # user.delete()
             user.is_deleted = True
             user.save()
-            print(user.is_deleted)
-            return Response(data={"messege": "User Deleted Successfully."}, status=200)
+            return Response(
+                data={"messege": "User Deleted Successfully."},
+            )
         except:
-            return Response(data={"messege": "User Not Found."}, status=404)
+            return Response(
+                data={"messege": "User Not Found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class ForgotPassword(APIView):
 
-    permission_classes = [
-        AllowAny,
-    ]
+    permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
         data = self.request.data
@@ -476,11 +479,12 @@ class ForgotPassword(APIView):
             if user:
                 # Need to send Email with a link where user can reset password.
                 return Response(
-                    data={"messege": "Link sent to your registered Email."}, status=200
+                    data={"messege": "Link sent to your registered Email."},
                 )
         except:
             return Response(
-                data={"messege": "Email not found, enter valid email."}, status=404
+                data={"messege": "Email not found, enter valid email."},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
 
@@ -492,14 +496,16 @@ class ResetPassword(APIView):
         password = data["password"]
         user.set_password(password)
         user.save()
-        return Response(data={"messege": "Password reset Successfully."}, status=200)
+        return Response(
+            data={"messege": "Password reset Successfully."},
+        )
 
 
 class RoleMasterView(APIView):
     def get(self, request, *args, **kwargs):
         roles = RoleMaster.objects.filter(is_deleted=False)
         serializer = RoleMasterSerializer(roles, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class ApplicantPersonalInformationView(APIView):
@@ -510,7 +516,7 @@ class ApplicantPersonalInformationView(APIView):
             if user.user_profile:
                 user_profile = user.user_profile
                 serializer = ApplicantUserPersonalInformationSerializer(user_profile)
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
         except:
             return Response(
                 data={
@@ -518,7 +524,6 @@ class ApplicantPersonalInformationView(APIView):
                     "isEmpty": "true",
                     "mobile_no": user.mobile_no,
                 },
-                status=200,
             )
 
 
@@ -533,13 +538,12 @@ class ApplicantPersonalInformationUpdateView(APIView):
             return Response(
                 data={
                     "messege": "UserProfile does not exist for the given user,create UserProfile first."
-                },
-                status=200,
+                }
             )
         serializer = ApplicantUserPersonalInformationSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=user_profile, validated_data=data)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class ApplicantIsFresherUpdateView(APIView):
@@ -550,7 +554,7 @@ class ApplicantIsFresherUpdateView(APIView):
             if user.user_profile:
                 user_profile = user.user_profile
                 serializer = ApplicantIsFresherSerializer(user_profile)
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
         except:
             return Response(
                 data={
@@ -558,7 +562,6 @@ class ApplicantIsFresherUpdateView(APIView):
                     "isEmpty": "true",
                     "mobile_no": user.mobile_no,
                 },
-                status=200,
             )
 
     def put(self, request, *args, **kwargs):
@@ -572,12 +575,11 @@ class ApplicantIsFresherUpdateView(APIView):
                 data={
                     "messege": "UserProfile does not exist for the given user,create UserProfile first."
                 },
-                status=200,
             )
         serializer = ApplicantIsFresherSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=user_profile, validated_data=data)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class ApplicantPersonalInformationCreateView(APIView):
@@ -587,8 +589,7 @@ class ApplicantPersonalInformationCreateView(APIView):
         try:
             if user.user_profile:
                 return Response(
-                    data={"messege": "UserProfile for Given User Already Exist"},
-                    status=200,
+                    data={"messege": "UserProfile for Given User Already Exist"}
                 )
         except:
             data = self.request.data
@@ -597,7 +598,7 @@ class ApplicantPersonalInformationCreateView(APIView):
             serializer.save(validated_data=data)
             user_profile = UserProfile.objects.get(user=user)
             serializer = ApplicantUserPersonalInformationSerializer(user_profile)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
 
 
 class NeeriPersonalInformation(APIView):
@@ -610,7 +611,7 @@ class NeeriPersonalInformation(APIView):
                 if user.neeri_user_profile and check_user:
                     neeri_user_profile = user.neeri_user_profile
                     serializer = NeeriUsersSerializer(neeri_user_profile)
-                    return Response(serializer.data, status=200)
+                    return Response(serializer.data)
             except:
                 return Response(
                     data={
@@ -619,19 +620,18 @@ class NeeriPersonalInformation(APIView):
                         "isEmpty": "true",
                         "email": user.email,
                     },
-                    status=200,
                 )
         except:
             neeri_user = NeeriUserProfile.objects.filter(is_deleted=False)
             serializer = NeeriUsersSerializer(neeri_user, many=True)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
 
     # def post(self, request, *args, **kwargs):
     #     id = self.kwargs['id']
     #     user = User.objects.get(user_id=id)
     #     try:
     #         if user.neeri_user_profile:
-    #             return Response(data={"messege": "NeeriUserProfile for Given Neeri User Already Exist"}, status=200)
+    #             return Response(data={"messege": "NeeriUserProfile for Given Neeri User Already Exist"}, )
     #     except:
     #         data = self.request.data
     #         serializer = NeeriUsersSerializer(data=data)
@@ -639,7 +639,7 @@ class NeeriPersonalInformation(APIView):
     #         result = serializer.save(validated_data=data)
     #         user_profile = NeeriUserProfile.objects.get(user=user)
     #         serializer = NeeriUsersSerializer(user_profile)
-    #         return Response(serializer.data, status=200)
+    #         return Response(serializer.data)
 
     def put(self, request, *args, **kwargs):
         id = self.kwargs["id"]
@@ -652,12 +652,11 @@ class NeeriPersonalInformation(APIView):
                 data={
                     "message": "Neeri User Profile does not exist for the given user, create Neeri User Profile first."
                 },
-                status=200,
             )
         serializer = NeeriUsersSerializer(neeri_user_profile, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=neeri_user_profile, validated_data=data)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
     # def delete(self, request, *args, **kwargs):
     #     try:
@@ -667,9 +666,9 @@ class NeeriPersonalInformation(APIView):
     #         # user.delete()
     #         # user.save()
     #         # print(user)
-    #         return Response(data={"message": "Neeri User Deleted Successfully."}, status=200)
+    #         return Response(data={"message": "Neeri User Deleted Successfully."}, )
     #     except:
-    #         return Response(data={"message": "Neeri User Not Found."}, status=404)
+    #         return Response(data={"message": "Neeri User Not Found."}, status=status.HTTP_404_NOT_FOUND)
 
 
 class ApplicantAddressView(APIView):
@@ -697,10 +696,10 @@ class ApplicantAddressView(APIView):
             result[
                 "is_father_address_same_as_local"
             ] = user.user_profile.is_father_address_same_as_local
-            return Response(result, status=200)
+            return Response(result)
         except:
             return Response(
-                data={"messege": "Address not created", "isEmpty": "true"}, status=200
+                data={"messege": "Address not created", "isEmpty": "true"},
             )
 
 
@@ -719,7 +718,7 @@ class ApplicantAddressUpdateView(APIView):
                     "is_permenant_address_same_as_local"
                 ]
                 if (
-                    is_permenant_address_same_as_local == True
+                    is_permenant_address_same_as_local is True
                     or is_permenant_address_same_as_local == "true"
                 ):
                     user.user_profile.permanent_address = (
@@ -737,7 +736,7 @@ class ApplicantAddressUpdateView(APIView):
                     result[
                         "is_father_address_same_as_local"
                     ] = user.user_profile.is_father_address_same_as_local
-                    return Response(result, status=200)
+                    return Response(result)
             else:
                 location = user.user_profile.permanent_address
                 serializer = LocationSerializer(location, data=data)
@@ -747,7 +746,7 @@ class ApplicantAddressUpdateView(APIView):
                     "is_father_address_same_as_local"
                 ]
                 if (
-                    is_father_address_same_as_local == True
+                    is_father_address_same_as_local is True
                     or is_father_address_same_as_local == "true"
                 ):
                     user.user_profile.father_address = user.user_profile.local_address
@@ -763,7 +762,9 @@ class ApplicantAddressUpdateView(APIView):
                     result[
                         "is_father_address_same_as_local"
                     ] = user.user_profile.is_father_address_same_as_local
-                    return Response(result, status=200)
+                    return Response(
+                        result,
+                    )
             else:
                 location = user.user_profile.father_address
                 serializer = LocationSerializer(location, data=data)
@@ -778,7 +779,9 @@ class ApplicantAddressUpdateView(APIView):
         result[
             "is_father_address_same_as_local"
         ] = user.user_profile.is_father_address_same_as_local
-        return Response(result, status=200)
+        return Response(
+            result,
+        )
 
 
 class ApplicantAddressCreateView(APIView):
@@ -792,7 +795,7 @@ class ApplicantAddressCreateView(APIView):
             ]
             if (
                 address_type == "permanent_address"
-                and is_permenant_address_same_as_local == True
+                and is_permenant_address_same_as_local is True
                 or is_permenant_address_same_as_local == "true"
             ):
                 permanent_address = user.user_profile.local_address
@@ -807,14 +810,16 @@ class ApplicantAddressCreateView(APIView):
                 result[
                     "is_father_address_same_as_local"
                 ] = user.user_profile.is_father_address_same_as_local
-                return Response(result, status=200)
+                return Response(
+                    result,
+                )
         elif "is_father_address_same_as_local" in self.request.GET:
             is_father_address_same_as_local = self.request.GET[
                 "is_father_address_same_as_local"
             ]
             if (
                 address_type == "father_address"
-                and is_father_address_same_as_local == True
+                and is_father_address_same_as_local is True
                 or is_father_address_same_as_local == "true"
             ):
                 father_address = user.user_profile.local_address
@@ -829,7 +834,9 @@ class ApplicantAddressCreateView(APIView):
                 result[
                     "is_father_address_same_as_local"
                 ] = user.user_profile.is_father_address_same_as_local
-                return Response(result, status=200)
+                return Response(
+                    result,
+                )
         else:
             data = self.request.data
             serializer = LocationSerializer(data=data)
@@ -841,7 +848,6 @@ class ApplicantAddressCreateView(APIView):
                     Location.objects.get(id=result).delete()
                     return Response(
                         data={"messege": "Local Address for Given User Already Exist"},
-                        status=200,
                     )
                 else:
                     user.user_profile.local_address = location
@@ -852,8 +858,7 @@ class ApplicantAddressCreateView(APIView):
                     return Response(
                         data={
                             "messege": "Permanent Address for Given User Already Exist"
-                        },
-                        status=200,
+                        }
                     )
                 else:
                     user.user_profile.permanent_address = location
@@ -862,8 +867,7 @@ class ApplicantAddressCreateView(APIView):
                 if user.user_profile.father_address:
                     Location.objects.get(id=result).delete()
                     return Response(
-                        data={"messege": "Father Address for Given User Already Exist"},
-                        status=200,
+                        data={"messege": "Father Address for Given User Already Exist"}
                     )
                 else:
                     user.user_profile.father_address = location
@@ -878,7 +882,7 @@ class ApplicantAddressCreateView(APIView):
             result[
                 "is_father_address_same_as_local"
             ] = user.user_profile.is_father_address_same_as_local
-            return Response(result, status=200)
+            return Response(result)
 
 
 class ApplicantQualificationsListView(APIView):
@@ -891,19 +895,17 @@ class ApplicantQualificationsListView(APIView):
                     is_deleted=False
                 )
                 serializer = UserEducationDetailsSerializer(qualifications, many=True)
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
             else:
                 return Response(
                     data={
                         "messege": "User Qualifications not found",
                         "isEmpty": "true",
                     },
-                    status=200,
                 )
         except:
             return Response(
                 data={"messege": "User Qualifications not found", "isEmpty": "true"},
-                status=200,
             )
 
 
@@ -923,7 +925,7 @@ class ApplicantQualificationUpdateView(APIView):
             serializer.is_valid(raise_exception=True)
             serializer.update(instance=qualification, validated_data=qualification_data)
         serializer = UserEducationDetailsSerializer(qualifications, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class ApplicantQualificationCreateView(APIView):
@@ -940,7 +942,7 @@ class ApplicantQualificationCreateView(APIView):
             user.user_profile.save()
         qualifications = user.user_profile.education_details.filter(is_deleted=False)
         serializer = UserEducationDetailsSerializer(qualifications, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class ApplicantQualificationDeleteView(APIView):
@@ -953,10 +955,13 @@ class ApplicantQualificationDeleteView(APIView):
             education.is_deleted = True
             education.save()
             return Response(
-                data={"message": "Record Deleted Successfully."}, status=200
+                data={"message": "Record Deleted Successfully."},
             )
         except:
-            return Response(data={"message": "Details Not Found."}, status=401)
+            return Response(
+                data={"message": "Details Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
 
 class ApplicantExperiencesListView(APIView):
@@ -968,35 +973,29 @@ class ApplicantExperiencesListView(APIView):
                 if user.user_profile.experiences.filter(is_deleted=False).count() > 0:
                     experiences = user.user_profile.experiences.filter(is_deleted=False)
                     serializer = UserExperienceDetailsSerializer(experiences, many=True)
-                    return Response(serializer.data, status=200)
+                    return Response(serializer.data)
                 else:
                     return Response(
                         data={
                             "message": "User Experiences not found",
                             "isEmpty": "true",
                         },
-                        status=200,
                     )
             else:
                 experiences = user.user_profile.experiences.filter(is_deleted=False)
-                print("experiences ------------------>", experiences)
                 for experience_data in experiences:
-                    print("experience_data------------------>", experience_data)
                     experience = user.user_profile.experiences.update(is_deleted=True)
-                    print("experiences zero------------------>", experience)
                     experience.is_deleted = True
                     experience.save()
                 return Response(
                     data={
                         "message": "User is not an Experienced Candidate.",
                         "isEmpty": "true",
-                    },
-                    status=200,
+                    }
                 )
         except:
             return Response(
                 data={"message": "User Experiences not found", "isEmpty": "true"},
-                status=200,
             )
 
 
@@ -1014,7 +1013,7 @@ class ApplicantExperienceUpdateView(APIView):
             serializer.is_valid(raise_exception=True)
             serializer.update(instance=experience, validated_data=experience_data)
         serializer = UserExperienceDetailsSerializer(experiences, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class ApplicantExperienceCreateView(APIView):
@@ -1031,7 +1030,7 @@ class ApplicantExperienceCreateView(APIView):
             user.user_profile.save()
         experiences = user.user_profile.experiences.filter(is_deleted=False)
         serializer = UserExperienceDetailsSerializer(experiences, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class ApplicantExperienceDeleteView(APIView):
@@ -1044,10 +1043,13 @@ class ApplicantExperienceDeleteView(APIView):
             experience.is_deleted = True
             experience.save()
             return Response(
-                data={"message": "Record Deleted Successfully."}, status=200
+                data={"message": "Record Deleted Successfully."},
             )
         except:
-            return Response(data={"message": "Details Not Found."}, status=401)
+            return Response(
+                data={"message": "Details Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
 
 class NeeriRelationsListView(APIView):
@@ -1060,16 +1062,14 @@ class NeeriRelationsListView(APIView):
                     is_deleted=False
                 )
                 serializer = NeeriRelationSerializer(neeri_relations, many=True)
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
             else:
                 return Response(
                     data={"messege": "Neeri Relations not found", "isEmpty": "true"},
-                    status=200,
                 )
         except:
             return Response(
                 data={"messege": "Neeri Relations not found", "isEmpty": "true"},
-                status=200,
             )
 
 
@@ -1085,7 +1085,7 @@ class NeeriRelationUpdateView(APIView):
             serializer.is_valid(raise_exception=True)
             serializer.update(instance=relation, validated_data=relation_data)
         serializer = NeeriRelationSerializer(neeri_relations, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class NeeriRelationCreateView(APIView):
@@ -1102,7 +1102,7 @@ class NeeriRelationCreateView(APIView):
             user.user_profile.save()
         experiences = user.user_profile.neeri_relation.filter(is_deleted=False)
         serializer = NeeriRelationSerializer(experiences, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class NeeriRelationDeleteView(APIView):
@@ -1115,10 +1115,13 @@ class NeeriRelationDeleteView(APIView):
             neeri_relation.is_deleted = True
             neeri_relation.save()
             return Response(
-                data={"message": "Record Deleted Successfully."}, status=200
+                data={"message": "Record Deleted Successfully."},
             )
         except:
-            return Response(data={"message": "Details Not Found."}, status=401)
+            return Response(
+                data={"message": "Details Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
 
 class OverseasVisitsListView(APIView):
@@ -1129,16 +1132,14 @@ class OverseasVisitsListView(APIView):
             if user.user_profile.overseas_visits.filter(is_deleted=False).count() > 0:
                 visits = user.user_profile.overseas_visits.filter(is_deleted=False)
                 serializer = OverseasVisitsSerializer(visits, many=True)
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
             else:
                 return Response(
                     data={"messege": "Overseas Visits not found", "isEmpty": "true"},
-                    status=200,
                 )
         except:
             return Response(
                 data={"messege": "Overseas Visits not found", "isEmpty": "true"},
-                status=200,
             )
 
 
@@ -1156,7 +1157,7 @@ class OverseasVisitsCreateView(APIView):
             user.user_profile.save()
         visits = user.user_profile.overseas_visits.filter(is_deleted=False)
         serializer = OverseasVisitsSerializer(visits, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class OverseasVisitsUpdateView(APIView):
@@ -1171,7 +1172,7 @@ class OverseasVisitsUpdateView(APIView):
             serializer.is_valid(raise_exception=True)
             serializer.update(instance=visit, validated_data=visits_data)
         serializer = OverseasVisitsSerializer(visits, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class OverseasVisitsDeleteView(APIView):
@@ -1184,10 +1185,13 @@ class OverseasVisitsDeleteView(APIView):
             overseas_visit.is_deleted = True
             overseas_visit.save()
             return Response(
-                data={"message": "Record Deleted Successfully."}, status=200
+                data={"message": "Record Deleted Successfully."},
             )
         except:
-            return Response(data={"message": "Details Not Found."}, status=401)
+            return Response(
+                data={"message": "Details Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
 
 class ApplicantReferencesListView(APIView):
@@ -1198,15 +1202,14 @@ class ApplicantReferencesListView(APIView):
             if user.user_profile.references.filter(is_deleted=False).count() > 0:
                 references = user.user_profile.references.filter(is_deleted=False)
                 serializer = ReferencesSerializer(references, many=True)
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
             else:
                 return Response(
                     data={"messege": "References not found", "isEmpty": "true"},
-                    status=200,
                 )
         except:
             return Response(
-                data={"messege": "References not found", "isEmpty": "true"}, status=200
+                data={"messege": "References not found", "isEmpty": "true"},
             )
 
 
@@ -1224,7 +1227,7 @@ class ApplicantReferencesCreateView(APIView):
             user.user_profile.save()
         references = user.user_profile.references.filter(is_deleted=False)
         serializer = ReferencesSerializer(references, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class ApplicantReferencesUpdateView(APIView):
@@ -1239,7 +1242,7 @@ class ApplicantReferencesUpdateView(APIView):
             serializer.is_valid(raise_exception=True)
             serializer.update(instance=reference, validated_data=reference_data)
         serializer = ReferencesSerializer(references, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class ApplicantReferencesDeleteView(APIView):
@@ -1252,10 +1255,13 @@ class ApplicantReferencesDeleteView(APIView):
             reference.is_deleted = True
             reference.save()
             return Response(
-                data={"message": "Record Deleted Successfully."}, status=200
+                data={"message": "Record Deleted Successfully."},
             )
         except:
-            return Response(data={"message": "Details Not Found."}, status=401)
+            return Response(
+                data={"message": "Details Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
 
 class ApplicantLanguagesListView(APIView):
@@ -1266,15 +1272,14 @@ class ApplicantLanguagesListView(APIView):
             if user.user_profile.languages.filter(is_deleted=False).count() > 0:
                 languages = user.user_profile.languages.filter(is_deleted=False)
                 serializer = LanguagesSerializer(languages, many=True)
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
             else:
                 return Response(
                     data={"messege": "Languages not found", "isEmpty": "true"},
-                    status=200,
                 )
         except:
             return Response(
-                data={"messege": "Languages not found", "isEmpty": "true"}, status=200
+                data={"messege": "Languages not found", "isEmpty": "true"},
             )
 
 
@@ -1292,7 +1297,7 @@ class ApplicantLanguagesCreateView(APIView):
             user.user_profile.save()
         languages = user.user_profile.languages.filter(is_deleted=False)
         serializer = LanguagesSerializer(languages, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class ApplicantLanguagesUpdateView(APIView):
@@ -1307,7 +1312,7 @@ class ApplicantLanguagesUpdateView(APIView):
             serializer.is_valid(raise_exception=True)
             serializer.update(instance=language, validated_data=language_data)
         serializer = LanguagesSerializer(languages, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class ApplicantLanguagesDeleteView(APIView):
@@ -1320,10 +1325,13 @@ class ApplicantLanguagesDeleteView(APIView):
             language.is_deleted = True
             language.save()
             return Response(
-                data={"message": "Record Deleted Successfully."}, status=200
+                data={"message": "Record Deleted Successfully."},
             )
         except:
-            return Response(data={"message": "Details Not Found."}, status=401)
+            return Response(
+                data={"message": "Details Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
 
 class PublishedPapersListView(APIView):
@@ -1334,16 +1342,14 @@ class PublishedPapersListView(APIView):
             if user.user_profile.published_papers.filter(is_deleted=False).count() > 0:
                 papers = user.user_profile.published_papers.filter(is_deleted=False)
                 serializer = PublishedPapersSerializer(papers, many=True)
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
             else:
                 return Response(
                     data={"messege": "Published Papers not found", "isEmpty": "true"},
-                    status=200,
                 )
         except:
             return Response(
                 data={"messege": "Published Papers not found", "isEmpty": "true"},
-                status=200,
             )
 
 
@@ -1363,7 +1369,7 @@ class PublishedPapersCreateView(APIView):
             user.user_profile.save()
         papers = user.user_profile.published_papers.filter(is_deleted=False)
         serializer = PublishedPapersSerializer(papers, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class PublishedPapersUpdateView(APIView):
@@ -1378,7 +1384,7 @@ class PublishedPapersUpdateView(APIView):
             serializer.update(instance=paper, validated_data=paper_data)
         papers = user.user_profile.published_papers.filter(is_deleted=False)
         response_data = PublishedPapersSerializer(papers, many=True)
-        return Response(response_data.data, status=200)
+        return Response(response_data.data)
 
 
 class PublishedPapersDeleteView(APIView):
@@ -1391,10 +1397,13 @@ class PublishedPapersDeleteView(APIView):
             paper.is_deleted = True
             paper.save()
             return Response(
-                data={"message": "Record Deleted Successfully."}, status=200
+                data={"message": "Record Deleted Successfully."},
             )
         except:
-            return Response(data={"message": "Details Not Found."}, status=401)
+            return Response(
+                data={"message": "Details Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
 
 # Todo:
@@ -1415,11 +1424,10 @@ class ApplicantAppliedJobListView(APIView):
                 user=user, is_deleted=False
             )
             serializer = ApplicantJobPositionsSerializer(user_job_positions, many=True)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
         else:
             return Response(
                 data={"messege": "Applied job list not found", "isEmpty": "true"},
-                status=200,
             )
 
 
@@ -1432,11 +1440,10 @@ class ApplicantProfilePercentageView(APIView):
         user = User.objects.get(user_id=id)
         try:
             percentage = user.user_profile.profile_percentage
-            return Response(data={"percentage": percentage}, status=200)
+            return Response(data={"percentage": percentage})
         except:
             return Response(
                 data={"messsege": "User-Profile not found", "percentage": "0"},
-                status=200,
             )
 
 
@@ -1457,19 +1464,17 @@ class ProfessionalTrainingListView(APIView):
                 serializer = ProfessionalTrainingSerializer(
                     professional_trainings, many=True
                 )
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
             else:
                 return Response(
                     data={
                         "messege": "Professional Trainings not found",
                         "isEmpty": "true",
                     },
-                    status=200,
                 )
         except:
             return Response(
                 data={"messege": "Professional Trainings not found", "isEmpty": "true"},
-                status=200,
             )
 
 
@@ -1494,7 +1499,7 @@ class ProfessionalTrainingUpdateView(APIView):
                 validated_data=professional_training_data,
             )
         serializer = ProfessionalTrainingSerializer(professional_trainings, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class ProfessionalTrainingCreateView(APIView):
@@ -1513,7 +1518,7 @@ class ProfessionalTrainingCreateView(APIView):
             is_deleted=False
         )
         serializer = ProfessionalTrainingSerializer(professional_trainings, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class ProfessionalTrainingDeleteView(APIView):
@@ -1529,31 +1534,36 @@ class ProfessionalTrainingDeleteView(APIView):
             professional_training.save()
             return Response(
                 data={"message": "Record Deleted Successfully(Soft Delete)."},
-                status=200,
             )
         except:
-            return Response(data={"message": "Details Not Found."}, status=401)
+            return Response(
+                data={"message": "Details Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
 
 class FileUpload(APIView):
     def post(self, request, *args, **kwargs):
         if "file" not in request.data:
-            return Response(data={"messege": "No file Found"}, status=200)
+            return Response(
+                data={"messege": "No file Found"},
+            )
 
         file = request.data["file"]
+        user = request.user
         doc_type = self.request.GET["doc_type"]
         filename, extension = os.path.splitext(file.name)
         timestamp = int(datetime.datetime.now().timestamp())
         filename = f"{filename}_{timestamp}{extension}"
         if doc_type == "profile_photo":
             allowed_extensions = ["jpg", "jpeg", "png"]
-            user = User.objects.get(user_id=self.request.GET["user_id"])
             if extension.lower() in allowed_extensions:
+                path = f"applicant_documents/{user.user_id}/{filename}"
                 default_storage.save(
-                    f"{settings.MEDIA_ROOT}/applicant_documents/{user.user_id}/{filename}",
+                    f"{settings.MEDIA_ROOT}/{path}",
                     ContentFile(file.read()),
                 )
-                temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}applicant_documents/{user.user_id}/{filename}"
+                temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}{path}"
                 doc = UserDocuments.objects.create(
                     doc_file_path=temp_path, doc_name=filename
                 )
@@ -1562,16 +1572,18 @@ class FileUpload(APIView):
                 user.user_profile.save()
             else:
                 return Response(
-                    data={"messege": "Enter file of type jpg,jpeg and png."}, status=200
+                    data={"messege": "Enter file of type jpg,jpeg and png."},
                 )
 
-        elif doc_type == "paper_attachment":
-            user = User.objects.get(user_id=self.request.GET["user_id"])
+        elif doc_type in ("paper_attachment", "applicant"):
+            if doc_type == "paper_attachment":
+                path = f"applicant_documents/{user.user_id}/papers/{filename}"
+            else:
+                path = f"applicant_documents/{user.user_id}/{filename}"
             default_storage.save(
-                f"{settings.MEDIA_ROOT}/applicant_documents/{user.user_id}/{filename}",
-                ContentFile(file.read()),
+                f"{settings.MEDIA_ROOT}/{path}", ContentFile(file.read())
             )
-            temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}applicant_documents/{user.user_id}/{filename}"
+            temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}{path}"
             doc = UserDocuments.objects.create(
                 doc_file_path=temp_path, doc_name=filename
             )
@@ -1579,11 +1591,12 @@ class FileUpload(APIView):
         elif doc_type == "office_memo":
             job_posting_id = self.request.GET["job_posting_id"]
             job_posting = JobPosting.objects.get(job_posting_id=job_posting_id)
+            path = f"job_posting_documents/{job_posting.job_posting_id}/{filename}"
             default_storage.save(
-                f"{settings.MEDIA_ROOT}/job_posting_documents/{job_posting.job_posting_id}/{filename}",
+                f"{settings.MEDIA_ROOT}/{path}",
                 ContentFile(file.read()),
             )
-            temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}job_posting_documents/{job_posting.job_posting_id}/{filename}"
+            temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}{path}"
             doc = JobDocuments.objects.create(
                 doc_file_path=temp_path, doc_name=filename
             )
@@ -1592,11 +1605,12 @@ class FileUpload(APIView):
 
         elif doc_type == "job_docs":
             name = self.request.GET["name"]
+            path = f"job_posting_documents / {filename}"
             default_storage.save(
-                f"{settings.MEDIA_ROOT}/job_posting_documents/{filename}",
+                f"{settings.MEDIA_ROOT}/{path}",
                 ContentFile(file.read()),
             )
-            temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}job_posting_documents/{filename}"
+            temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}{path}"
             doc = JobDocuments.objects.create(doc_file_path=temp_path, doc_name=name)
 
         return Response(
@@ -1605,8 +1619,7 @@ class FileUpload(APIView):
                 "doc_file_path": doc.doc_file_path,
                 "doc_name": doc.doc_name,
                 "doc_id": doc.doc_id,
-            },
-            status=200,
+            }
         )
 
 
@@ -1617,10 +1630,10 @@ class OtherInformationDetailView(APIView):
             user = User.objects.get(user_id=id)
             other_info = user.user_profile.other_info
             serializer = OtherInformationSerializer(other_info)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
         except:
             return Response(
-                data={"messege": "OtherInfo not found", "isEmpty": "true"}, status=200
+                data={"messege": "OtherInfo not found", "isEmpty": "true"},
             )
 
 
@@ -1631,7 +1644,7 @@ class OtherInformationCreateView(APIView):
         user = User.objects.get(user_id=id)
         if user.user_profile.other_info:
             return Response(
-                data={"messege": "OtherInformation Already Created"}, status=200
+                data={"messege": "OtherInformation Already Created"},
             )
         else:
             serializer = OtherInformationSerializer(data=data)
@@ -1641,7 +1654,7 @@ class OtherInformationCreateView(APIView):
             user.user_profile.other_info = other_info
             user.user_profile.save()
             serializer = OtherInformationSerializer(other_info)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
 
 
 class OtherInformationUpdateView(APIView):
@@ -1654,7 +1667,7 @@ class OtherInformationUpdateView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=other_info, validated_data=data)
         serializer = OtherInformationSerializer(other_info)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class OtherInformationDeleteView(APIView):
@@ -1668,10 +1681,52 @@ class OtherInformationDeleteView(APIView):
             othet_info.save()
             return Response(
                 data={"message": "Record Deleted Successfully(Soft Delete)."},
-                status=200,
             )
         except:
-            return Response(data={"message": "Details Not Found."}, status=401)
+            return Response(
+                data={"message": "Details Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+
+class UserDocumentView(APIView):
+    def get(self, request, *args, **kwargs):
+        user = User.objects.get(user_id=self.kwargs["id"])
+        if not hasattr(user, "user_profile"):
+            return Response(
+                data={"message": "User Profile does not exist"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        documents = user.user_profile.documents.all()
+        serializer = UserDocumentsSerializer(documents, many=True)
+        return Response(serializer.data)
+
+    @atomic
+    def post(self, request, *args, **kwargs):
+        user = User.objects.get(user_id=self.kwargs["id"])
+        if not hasattr(user, "user_profile"):
+            return Response(
+                data={"message": "User Profile does not exist"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        data = request.data
+        try:
+            user_profile = user.user_profile
+            user_profile.documents.clear()
+            for doc_info in data:
+                user_document = UserDocuments.objects.get(doc_id=doc_info["doc_id"])
+                user_document.doc_name = doc_info["doc_name"]
+                user_document.save()
+                user_profile.documents.add(user_document)
+            return Response(
+                data={"message": "Documents added successfully"},
+            )
+        except Exception as e:
+            return Response(
+                data={"message": f"Error adding documents ({str(e)})"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class ProfileDetailView(APIView):
@@ -1680,9 +1735,11 @@ class ProfileDetailView(APIView):
             id = self.kwargs["id"]
             user = User.objects.get(user_id=id)
             serializer = UserProfilePreviewSerializer(user.user_profile)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
         except:
-            return Response(data={"messege": "No Data Found."}, status=200)
+            return Response(
+                data={"messege": "No Data Found."},
+            )
 
 
 class ApplicantListView(APIView):
@@ -1691,7 +1748,7 @@ class ApplicantListView(APIView):
             is_deleted=False, user_profile__roles__role_name__icontains="applicant"
         )
         serializer = CustomUserSerializer(applicants, many=True)
-        return Response(serializer.data, status=200)
+        return Response(serializer.data)
 
 
 class CompareApplicantListView(APIView):
@@ -1702,14 +1759,17 @@ class CompareApplicantListView(APIView):
                 user__user_id=user_id, is_deleted=False
             )
             serializer = CompareApplicantSerializer(applicants, many=True)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
         except:
             if UserProfile.objects.filter(is_deleted=False).count() > 0:
                 applicants = UserProfile.objects.filter(is_deleted=False)
                 serializer = CompareApplicantSerializer(applicants, many=True)
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
             else:
-                return Response(data={"message": "No Records found"}, status=404)
+                return Response(
+                    data={"message": "No Records found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
 
 class MentorMasterListView(APIView):
@@ -1721,20 +1781,23 @@ class MentorMasterListView(APIView):
             ).exists():
                 mentor = MentorMaster.objects.get(mentor_id=mentor_id, is_deleted=False)
                 serializer = MentorMasterSerializer(mentor)
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
             else:
-                return Response(data={"message": "Details Not Found."}, status=401)
+                return Response(
+                    data={"message": "Details Not Found."},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
         except:
             mentor = MentorMaster.objects.filter(is_deleted=False)
             serializer = MentorMasterSerializer(mentor, many=True)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
 
     # def post(self, request, *args, **kwargs):
     #     data = self.request.data
     #     serializer = MentorMasterSerializer(data=data)
     #     serializer.is_valid(raise_exception=True)
     #     serializer.save()
-    #     return Response(serializer.data, status=200)
+    #     return Response(serializer.data)
 
     def delete(self, request, *args, **kwargs):
         try:
@@ -1753,10 +1816,12 @@ class MentorMasterListView(APIView):
             mentor.save()
             return Response(
                 data={"message": "Mentor Deleted Successfully(Soft Delete)."},
-                status=200,
             )
         except:
-            return Response(data={"message": "Mentor Not Found."}, status=401)
+            return Response(
+                data={"message": "Mentor Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
 
 class TraineeSearchListView(ListAPIView):
@@ -1778,13 +1843,16 @@ class TraineeListView(APIView):
             if Trainee.objects.filter(trainee_id=trainee_id, is_deleted=False).exists():
                 trainee = Trainee.objects.get(trainee_id=trainee_id, is_deleted=False)
                 serializer = TraineeSerializer(trainee)
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
             else:
-                return Response(data={"message": "Details Not Found."}, status=401)
+                return Response(
+                    data={"message": "Details Not Found."},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
         except:
             trainee = Trainee.objects.filter(is_deleted=False)
             serializer = TraineeSerializer(trainee, many=True)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
 
     def delete(self, request, *args, **kwargs):
         try:
@@ -1794,10 +1862,12 @@ class TraineeListView(APIView):
             trainee.save()
             return Response(
                 data={"message": "Trainee Deleted Successfully(Soft Delete)."},
-                status=200,
             )
         except:
-            return Response(data={"message": "Trainee Not Found."}, status=401)
+            return Response(
+                data={"message": "Trainee Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
     def post(self, request, *args, **kwargs):
         data = self.request.data
@@ -1807,13 +1877,13 @@ class TraineeListView(APIView):
         if result:
             trainee = Trainee.objects.get(trainee_id=result)
             serializer = TraineeSerializer(trainee)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
         else:
             return Response(
                 data={
                     "message": "This Mentor already added to 4 Trainee, try with another mentor."
                 },
-                status=401,
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
     def put(self, request, *args, **kwargs):
@@ -1826,13 +1896,13 @@ class TraineeListView(APIView):
         if result:
             trainee = Trainee.objects.get(trainee_id=result)
             serializer = TraineeSerializer(trainee)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
         else:
             return Response(
                 data={
                     "message": "This Mentor already added to 4 Trainee, try with another mentor."
                 },
-                status=401,
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
 
@@ -1847,13 +1917,16 @@ class RelaxationMasterListView(APIView):
                     relaxation_rule_id=relaxation_rule_id, is_deleted=False
                 )
                 serializer = RelaxationMasterSerializer(relax)
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
             else:
-                return Response(data={"message": "Details Not Found."}, status=401)
+                return Response(
+                    data={"message": "Details Not Found."},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
         except:
             relax = RelaxationMaster.objects.filter(is_deleted=False)
             serializer = RelaxationMasterSerializer(relax, many=True)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
 
     def delete(self, request, *args, **kwargs):
         try:
@@ -1862,11 +1935,13 @@ class RelaxationMasterListView(APIView):
             relax.is_deleted = True
             relax.save()
             return Response(
-                data={"message": "Relaxation Deleted Successfully(Soft Delete)."},
-                status=200,
+                data={"message": "Relaxation Deleted Successfully(Soft Delete)."}
             )
         except:
-            return Response(data={"message": "Details Not Found."}, status=401)
+            return Response(
+                data={"message": "Details Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
 
 class RelaxationCategoryMasterListView(APIView):
@@ -1880,13 +1955,16 @@ class RelaxationCategoryMasterListView(APIView):
                     relaxation_cat_id=mentor_id, is_deleted=False
                 )
                 serializer = RelaxationCategoryMasterSerializer(relax)
-                return Response(serializer.data, status=200)
+                return Response(serializer.data)
             else:
-                return Response(data={"message": "Details Not Found."}, status=401)
+                return Response(
+                    data={"message": "Details Not Found."},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
         except:
             relax = RelaxationCategoryMaster.objects.filter(is_deleted=False)
             serializer = RelaxationCategoryMasterSerializer(relax, many=True)
-            return Response(serializer.data, status=200)
+            return Response(serializer.data)
 
     def delete(self, request, *args, **kwargs):
         try:
@@ -1897,8 +1975,10 @@ class RelaxationCategoryMasterListView(APIView):
             return Response(
                 data={
                     "message": "Relaxation Category Deleted Successfully(Soft Delete)."
-                },
-                status=200,
+                }
             )
         except:
-            return Response(data={"message": "Details Not Found."}, status=401)
+            return Response(
+                data={"message": "Details Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
