@@ -190,8 +190,22 @@ class PositionQualificationMapping(BaseModel):
         on_delete=models.SET_NULL,
         related_name="postion",
     )
+    position_display_name = models.CharField(max_length=300, null=True)
+    documents_required = models.ManyToManyField(
+        "document.NewDocumentMaster",
+        blank=True,
+        related_name="position_qualification_required_documents",
+    )
+    information_required = models.ManyToManyField(
+        "document.InformationMaster", blank=True, related_name="position_required_info"
+    )
     qualification = models.ManyToManyField(
-        "QualificationMaster", blank=True, related_name="qualification_name"
+        "QualificationMaster", blank=True, related_name="position_qualification"
+    )
+    qualification_job_history = models.ManyToManyField(
+        "QualificationJobHistoryMaster",
+        blank=True,
+        related_name="position_qualification_job_history",
     )
     min_age = models.IntegerField(blank=True, null=True)
     max_age = models.IntegerField(blank=True, null=True)
@@ -270,20 +284,20 @@ class JobPosting(BaseModel):
         (Permanent, "permanent"),
     ]
 
-    DRAFT = "draft"
-    READY_TO_BE_PUBLISHED = "ready_to_be_published"
+    SCHEDULED = "scheduled"
     PUBLISHED = "published"
     SUSPENDED = "suspended"
     CANCELLED = "cancelled"
     CLOSED = "closed"
+    ARCHIVED = "Archived"
 
     STATUS_CHOICES = [
-        (DRAFT, "Draft"),
-        (READY_TO_BE_PUBLISHED, "Ready To Be Published"),
+        (SCHEDULED, "Scheduled"),
         (PUBLISHED, "Published"),
         (SUSPENDED, "Suspended"),
         (CANCELLED, "Cancelled"),
         (CLOSED, "Closed"),
+        (ARCHIVED, "Archived"),
     ]
 
     job_posting_id = models.UUIDField(

@@ -145,18 +145,24 @@ class QualificationJobHistoryMasterSerializer(serializers.ModelSerializer):
 
 class AdminPositionQualificationMappingSerializer(serializers.ModelSerializer):
     position_id = serializers.UUIDField(source="position.position_id", required=False)
-    position_name = serializers.CharField(
+    position = serializers.CharField(
         source="position.position_display_name", read_only=True
     )
     qualification = serializers.SerializerMethodField()
+    documents_required = serializers.SerializerMethodField()
+    information_required = serializers.SerializerMethodField()
+    qualification_job_history = serializers.SerializerMethodField()
 
     class Meta:
         model = PositionQualificationMapping
         fields = (
             "id",
             "position_id",
-            "position_name",
+            "position",
             "qualification",
+            "documents_required",
+            "information_required",
+            "qualification_job_history",
             "min_age",
             "max_age",
             "number_of_vacancies",
@@ -168,21 +174,38 @@ class AdminPositionQualificationMappingSerializer(serializers.ModelSerializer):
     def get_qualification(self, obj):
         return obj.qualification.all().values_list("qualification_id", flat=True)
 
+    def get_documents_required(self, obj):
+        return obj.documents_required.all().values_list("doc_id", flat=True)
+
+    def get_information_required(self, obj):
+        return obj.information_required.all().values_list("info_id", flat=True)
+
+    def get_qualification_job_history(self, obj):
+        return obj.qualification_job_history.all().values_list(
+            "qualification_job_id", flat=True
+        )
+
 
 class PositionQualificationMappingSerializer(serializers.ModelSerializer):
     position_id = serializers.UUIDField(source="position.position_id", required=False)
-    position_name = serializers.CharField(
+    position = serializers.CharField(
         source="position.position_display_name", read_only=True
     )
     qualification = QualificationMasterSerializer(many=True, read_only=True)
+    qualification_job_history = QualificationJobHistoryMasterSerializer(
+        many=True, read_only=True
+    )
+    information_required = InformationMasterSerializer(many=True, read_only=True)
 
     class Meta:
         model = PositionQualificationMapping
         fields = (
             "id",
             "position_id",
-            "position_name",
+            "position",
             "qualification",
+            "qualification_job_history",
+            "information_required",
             "min_age",
             "max_age",
             "number_of_vacancies",
@@ -605,7 +628,8 @@ class JobPostingSerializer(serializers.ModelSerializer):
 
     def get_documents_uploaded(self, obj):
         documents_uploaded = obj.documents_uploaded.filter()
-        return documents_uploaded.values_list("doc_id", flat=True)
+        serializer = JobDocumentsSerializer(documents_uploaded, many=True)
+        return serializer.data
 
     def get_office_memorandum(self, obj):
         office_memorandum = obj.office_memorandum
@@ -635,6 +659,49 @@ class JobPostingSerializer(serializers.ModelSerializer):
         instance.zonal_lab_id = (
             validated_data.get("zonal_lab_id") or instance.zonal_lab_id
         )
+        if validated_data.get("documents_uploaded"):
+            instance.documents_uploaded.clear()
+            for document in validated_data["documents_uploaded"]:
+                job_doc = JobDocuments.objects.get(doc_id=document)
+                instance.documents_uploaded.add(job_doc)
+
+        if validated_data.get("manpower_positions"):
+            instance.manpower_positions.clear()
+            for position_mapping in validated_data["manpower_positions"]:
+                position = NewPositionMaster.objects.get(
+                    position_id=position_mapping["position_id"]
+                )
+                position_qualification_mapping = (
+                    PositionQualificationMapping.objects.create(
+                        position=position,
+                        position_display_name=position_mapping["position"],
+                        min_age=position_mapping["min_age"],
+                        max_age=position_mapping.get("max_age"),
+                        monthly_emolements=position_mapping.get("monthly_emolements"),
+                        allowance=position_mapping["allowance"],
+                        extra_note=position_mapping["extra_note"],
+                        number_of_vacancies=position_mapping["number_of_vacancies"],
+                    )
+                )
+
+                for qualification in position_mapping["qualification"]:
+                    qualification_obj = QualificationMaster.objects.get(
+                        qualification_id=qualification
+                    )
+                    position_qualification_mapping.qualification.add(qualification_obj)
+
+                for information in position_mapping["information_required"]:
+                    information_obj = InformationMaster.objects.get(info_id=information)
+                    position_qualification_mapping.information_required.add(
+                        information_obj
+                    )
+
+                for doc_id in validated_data["documents_required"]:
+                    document = NewDocumentMaster.objects.get(doc_id=doc_id)
+                    position_qualification_mapping.documents_required.add(document)
+
+                instance.manpower_positions.add(position_qualification_mapping)
+
         if validated_data.get("is_deleted") is not None:
             instance.is_deleted = validated_data["is_deleted"]
         """
@@ -654,8 +721,9 @@ class JobPostingSerializer(serializers.ModelSerializer):
             post_ad_description=validated_data["post_ad_description"],
             publication_date=validated_data["publication_date"],
             end_date=validated_data["end_date"],
-            status=validated_data["status"],
+            status=JobPosting.SCHEDULED,
             job_type=validated_data["job_type"],
+            ad_approval_id=validated_data.get("ad_approval_id"),
         )
 
         for position_mapping in validated_data["manpower_positions"]:
@@ -670,6 +738,7 @@ class JobPostingSerializer(serializers.ModelSerializer):
                     monthly_emolements=position_mapping.get("monthly_emolements"),
                     allowance=position_mapping["allowance"],
                     extra_note=position_mapping["extra_note"],
+                    number_of_vacancies=position_mapping["number_of_vacancies"],
                 )
             )
             for qualification in position_mapping["qualification"]:
@@ -677,6 +746,21 @@ class JobPostingSerializer(serializers.ModelSerializer):
                     qualification_id=qualification
                 )
                 position_qualification_mapping.qualification.add(qualification_obj)
+            for information in position_mapping["information_required"]:
+                information_obj = InformationMaster.objects.get(info_id=information)
+                position_qualification_mapping.information_required.add(information_obj)
+            for doc_id in position_mapping["documents_required"]:
+                document_required = NewDocumentMaster.objects.get(doc_id=doc_id)
+                position_qualification_mapping.documents_required.add(document_required)
+            for qualification_history_id in position_mapping[
+                "qualification_job_history"
+            ]:
+                qualification_history = QualificationJobHistoryMaster.objects.get(
+                    qualification_job_id=qualification_history_id
+                )
+                position_qualification_mapping.qualification_job_history.add(
+                    qualification_history
+                )
             posting.manpower_positions.add(position_qualification_mapping)
 
         for documents_required_data in validated_data["documents_required"]:
