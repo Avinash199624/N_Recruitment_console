@@ -705,9 +705,19 @@ class JobPostingSerializer(serializers.ModelSerializer):
                         information_obj
                     )
 
-                for doc_id in validated_data["documents_required"]:
+                for doc_id in position_mapping["documents_required"]:
                     document = NewDocumentMaster.objects.get(doc_id=doc_id)
                     position_qualification_mapping.documents_required.add(document)
+
+                for qualification_history_id in position_mapping[
+                    "qualification_job_history"
+                ]:
+                    qualification_history = QualificationJobHistoryMaster.objects.get(
+                        qualification_job_id=qualification_history_id
+                    )
+                    position_qualification_mapping.qualification_job_history.add(
+                        qualification_history
+                    )
 
                 instance.manpower_positions.add(position_qualification_mapping)
 
@@ -752,17 +762,21 @@ class JobPostingSerializer(serializers.ModelSerializer):
                     level=position_mapping.get("level"),
                 )
             )
+
             for qualification in position_mapping["qualification"]:
                 qualification_obj = QualificationMaster.objects.get(
                     qualification_id=qualification
                 )
                 position_qualification_mapping.qualification.add(qualification_obj)
+
             for information in position_mapping["information_required"]:
                 information_obj = InformationMaster.objects.get(info_id=information)
                 position_qualification_mapping.information_required.add(information_obj)
+
             for doc_id in position_mapping["documents_required"]:
                 document_required = NewDocumentMaster.objects.get(doc_id=doc_id)
                 position_qualification_mapping.documents_required.add(document_required)
+
             for qualification_history_id in position_mapping[
                 "qualification_job_history"
             ]:
@@ -772,6 +786,7 @@ class JobPostingSerializer(serializers.ModelSerializer):
                 position_qualification_mapping.qualification_job_history.add(
                     qualification_history
                 )
+
             posting.manpower_positions.add(position_qualification_mapping)
 
         for documents_required_data in validated_data["documents_required"]:
