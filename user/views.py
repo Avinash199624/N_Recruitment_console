@@ -1591,7 +1591,7 @@ class FileUpload(APIView):
             job_posting.save()
 
         elif doc_type == "job_docs":
-            name = request.data["name"]
+            name = self.request.GET["name"]
             default_storage.save(
                 f"{settings.MEDIA_ROOT}/job_posting_documents/{filename}",
                 ContentFile(file.read()),
