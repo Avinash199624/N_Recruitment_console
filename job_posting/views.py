@@ -426,7 +426,7 @@ class JobPostingCreateView(APIView):
 
 
 class JobPostingDetailView(RetrieveUpdateAPIView):
-    queryset = JobPosting.objects.all()
+    queryset = JobPosting.objects.filter(is_deleted=False)
     serializer_class = JobPostingSerializer
     lookup_field = "job_posting_id"
     lookup_url_kwarg = "id"
