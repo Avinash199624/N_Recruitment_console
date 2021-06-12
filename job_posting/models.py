@@ -407,7 +407,7 @@ class UserJobPositions(BaseModel):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name="job_posting",
+        related_name="job_posting_applicants",
     )
     position = models.ForeignKey(
         "PositionQualificationMapping",

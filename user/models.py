@@ -311,7 +311,7 @@ class UserProfile(BaseModel):
         return str(total) + " %"
 
     def __str__(self):
-        return self.user.email
+        return self.user.first_name if self.user.first_name else ""
 
 
 class NeeriUserProfile(BaseModel):
