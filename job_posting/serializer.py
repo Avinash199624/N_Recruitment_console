@@ -643,6 +643,9 @@ class JobPostingSerializer(serializers.ModelSerializer):
         instance.notification_title = (
             validated_data.get("notification_title") or instance.notification_title
         )
+        instance.ad_approval_id = (
+            validated_data.get("ad_approval_id") or instance.ad_approval_id
+        )
         instance.pre_ad_description = (
             validated_data.get("pre_ad_description") or instance.pre_ad_description
         )
