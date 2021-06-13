@@ -2,7 +2,6 @@ import datetime
 
 from django.db.transaction import atomic
 
-# Create your views here.
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
@@ -510,40 +509,38 @@ class RoleMasterView(APIView):
 
 class ApplicantPersonalInformationView(APIView):
     def get(self, request, *args, **kwargs):
-        id = self.kwargs["id"]
-        user = User.objects.get(user_id=id)
-        try:
-            if user.user_profile:
-                user_profile = user.user_profile
-                serializer = ApplicantUserPersonalInformationSerializer(user_profile)
-                return Response(serializer.data)
-        except:
+        user = User.objects.get(user_id=self.kwargs["id"])
+        if user.user_profile:
+            serializer = ApplicantUserPersonalInformationSerializer(user.user_profile)
+            return Response(serializer.data)
+        else:
             return Response(
                 data={
-                    "messege": "UserProfile not created",
+                    "messege": "UserProfile does not exist",
                     "isEmpty": "true",
                     "mobile_no": user.mobile_no,
                 },
+                status=status.HTTP_404_NOT_FOUND,
             )
 
 
 class ApplicantPersonalInformationUpdateView(APIView):
     def put(self, request, *args, **kwargs):
-        id = self.kwargs["id"]
-        user = User.objects.get(user_id=id)
+        user = User.objects.get(user_id=self.kwargs["id"])
         data = self.request.data
-        try:
-            user_profile = user.user_profile
-        except:
-            return Response(
-                data={
-                    "messege": "UserProfile does not exist for the given user,create UserProfile first."
-                }
+        user_profile = user.user_profile
+        if user_profile:
+            serializer = ApplicantUserPersonalInformationSerializer(
+                user_profile, data=data
             )
-        serializer = ApplicantUserPersonalInformationSerializer(user_profile, data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.update(instance=user_profile, validated_data=data)
-        return Response(serializer.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.update(instance=user_profile, validated_data=data)
+            return Response(serializer.data)
+        else:
+            return Response(
+                data={"messege": "UserProfile does not exist"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
 
 class ApplicantIsFresherUpdateView(APIView):
@@ -558,7 +555,7 @@ class ApplicantIsFresherUpdateView(APIView):
         except:
             return Response(
                 data={
-                    "messege": "UserProfile not created",
+                    "messege": "UserProfile does not exist",
                     "isEmpty": "true",
                     "mobile_no": user.mobile_no,
                 },
@@ -572,9 +569,7 @@ class ApplicantIsFresherUpdateView(APIView):
             user_profile = user.user_profile
         except:
             return Response(
-                data={
-                    "messege": "UserProfile does not exist for the given user,create UserProfile first."
-                },
+                data={"messege": "UserProfile does not exist"},
             )
         serializer = ApplicantIsFresherSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
@@ -1729,17 +1724,11 @@ class UserDocumentView(APIView):
             )
 
 
-class ProfileDetailView(APIView):
-    def get(self, request, *args, **kwargs):
-        try:
-            id = self.kwargs["id"]
-            user = User.objects.get(user_id=id)
-            serializer = UserProfilePreviewSerializer(user.user_profile)
-            return Response(serializer.data)
-        except:
-            return Response(
-                data={"messege": "No Data Found."},
-            )
+class ProfileDetailView(RetrieveAPIView):
+    queryset = UserProfile.objects.select_related("user")
+    serializer_class = UserProfilePreviewSerializer
+    lookup_field = "user__user_id"
+    lookup_url_kwarg = "id"
 
 
 class ApplicantListView(APIView):

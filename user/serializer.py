@@ -1,4 +1,10 @@
-from job_posting.models import UserJobPositions, JobPosting, Division
+from datetime import date
+
+from django.contrib.auth import authenticate
+from django.utils.translation import gettext_lazy as _
+from rest_framework import serializers
+
+from job_posting.models import JobPosting, Division
 from user.models import (
     User,
     UserProfile,
@@ -22,10 +28,6 @@ from user.models import (
     RelaxationCategoryMaster,
     RelaxationMaster,
 )
-from rest_framework import serializers
-from django.contrib.auth import authenticate
-from django.utils.translation import gettext_lazy as _
-from datetime import date
 
 
 class AuthTokenCustomSerializer(serializers.Serializer):
@@ -104,6 +106,43 @@ class LocationSerializer(serializers.ModelSerializer):
         return location.id
 
 
+class RelaxationCategoryMasterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RelaxationCategoryMaster
+        fields = (
+            "relaxation_cat_id",
+            "relaxation_category",
+        )
+
+
+class RelaxationMasterSerializer(serializers.ModelSerializer):
+
+    relaxation = RelaxationCategoryMasterSerializer()
+    age_relaxation = serializers.SerializerMethodField(
+        method_name="get_age_relaxation", required=False
+    )
+    fee_relaxation = serializers.SerializerMethodField(
+        method_name="get_fee_relaxation", required=False
+    )
+
+    class Meta:
+        model = RelaxationMaster
+        fields = (
+            "relaxation_rule_id",
+            "relaxation",
+            "age_relaxation",
+            "fee_relaxation",
+        )
+
+    def get_age_relaxation(self, obj):
+        age_relaxation = f"{obj.age_relaxation} years"
+        return age_relaxation
+
+    def get_fee_relaxation(self, obj):
+        fee_relaxation = f"{obj.fee_relaxation} %"
+        return fee_relaxation
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     local_address = LocationSerializer(required=False)
     permanent_address = LocationSerializer(required=False)
@@ -131,12 +170,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class CompareApplicantSerializer(serializers.ModelSerializer):
-    name_of_applicant = serializers.SerializerMethodField(
-        method_name="get_name_of_applicant", read_only=True
-    )
-    mobile_no = serializers.SerializerMethodField(
-        method_name="get_mobile_no", read_only=True
-    )
+    name_of_applicant = serializers.CharField(source="user.get_full_name")
+    mobile_no = serializers.CharField(source="user.mobile_no")
     age_of_applicant = serializers.SerializerMethodField(
         method_name="get_age_of_applicant", read_only=True
     )
@@ -167,16 +202,6 @@ class CompareApplicantSerializer(serializers.ModelSerializer):
             "exp_in_years",
         )
 
-    def get_name_of_applicant(self, obj):
-        name_of_applicant = (
-            obj.user.first_name + " " + obj.user.middle_name + " " + obj.user.last_name
-        )
-        return name_of_applicant
-
-    def get_mobile_no(self, obj):
-        mobile_no = obj.user.mobile_no
-        return mobile_no
-
     def get_specialization(self, obj):
         specialization_in = obj.education_details.filter()
         serializer = SubjectSpecializationSerializer(specialization_in, many=True)
@@ -188,14 +213,9 @@ class CompareApplicantSerializer(serializers.ModelSerializer):
     #     return serializer.data
 
     def get_exp_in_years(self, obj):
-        # try:
         exp_in_years = obj.experiences.filter()
         serializer = EmployeeExperienceSerializer(exp_in_years, many=True)
         return serializer.data
-        # exp_in_years = obj.experiences.employed_to.year - obj.experiences.employed_from.year
-        # return exp_in_years
-        # except:
-        #     return None
 
     def get_age_of_applicant(self, obj):
         today = date.today()
@@ -326,10 +346,7 @@ class UserSerializer(serializers.ModelSerializer):
         ) + profile_names
 
     def get_username(self, obj):
-        if obj.first_name == "" and obj.last_name == "":
-            return obj.email
-        else:
-            return f"{obj.first_name} {obj.last_name}"
+        return obj.email or obj.get_full_name()
 
     # def get_user_roles(self, obj):
     #     user_roles = UserRoles.objects.filter(user=obj)
@@ -377,10 +394,7 @@ class NeeriUserSerializer(serializers.ModelSerializer):
         )
 
     def get_username(self, obj):
-        if obj.first_name == "" and obj.last_name == "":
-            return obj.email
-        else:
-            return f"{obj.first_name} {obj.last_name}"
+        return obj.email or obj.get_full_name()
 
     # def get_user_roles(self, obj):
     #     user_roles = UserRoles.objects.filter(user=obj)
@@ -743,40 +757,12 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
 
 class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
-    mobile_no = serializers.SerializerMethodField(
-        method_name="get_mobile_no", read_only=True
-    )
-    date_of_birth_in_words = serializers.SerializerMethodField(
-        method_name="get_date_of_birth_in_words", read_only=True
-    )
-    place_of_birth = serializers.SerializerMethodField(
-        method_name="get_place_of_birth", read_only=True
-    )
-    # local_address = serializers.SerializerMethodField(
-    #     method_name="get_local_address", read_only=True
-    # )
-    #
-    # permanent_address = serializers.SerializerMethodField(
-    #     method_name="get_permanent_address", read_only=True
-    # )
-    user_id = serializers.SerializerMethodField(
-        method_name="get_user_id", read_only=True
-    )
-    middle_name = serializers.SerializerMethodField(
-        method_name="get_middle_name", read_only=True
-    )
-    last_name = serializers.SerializerMethodField(
-        method_name="get_last_name", read_only=True
-    )
-    first_name = serializers.SerializerMethodField(
-        method_name="get_first_name", read_only=True
-    )
-    # nationality = serializers.SerializerMethodField(
-    #     method_name="get_nationality", read_only=True
-    # )
-    relaxation_rule = serializers.SerializerMethodField(
-        method_name="get_relaxation_rules", read_only=True
-    )
+    mobile_no = serializers.CharField(source="user.mobile_no")
+    user_id = serializers.UUIDField(source="user.user_id")
+    middle_name = serializers.CharField(source="user.middle_name")
+    last_name = serializers.CharField(source="user.last_name")
+    first_name = serializers.CharField(source="user.first_name")
+    relaxation_rule = RelaxationMasterSerializer()
 
     class Meta:
         model = UserProfile
@@ -810,55 +796,6 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             "is_fresher",
         )
 
-    def get_user_id(self, obj):
-        try:
-            user_id = obj.user.user_id
-            return user_id
-        except:
-            return None
-
-    def get_first_name(self, obj):
-        try:
-            first_name = obj.user.first_name
-            return first_name
-        except:
-            return None
-
-    def get_last_name(self, obj):
-        try:
-            last_name = obj.user.last_name
-            return last_name
-        except:
-            return None
-
-    def get_middle_name(self, obj):
-        try:
-            middle_name = obj.user.middle_name
-            return middle_name
-        except:
-            return None
-
-    def get_mobile_no(self, obj):
-        try:
-            mobile_no = obj.user.mobile_no
-            return mobile_no
-        except:
-            return None
-
-    def get_date_of_birth_in_words(self, obj):
-        try:
-            get_date_of_birth_in_words = obj.get_date_of_birth_in_words
-            return get_date_of_birth_in_words
-        except:
-            return None
-
-    def get_place_of_birth(self, obj):
-        try:
-            place_of_birth = obj.place_of_birth
-            return place_of_birth
-        except:
-            return None
-
     # def get_father_address(self,obj):
     #     try:
     #         father_address = obj.father_address
@@ -889,10 +826,6 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
     #         return nationality
     #     except:
     #         return None
-
-    def get_relaxation_rules(self, obj):
-        serializer = RelaxationMasterSerializer(obj.relaxation_rule)
-        return serializer.data
 
     def update(self, instance, validated_data):
 
@@ -2482,57 +2415,19 @@ class OtherInformationSerializer(serializers.ModelSerializer):
 
 class UserProfilePreviewSerializer(serializers.ModelSerializer):
 
-    name_of_applicant = serializers.SerializerMethodField(
-        method_name="get_name_of_applicant", read_only=True
-    )
-
-    local_address = serializers.SerializerMethodField(
-        method_name="get_local_address", read_only=True
-    )
-
-    permanent_address = serializers.SerializerMethodField(
-        method_name="get_permanent_address", read_only=True
-    )
-
-    father_address = serializers.SerializerMethodField(
-        method_name="get_father_address", read_only=True
-    )
-
-    education_details = serializers.SerializerMethodField(
-        method_name="get_education_details", read_only=True
-    )
-
-    professional_trainings = serializers.SerializerMethodField(
-        method_name="get_professional_trainings", read_only=True
-    )
-
-    published_papers = serializers.SerializerMethodField(
-        method_name="get_published_papers", read_only=True
-    )
-
-    experiences = serializers.SerializerMethodField(
-        method_name="get_experiences", read_only=True
-    )
-
-    other_info = serializers.SerializerMethodField(
-        method_name="get_other_info", read_only=True
-    )
-
-    neeri_relation = serializers.SerializerMethodField(
-        method_name="get_neeri_relation", read_only=True
-    )
-
-    overseas_visits = serializers.SerializerMethodField(
-        method_name="get_overseas_visits", read_only=True
-    )
-
-    languages = serializers.SerializerMethodField(
-        method_name="get_languages", read_only=True
-    )
-
-    references = serializers.SerializerMethodField(
-        method_name="get_references", read_only=True
-    )
+    name_of_applicant = serializers.CharField(source="user.get_full_name")
+    local_address = LocationSerializer()
+    permanent_address = LocationSerializer()
+    father_address = LocationSerializer()
+    education_details = UserEducationDetailsSerializer(many=True, read_only=True)
+    professional_trainings = ProfessionalTrainingSerializer(many=True, read_only=True)
+    published_papers = PublishedPapersSerializer(many=True, read_only=True)
+    experiences = UserExperienceDetailsSerializer(many=True, read_only=True)
+    other_info = OtherInformationSerializer()
+    neeri_relation = NeeriRelationSerializer(many=True, read_only=True)
+    overseas_visits = OverseasVisitsSerializer(many=True, read_only=True)
+    languages = LanguagesSerializer(many=True)
+    references = ReferencesSerializer(many=True)
 
     class Meta:
         model = UserProfile
@@ -2566,72 +2461,6 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
             "references",
         )
 
-    def get_name_of_applicant(self, obj):
-        name_of_applicant = (
-            obj.user.first_name + " " + obj.user.middle_name + " " + obj.user.last_name
-        )
-        return name_of_applicant
-
-    def get_local_address(self, obj):
-        local_address = obj.local_address
-        serializer = LocationSerializer(local_address)
-        return serializer.data
-
-    def get_permanent_address(self, obj):
-        permanent_address = obj.permanent_address
-        serializer = LocationSerializer(permanent_address)
-        return serializer.data
-
-    def get_father_address(self, obj):
-        father_address = obj.father_address
-        serializer = LocationSerializer(father_address)
-        return serializer.data
-
-    def get_education_details(self, obj):
-        education_details = obj.education_details.filter()
-        serializer = UserEducationDetailsSerializer(education_details, many=True)
-        return serializer.data
-
-    def get_professional_trainings(self, obj):
-        professional_trainings = obj.professional_trainings.filter()
-        serializer = ProfessionalTrainingSerializer(professional_trainings, many=True)
-        return serializer.data
-
-    def get_published_papers(self, obj):
-        published_papers = obj.published_papers.filter()
-        serializer = PublishedPapersSerializer(published_papers, many=True)
-        return serializer.data
-
-    def get_experiences(self, obj):
-        experiences = obj.experiences.filter()
-        serializer = UserExperienceDetailsSerializer(experiences, many=True)
-        return serializer.data
-
-    def get_other_info(self, obj):
-        othet_info = obj.other_info
-        serializer = OtherInformationSerializer(othet_info)
-        return serializer.data
-
-    def get_neeri_relation(self, obj):
-        neeri_relation = obj.neeri_relation.filter()
-        serializer = NeeriRelationSerializer(neeri_relation, many=True)
-        return serializer.data
-
-    def get_overseas_visits(self, obj):
-        overseas_visits = obj.overseas_visits.filter()
-        serializer = OverseasVisitsSerializer(overseas_visits, many=True)
-        return serializer.data
-
-    def get_languages(self, obj):
-        languages = obj.languages.filte
-        serializer = LanguagesSerializer(languages, many=True)
-        return serializer.data
-
-    def get_references(self, obj):
-        references = obj.references.filter()
-        serializer = ReferencesSerializer(references, many=True)
-        return serializer.data
-
 
 class MentorMasterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -2640,50 +2469,6 @@ class MentorMasterSerializer(serializers.ModelSerializer):
             "mentor_id",
             "mentor_name",
         )
-
-
-class RelaxationCategoryMasterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RelaxationCategoryMaster
-        fields = (
-            "relaxation_cat_id",
-            "relaxation_category",
-        )
-
-
-class RelaxationMasterSerializer(serializers.ModelSerializer):
-
-    relaxation = serializers.SerializerMethodField(
-        method_name="get_relaxation_name", required=False
-    )
-    age_relaxation = serializers.SerializerMethodField(
-        method_name="get_age_relaxation", required=False
-    )
-    fee_relaxation = serializers.SerializerMethodField(
-        method_name="get_fee_relaxation", required=False
-    )
-
-    class Meta:
-        model = RelaxationMaster
-        fields = (
-            "relaxation_rule_id",
-            "relaxation",
-            "age_relaxation",
-            "fee_relaxation",
-        )
-
-    def get_age_relaxation(self, obj):
-        age_relaxation = str(obj.age_relaxation) + " years"
-        return age_relaxation
-
-    def get_fee_relaxation(self, obj):
-        fee_relaxation = str(obj.fee_relaxation) + "%"
-        return fee_relaxation
-
-    def get_relaxation_name(self, obj):
-        relaxation = obj.relaxation
-        serializer = RelaxationCategoryMasterSerializer(relaxation)
-        return serializer.data
 
 
 class DivisionSerializer(serializers.ModelSerializer):
