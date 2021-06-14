@@ -689,7 +689,7 @@ class JobPostingSerializer(serializers.ModelSerializer):
                     PositionQualificationMapping.objects.create(
                         position=position,
                         position_display_name=position_mapping["position"],
-                        min_age=position_mapping["min_age"],
+                        min_age=position_mapping.get("min_age"),
                         max_age=position_mapping.get("max_age"),
                         monthly_emolements=position_mapping.get("monthly_emolements"),
                         allowance=position_mapping["allowance"],
@@ -759,7 +759,7 @@ class JobPostingSerializer(serializers.ModelSerializer):
             position_qualification_mapping = (
                 PositionQualificationMapping.objects.create(
                     position=position,
-                    min_age=position_mapping["min_age"],
+                    min_age=position_mapping.get("min_age"),
                     max_age=position_mapping.get("max_age"),
                     monthly_emolements=position_mapping.get("monthly_emolements"),
                     allowance=position_mapping["allowance"],
