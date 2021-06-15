@@ -16,7 +16,7 @@ from user.views import (
     TraineeSearchListView,
     NeeriUserSearchListView,
     ApplicantIsFresherUpdateView,
-    UserDocumentView,
+    UserDocumentView, ApplicantIsAddressUpdateView,
 )
 from user.views import (
     LoginView,
@@ -109,6 +109,11 @@ urlpatterns = [
         ApplicantIsFresherUpdateView.as_view(),
         name="update-applicant-is-fresher-detail",
     ),
+    path(
+        "public/applicant_is_address_same/<uuid:id>/",
+        ApplicantIsAddressUpdateView.as_view(),
+        name="update-applicant-is-address-same",
+        ),
     path(
         "public/personal_info_update/<uuid:id>/",
         ApplicantPersonalInformationUpdateView.as_view(),

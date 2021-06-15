@@ -60,7 +60,7 @@ from user.serializer import (
     RelaxationMasterSerializer,
     RelaxationCategoryMasterSerializer,
     ApplicantIsFresherSerializer,
-    UserDocumentsSerializer,
+    UserDocumentsSerializer, ApplicantIsAddressSameSerializer,
 )
 from job_posting.serializer import ApplicantJobPositionsSerializer
 from knox.views import LoginView as KnoxLoginView
@@ -510,10 +510,20 @@ class RoleMasterView(APIView):
 class ApplicantPersonalInformationView(APIView):
     def get(self, request, *args, **kwargs):
         user = User.objects.get(user_id=self.kwargs["id"])
-        if user.user_profile:
-            serializer = ApplicantUserPersonalInformationSerializer(user.user_profile)
-            return Response(serializer.data)
-        else:
+        try:
+            if user.user_profile:
+                serializer = ApplicantUserPersonalInformationSerializer(user.user_profile)
+                return Response(serializer.data)
+            else:
+                return Response(
+                    data={
+                        "messege": "UserProfile does not exist",
+                        "isEmpty": "true",
+                        "mobile_no": user.mobile_no,
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+        except:
             return Response(
                 data={
                     "messege": "UserProfile does not exist",
@@ -572,6 +582,40 @@ class ApplicantIsFresherUpdateView(APIView):
                 data={"messege": "UserProfile does not exist"},
             )
         serializer = ApplicantIsFresherSerializer(user_profile, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=user_profile, validated_data=data)
+        return Response(serializer.data)
+
+
+class ApplicantIsAddressUpdateView(APIView):
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs["id"]
+        user = User.objects.get(user_id=id)
+        try:
+            if user.user_profile:
+                user_profile = user.user_profile
+                serializer = ApplicantIsAddressSameSerializer(user_profile)
+                return Response(serializer.data)
+        except:
+            return Response(
+                data={
+                    "messege": "UserProfile does not exist",
+                    "isEmpty": "true",
+                    "mobile_no": user.mobile_no,
+                },
+            )
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs["id"]
+        user = User.objects.get(user_id=id)
+        data = self.request.data
+        try:
+            user_profile = user.user_profile
+        except:
+            return Response(
+                data={"messege": "UserProfile does not exist"},
+            )
+        serializer = ApplicantIsAddressSameSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=user_profile, validated_data=data)
         return Response(serializer.data)

@@ -142,7 +142,7 @@ class PermanentPositionMaster(BaseModel):
     )
 
     def __str__(self):
-        return self.perm_position_master.position_name
+        return self.perm_position_master.position_display_name
 
 
 HRA = "hra"
@@ -171,7 +171,7 @@ class TemporaryPositionMaster(BaseModel):
     salary = models.FloatField(null=True, blank=True)
 
     def __str__(self):
-        return self.temp_position_master.position_name
+        return self.temp_position_master.position_display_name
 
 
 class PositionQualificationMapping(BaseModel):

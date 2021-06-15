@@ -1094,44 +1094,65 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
 
     def save(self, validated_data):
         posi = NewPositionMaster.objects.create(
-            position_name=validated_data["perm_position_master"]["position_name"],
+            position_name=validated_data["perm_position_master"]["position_name"] if "position_name" in validated_data["perm_position_master"] else None,
             position_display_name=validated_data["perm_position_master"][
                 "position_display_name"
             ],
-            min_age=validated_data["perm_position_master"]["min_age"],
-            max_age=validated_data["perm_position_master"]["max_age"],
-            qualification_desc=validated_data["perm_position_master"][
-                "qualification_desc"
-            ],
+            min_age=validated_data["perm_position_master"]["min_age"] if "min_age" in validated_data["perm_position_master"] else None,
+            max_age=validated_data["perm_position_master"]["max_age"] if "max_age" in validated_data["perm_position_master"] else None,
+            qualification_desc=validated_data["perm_position_master"]["qualification_desc"] if "qualification_desc" in validated_data["perm_position_master"] else None,
         )
         print("validated_data--------->", validated_data)
 
-        for qualification_data in validated_data["perm_position_master"][
-            "qualification"
-        ]:
-            qualification = QualificationMaster.objects.get(
-                qualification_id=qualification_data["qualification_id"]
+        qualification = validated_data["perm_position_master"][
+            "qualification"] if "qualification" in validated_data[
+            "perm_position_master"] else None
+
+        print("qualification--------->", qualification)
+        if qualification:
+
+            for qualification_data in qualification:
+                qualification = QualificationMaster.objects.get(
+                    qualification_id=qualification_data["qualification_id"]
+                )
+                posi.qualification.add(qualification)
+            print(
+                "validated_data['qualification_job_history']--------->",
+                validated_data["perm_position_master"]["qualification_job_history"],
             )
-            posi.qualification.add(qualification)
-        print(
-            "validated_data['qualification_job_history']--------->",
-            validated_data["perm_position_master"]["qualification_job_history"],
-        )
 
-        for exp in validated_data["perm_position_master"]["qualification_job_history"]:
-            print("exp--------->", exp)
-            emp_exp = QualificationJobHistoryMaster.objects.get(
-                qualification_job_id=exp["qualification_job_id"]
-            )
-            posi.qualification_job_history.add(emp_exp)
+        qualification_hist = validated_data["perm_position_master"][
+            "qualification_job_history"] if "qualification_job_history" in validated_data[
+            "perm_position_master"] else None
 
-        for info_data in validated_data["perm_position_master"]["information_required"]:
-            info = InformationMaster.objects.get(info_id=info_data["info_id"])
-            posi.information_required.add(info)
+        print("qualification_hist #####--------->", qualification_hist)
+        if qualification_hist:
+            for exp in qualification_hist:
+                print("exp--------->", exp)
+                emp_exp = QualificationJobHistoryMaster.objects.get(
+                    qualification_job_id=exp["qualification_job_id"]
+                )
+                posi.qualification_job_history.add(emp_exp)
 
-        for doc in validated_data["perm_position_master"]["documents_required"]:
-            docs = NewDocumentMaster.objects.get(doc_id=doc["doc_id"])
-            posi.documents_required.add(docs)
+        information = validated_data["perm_position_master"][
+            "information_required"] if "information_required" in validated_data[
+            "perm_position_master"] else None
+
+        print("information--------->", information)
+        if information:
+            for info_data in information:
+                info = InformationMaster.objects.get(info_id=info_data["info_id"])
+                posi.information_required.add(info)
+
+        document = validated_data["perm_position_master"][
+            "documents_required"] if "documents_required" in validated_data[
+            "perm_position_master"] else None
+
+        print("document--------->", document)
+        if document:
+            for doc in document:
+                docs = NewDocumentMaster.objects.get(doc_id=doc["doc_id"])
+                posi.documents_required.add(docs)
 
         print("validated_data------>", validated_data)
         # posi_id = NewPositionMaster.objects.get(
@@ -1384,44 +1405,61 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
 
     def save(self, validated_data):
         posi = NewPositionMaster.objects.create(
-            position_name=validated_data["temp_position_master"]["position_name"],
+            position_name=validated_data["temp_position_master"]["position_name"] if "position_name" in validated_data["temp_position_master"] else None,
             position_display_name=validated_data["temp_position_master"][
                 "position_display_name"
             ],
-            min_age=validated_data["temp_position_master"]["min_age"],
-            max_age=validated_data["temp_position_master"]["max_age"],
-            qualification_desc=validated_data["temp_position_master"][
-                "qualification_desc"
-            ],
+            min_age=validated_data["temp_position_master"]["min_age"] if "min_age" in validated_data["temp_position_master"] else None,
+            # validated_data["temp_position_master"]["min_age"],
+            max_age=validated_data["temp_position_master"]["max_age"] if "max_age" in validated_data["temp_position_master"] else None,
+            qualification_desc=validated_data["temp_position_master"]["qualification_desc"] if "qualification_desc" in validated_data["temp_position_master"] else None,
         )
         print("validated_data--------->", validated_data)
 
-        for qualification_data in validated_data["temp_position_master"][
-            "qualification"
-        ]:
-            qualification = QualificationMaster.objects.get(
-                qualification_id=qualification_data["qualification_id"]
+        qualification = validated_data["temp_position_master"]["qualification"] if "qualification" in validated_data["temp_position_master"] else None
+
+        print("qualification--------->", qualification)
+        if qualification:
+            for qualification_data in qualification:
+                qualification = QualificationMaster.objects.get(
+                    qualification_id=qualification_data["qualification_id"]
+                )
+                posi.qualification.add(qualification)
+            print(
+                "validated_data['qualification_job_history']--------->",
+                validated_data["temp_position_master"]["qualification_job_history"],
             )
-            posi.qualification.add(qualification)
-        print(
-            "validated_data['qualification_job_history']--------->",
-            validated_data["temp_position_master"]["qualification_job_history"],
-        )
 
-        for exp in validated_data["temp_position_master"]["qualification_job_history"]:
-            print("exp--------->", exp)
-            emp_exp = QualificationJobHistoryMaster.objects.get(
-                qualification_job_id=exp["qualification_job_id"]
-            )
-            posi.qualification_job_history.add(emp_exp)
+        qualification_hist = validated_data["temp_position_master"]["qualification_job_history"] if "qualification_job_history" in validated_data[
+            "temp_position_master"] else None
 
-        for info_data in validated_data["temp_position_master"]["information_required"]:
-            info = InformationMaster.objects.get(info_id=info_data["info_id"])
-            posi.information_required.add(info)
+        print("qualification_hist--------->", qualification_hist)
+        if qualification_hist:
+            for exp in qualification_hist:
+                print("exp--------->", exp)
+                emp_exp = QualificationJobHistoryMaster.objects.get(
+                    qualification_job_id=exp["qualification_job_id"]
+                )
+                posi.qualification_job_history.add(emp_exp)
+        information = validated_data["temp_position_master"][
+            "information_required"] if "information_required" in validated_data[
+            "temp_position_master"] else None
 
-        for doc in validated_data["temp_position_master"]["documents_required"]:
-            docs = NewDocumentMaster.objects.get(doc_id=doc["doc_id"])
-            posi.documents_required.add(docs)
+        print("information--------->", information)
+        if information:
+            for info_data in information:
+                info = InformationMaster.objects.get(info_id=info_data["info_id"])
+                posi.information_required.add(info)
+
+        document = validated_data["temp_position_master"][
+            "documents_required"] if "documents_required" in validated_data[
+            "temp_position_master"] else None
+
+        print("document--------->", document)
+        if document:
+            for doc in document:
+                docs = NewDocumentMaster.objects.get(doc_id=doc["doc_id"])
+                posi.documents_required.add(docs)
 
         print("validated_data------>", validated_data)
         # posi_id = NewPositionMaster.objects.get(
