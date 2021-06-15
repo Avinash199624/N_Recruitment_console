@@ -3,7 +3,7 @@ from django.contrib.admin import register
 from user.models import User, UserProfile, RoleMaster, UserRoles, Location, PermissionMaster, \
     UserPermissions, NeeriUserProfile, NeeriRelation, UserEducationDetails, UserExperienceDetails, \
     UserDocuments, UserLanguages, UserReference, OverseasVisits, PublishedPapers, ProfessionalTraining, \
-    OtherInformation, MentorMaster, Trainee, RelaxationMaster, RelaxationCategoryMaster
+    OtherInformation, MentorMaster, Trainee, RelaxationMaster, RelaxationCategoryMaster, UserAuthentication
 
 
 # Register your models here.
@@ -99,11 +99,11 @@ class LocationAdmin(admin.ModelAdmin):
     list_display = ['address1', 'address2', 'address3', 'city', 'state', 'country', 'postcode']
 
 
-# @register(UserAuthentication)
-# class UserAuthenticationAdmin(admin.ModelAdmin):
-#     list_display = ['user', 'email_verified', 'mobile_verified', 'email_otp', 'mobile_otp', 'email_otp_expiry', 'mobile_otp_expiry']
-#
-#
+@register(UserAuthentication)
+class UserAuthenticationAdmin(admin.ModelAdmin):
+    list_display = ['user', 'email_verified', 'mobile_verified', 'email_token', 'mobile_otp', 'email_otp_expiry', 'mobile_otp_expiry']
+
+
 @register(MentorMaster)
 class MentorMasterAdmin(admin.ModelAdmin):
     list_display = ['mentor_id', 'mentor_name', 'is_deleted']

@@ -16,7 +16,7 @@ from user.views import (
     TraineeSearchListView,
     NeeriUserSearchListView,
     ApplicantIsFresherUpdateView,
-    UserDocumentView, ApplicantIsAddressUpdateView,
+    UserDocumentView, verify_email, ApplicantIsAddressUpdateView,
 )
 from user.views import (
     LoginView,
@@ -83,6 +83,7 @@ urlpatterns = [
     path("neeri_login/", NeeriLoginView.as_view(), name="neeri-login"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("signup/", UserRegistartionView.as_view(), name="signup"),
+    path("email_token_verify/<user_email_token>/", verify_email, name="email-token-verification"),
     path("get-user/<uuid:id>/", RetrieveUserView.as_view(), name="get-user"),
     path("delete-user/<uuid:id>/", DeleteUserView.as_view(), name="delete-user"),
     path("update-user/<uuid:id>/", UpdateUserView.as_view(), name="update-user"),

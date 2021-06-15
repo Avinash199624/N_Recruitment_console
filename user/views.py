@@ -1,4 +1,5 @@
 import datetime
+import uuid
 
 from django.db.transaction import atomic
 
@@ -8,6 +9,7 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
+from neeri_recruitment_portal.settings import BASE_URL
 from user.models import (
     User,
     RoleMaster,
@@ -29,7 +31,7 @@ from user.models import (
     MentorMaster,
     Trainee,
     RelaxationMaster,
-    RelaxationCategoryMaster,
+    RelaxationCategoryMaster, UserAuthentication,
 )
 from job_posting.models import (
     UserJobPositions,
@@ -75,6 +77,7 @@ import os
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.conf import settings
+from django.core.mail import send_mail
 
 
 class LoginResponseViewMixin:
@@ -312,6 +315,12 @@ class UserRegistartionView(APIView):
             )
         else:
             user = User.objects.create_user(mobile_no, email, password)
+            user.is_active = False
+            user.save()
+            # user_otp = random.randint(100000, 999999)
+            user_email_token = str(uuid.uuid4())
+            UserAuthentication.objects.create(user=user, email_token=user_email_token)
+            print("user.is_active---------->", user.is_active)
             UserRoles.objects.create(role=role, user=user)
             roles = [
                 role.role.role_name for role in UserRoles.objects.filter(user=user)
@@ -325,13 +334,56 @@ class UserRegistartionView(APIView):
             serializer = UserSerializer(user)
 
             result = {}
+            # authentication = UserAuthentication.objects.get(user=user)
 
             result["user"] = serializer.data
             result["roles"] = roles
             result["permissions"] = permissions
+            # mess = "Hello " + user.first_name + ", your OTP for account activation is " + str(user_otp) + ". Thank You for Registering!!"
+
+            subject = 'Welcome to NEERI - Verify your Email.'
+            message = f'Hi, please click on the link to verify your account ' + BASE_URL + f'/user/email_token_verify/{user_email_token}/'
+            email_from = settings.EMAIL_HOST_USER
+            recipient_list = [user.email]
+            send_mail(
+                subject,
+                message,
+                email_from,
+                recipient_list,
+                fail_silently=False
+            )
             # result['email_verified'] = authentication.email_verified
             # result['mobile_verified'] = authentication.mobile_verified
             return JsonResponse(data=result, safe=False)
+
+
+def verify_email(request, user_email_token):
+    try:
+        user_auth = UserAuthentication.objects.filter(email_token=user_email_token).first()
+
+        if user_auth:
+            if user_auth.email_verified:
+                # messages.success(request, 'Your account is already verified.')
+                return JsonResponse(
+                    data={"message": "Your account is already verified."},
+                )
+            user_auth.email_verified = True
+            user_auth.user.is_active = True
+            user_auth.user.save()
+            user_auth.save()
+            # messages.success(request, 'Your account has been verified.')
+            return JsonResponse(
+                data={"message": "Your account has been verified."},
+            )
+        else:
+            return JsonResponse(
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    except Exception as e:
+        print(e)
+        return JsonResponse(
+            status=status.HTTP_200_OK,
+        )
 
 
 class UserListView(ListAPIView):

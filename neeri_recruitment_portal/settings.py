@@ -16,6 +16,9 @@ from decouple import Csv, config
 from rest_framework import ISO_8601
 from datetime import timedelta
 from corsheaders.defaults import default_headers
+import environ
+env = environ.Env()
+environ.Env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -102,6 +105,14 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.zoho.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = '587'
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 
 
 # Password validation
