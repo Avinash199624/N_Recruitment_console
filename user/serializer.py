@@ -755,6 +755,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
 class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
     mobile_no = serializers.CharField(source="user.mobile_no")
+    email = serializers.EmailField(source="user.email")
     user_id = serializers.UUIDField(source="user.user_id")
     middle_name = serializers.CharField(source="user.middle_name")
     last_name = serializers.CharField(source="user.last_name")
@@ -791,6 +792,7 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             "whatsapp_id",
             "skype_id",
             "is_fresher",
+            "email",
         )
 
     # def get_father_address(self,obj):
