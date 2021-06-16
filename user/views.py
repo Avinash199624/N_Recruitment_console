@@ -561,12 +561,22 @@ class RoleMasterView(APIView):
 
 class ApplicantPersonalInformationView(APIView):
     def get(self, request, *args, **kwargs):
-        user = User.objects.get(user_id=self.kwargs["id"])
         try:
-            if user.user_profile:
-                serializer = ApplicantUserPersonalInformationSerializer(user.user_profile)
-                return Response(serializer.data)
-            else:
+            user = User.objects.get(user_id=self.kwargs["id"])
+            try:
+                if user.user_profile:
+                    serializer = ApplicantUserPersonalInformationSerializer(user.user_profile)
+                    return Response(serializer.data)
+                else:
+                    return Response(
+                        data={
+                            "messege": "UserProfile does not exist",
+                            "isEmpty": "true",
+                            "mobile_no": user.mobile_no,
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+            except:
                 return Response(
                     data={
                         "messege": "UserProfile does not exist",
@@ -576,14 +586,9 @@ class ApplicantPersonalInformationView(APIView):
                     status=status.HTTP_200_OK,
                 )
         except:
-            return Response(
-                data={
-                    "messege": "UserProfile does not exist",
-                    "isEmpty": "true",
-                    "mobile_no": user.mobile_no,
-                },
-                status=status.HTTP_200_OK,
-            )
+            applicant_user = UserProfile.objects.filter(is_deleted=False)
+            serializer = ApplicantUserPersonalInformationSerializer(applicant_user, many=True)
+            return Response(serializer.data)
 
 
 class ApplicantPersonalInformationUpdateView(APIView):
@@ -1830,8 +1835,9 @@ class ProfileDetailView(RetrieveAPIView):
 class ApplicantListView(APIView):
     def get(self, request, *args, **kwargs):
         applicants = User.objects.filter(
-            is_deleted=False, user_profile__roles__role_name__icontains="applicant"
+            is_deleted=False
         )
+        UserRoles.objects.filter(user=applicants)
         serializer = CustomUserSerializer(applicants, many=True)
         return Response(serializer.data)
 

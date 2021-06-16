@@ -106,6 +106,11 @@ urlpatterns = [
         name="get-applicant-personal-info",
     ),
     path(
+        "public/personal_info/",
+        ApplicantPersonalInformationView.as_view(),
+        name="get-applicant-list",
+    ),
+    path(
         "public/applicant_is_fresher/<uuid:id>/",
         ApplicantIsFresherUpdateView.as_view(),
         name="update-applicant-is-fresher-detail",
