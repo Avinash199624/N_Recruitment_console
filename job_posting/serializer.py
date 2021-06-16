@@ -1162,8 +1162,8 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
 
         posi = PermanentPositionMaster.objects.create(
             perm_position_master=posi,
-            grade=validated_data["grade"],
-            level=validated_data["level"],
+            grade=validated_data.get("grade"),
+            level=validated_data.get("level"),
         )
         print("Done")
 
@@ -1469,7 +1469,7 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
 
         posi = TemporaryPositionMaster.objects.create(
             temp_position_master=posi,
-            salary=validated_data["salary"],
+            salary=validated_data.get("salary"),
             allowance="hra",
         )
         print("Done")
