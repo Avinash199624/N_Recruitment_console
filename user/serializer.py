@@ -87,7 +87,7 @@ class LocationSerializer(serializers.ModelSerializer):
         instance.postcode = validated_data.get("postcode") or instance.postcode
 
         instance.telephone_no = (
-            validated_data.get("telephone_no") or instance.telephone_no
+                validated_data.get("telephone_no") or instance.telephone_no
         )
 
         instance.save()
@@ -116,7 +116,6 @@ class RelaxationCategoryMasterSerializer(serializers.ModelSerializer):
 
 
 class RelaxationMasterSerializer(serializers.ModelSerializer):
-
     relaxation = RelaxationCategoryMasterSerializer()
     age_relaxation = serializers.SerializerMethodField(
         method_name="get_age_relaxation", required=False
@@ -157,16 +156,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "father_address",
         )
         fields = (
-            "gender",
-            # "mobile_no",
-            "date_of_birth",
-            "status",
-            "created_by",
-            "updated_by",
-            "created_at",
-            "updated_at",
-            "is_deleted",
-        ) + profile_names
+                     "gender",
+                     # "mobile_no",
+                     "date_of_birth",
+                     "status",
+                     "created_by",
+                     "updated_by",
+                     "created_at",
+                     "updated_at",
+                     "is_deleted",
+                 ) + profile_names
 
 
 class CompareApplicantSerializer(serializers.ModelSerializer):
@@ -220,12 +219,12 @@ class CompareApplicantSerializer(serializers.ModelSerializer):
     def get_age_of_applicant(self, obj):
         today = date.today()
         age_of_applicant = (
-            today.year
-            - obj.date_of_birth.year
-            - (
-                (today.month, today.day)
-                < (obj.date_of_birth.month, obj.date_of_birth.day)
-            )
+                today.year
+                - obj.date_of_birth.year
+                - (
+                        (today.month, today.day)
+                        < (obj.date_of_birth.month, obj.date_of_birth.day)
+                )
         )
         return age_of_applicant
 
@@ -285,7 +284,6 @@ class RoleMasterSerializer(serializers.ModelSerializer):
 
 
 class UserRolesSerializer(serializers.ModelSerializer):
-
     user_role = serializers.SerializerMethodField(
         method_name="get_user_role", read_only=True
     )
@@ -300,7 +298,6 @@ class UserRolesSerializer(serializers.ModelSerializer):
 
 
 class UserPermissionSerializer(serializers.ModelSerializer):
-
     user_permission = serializers.SerializerMethodField(
         method_name="get_user_permission", read_only=True
     )
@@ -336,14 +333,14 @@ class UserSerializer(serializers.ModelSerializer):
         profile_names = ("user_profile",)
 
         fields = (
-            "user_id",
-            "username",
-            "email",
-            "mobile_no",
-            "created_at",
-            "is_deleted",
-            # "user_roles",
-        ) + profile_names
+                     "user_id",
+                     "username",
+                     "email",
+                     "mobile_no",
+                     "created_at",
+                     "is_deleted",
+                     # "user_roles",
+                 ) + profile_names
 
     def get_username(self, obj):
         return obj.email or obj.get_full_name()
@@ -828,7 +825,6 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
     #         return None
 
     def update(self, instance, validated_data):
-
         instance.status = (
             validated_data["status"] if validated_data["status"] else instance.status
         )
@@ -1096,7 +1092,6 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         instance.save()
 
     def save(self, validated_data):
-
         # if 'local_address' in validated_data:
         #     local_address_data = validated_data['local_address']
         #     local_address = Location.objects.create(
@@ -1217,7 +1212,6 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
 
 
 class ApplicantIsAddressSameSerializer(serializers.ModelSerializer):
-
     user_id = serializers.SerializerMethodField(
         method_name="get_user_id", read_only=True
     )
@@ -1251,6 +1245,7 @@ class ApplicantIsAddressSameSerializer(serializers.ModelSerializer):
             return is_permenant_address_same_as_local
         except:
             return None
+
     def get_is_father_address_same_as_local(self, obj):
         try:
             is_father_address_same_as_local = obj.is_father_address_same_as_local
@@ -1271,7 +1266,6 @@ class ApplicantIsAddressSameSerializer(serializers.ModelSerializer):
 
 
 class ApplicantIsFresherSerializer(serializers.ModelSerializer):
-
     user_id = serializers.SerializerMethodField(
         method_name="get_user_id", read_only=True
     )
@@ -1805,7 +1799,7 @@ class NeeriUsersSerializer(serializers.ModelSerializer):
             for role_data in validated_data["roles"]:
                 print("role_data.role_id-------------->", role_data["role_id"])
                 if str(orole.role_id) != str(
-                    role_data["role_id"]
+                        role_data["role_id"]
                 ):  # working deletion now
                     print(str(role_data["role_id"]) + " != " + str(orole.role_id))
                     instance.roles.remove(orole)
@@ -1842,7 +1836,6 @@ class UserEducationDetailsSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-
         instance.exam_name = (
             validated_data["exam_name"]
             if validated_data["exam_name"]
@@ -1886,7 +1879,6 @@ class UserEducationDetailsSerializer(serializers.ModelSerializer):
         instance.save()
 
     def save(self, validated_data):
-
         user_education = UserEducationDetails.objects.create(
             exam_name=validated_data["exam_name"]
             if "exam_name" in validated_data
@@ -1965,12 +1957,14 @@ class UserExperienceDetailsSerializer(serializers.ModelSerializer):
             if validated_data["employed_from"]
             else instance.employed_from
         )
-
-        instance.employed_to = (
-            validated_data["employed_to"]
-            if validated_data["employed_to"]
-            else instance.employed_to
-        )
+        if not validated_data.get("employed_to"):
+            instance.employed_to = None
+        else:
+            instance.employed_to = (
+                validated_data.get("employed_to")
+                if validated_data.get("employed_to")
+                else instance.employed_to
+            )
 
         instance.employment_type = (
             validated_data["employment_type"]
@@ -2002,7 +1996,6 @@ class NeeriRelationSerializer(serializers.ModelSerializer):
         )
 
     def save(self, validated_data):
-
         neeri_relation = NeeriRelation.objects.create(
             relation_name=validated_data["relation_name"]
             if "relation_name" in validated_data
@@ -2021,7 +2014,6 @@ class NeeriRelationSerializer(serializers.ModelSerializer):
         return neeri_relation.id
 
     def update(self, instance, validated_data):
-
         instance.relation_name = (
             validated_data["relation_name"]
             if validated_data["relation_name"]
@@ -2050,7 +2042,6 @@ class NeeriRelationSerializer(serializers.ModelSerializer):
 
 
 class ReferencesSerializer(serializers.ModelSerializer):
-
     address = LocationSerializer()
 
     class Meta:
@@ -2063,7 +2054,6 @@ class ReferencesSerializer(serializers.ModelSerializer):
         )
 
     def save(self, validated_data):
-
         address = Location.objects.create(
             address1=validated_data["address"]["address1"],
             address2=validated_data["address"]["address2"],
@@ -2088,7 +2078,6 @@ class ReferencesSerializer(serializers.ModelSerializer):
         return reference.id
 
     def update(self, instance, validated_data):
-
         instance.reference_name = (
             validated_data["reference_name"]
             if validated_data["reference_name"]
@@ -2172,7 +2161,6 @@ class LanguagesSerializer(serializers.ModelSerializer):
         )
 
     def save(self, validated_data):
-
         language = UserLanguages.objects.create(
             name=validated_data["name"] if "name" in validated_data else None,
             read_level=validated_data["read_level"]
@@ -2192,7 +2180,6 @@ class LanguagesSerializer(serializers.ModelSerializer):
         return language.id
 
     def update(self, instance, validated_data):
-
         instance.name = (
             validated_data["name"] if validated_data["name"] else instance.name
         )
@@ -2236,7 +2223,6 @@ class OverseasVisitsSerializer(serializers.ModelSerializer):
         )
 
     def save(self, validated_data):
-
         visit = OverseasVisits.objects.create(
             country_visited=validated_data["country_visited"]
             if "country_visited" in validated_data
@@ -2255,7 +2241,6 @@ class OverseasVisitsSerializer(serializers.ModelSerializer):
         return visit.id
 
     def update(self, instance, validated_data):
-
         instance.country_visited = (
             validated_data["country_visited"]
             if validated_data["country_visited"]
@@ -2294,7 +2279,6 @@ class UserDocumentsSerializer(serializers.ModelSerializer):
 
 
 class PublishedPapersSerializer(serializers.ModelSerializer):
-
     attachments = serializers.SerializerMethodField(
         method_name="get_attachments", read_only=True
     )
@@ -2376,7 +2360,6 @@ class ProfessionalTrainingSerializer(serializers.ModelSerializer):
         )
 
     def save(self, validated_data):
-
         professional_training = ProfessionalTraining.objects.create(
             title=validated_data["title"] if "title" in validated_data else None,
             description=validated_data["description"]
@@ -2391,7 +2374,6 @@ class ProfessionalTrainingSerializer(serializers.ModelSerializer):
         return professional_training.id
 
     def update(self, instance, validated_data):
-
         instance.title = (
             validated_data["title"] if validated_data["title"] else instance.title
         )
@@ -2456,7 +2438,6 @@ class OtherInformationSerializer(serializers.ModelSerializer):
         return other_info.id
 
     def update(self, instance, validated_data):
-
         instance.bond_title = validated_data["bond_title"]
         instance.bond_details = validated_data["bond_details"]
         instance.organisation_name = validated_data["organisation_name"]
@@ -2468,7 +2449,6 @@ class OtherInformationSerializer(serializers.ModelSerializer):
 
 
 class UserProfilePreviewSerializer(serializers.ModelSerializer):
-
     name_of_applicant = serializers.CharField(source="user.get_full_name")
     local_address = LocationSerializer()
     permanent_address = LocationSerializer()
@@ -2535,7 +2515,6 @@ class DivisionSerializer(serializers.ModelSerializer):
 
 
 class TraineeSerializer(serializers.ModelSerializer):
-
     division = serializers.SerializerMethodField(
         method_name="get_division_name", required=False
     )
