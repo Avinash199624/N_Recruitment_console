@@ -573,7 +573,7 @@ class ApplicantPersonalInformationView(APIView):
                         "isEmpty": "true",
                         "mobile_no": user.mobile_no,
                     },
-                    status=status.HTTP_404_NOT_FOUND,
+                    status=status.HTTP_200_OK,
                 )
         except:
             return Response(
@@ -582,7 +582,7 @@ class ApplicantPersonalInformationView(APIView):
                     "isEmpty": "true",
                     "mobile_no": user.mobile_no,
                 },
-                status=status.HTTP_404_NOT_FOUND,
+                status=status.HTTP_200_OK,
             )
 
 
