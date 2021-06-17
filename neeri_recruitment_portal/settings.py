@@ -100,7 +100,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'neeri-live-local',
         'USER': 'postgres',
-        'PASSWORD': 'Admin@123',
+        'PASSWORD': 'root',
         'HOST': 'localhost',
         'PORT': '5432',
     }
