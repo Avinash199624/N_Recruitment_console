@@ -98,9 +98,9 @@ WSGI_APPLICATION = 'neeri_recruitment_portal.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'neeri-live',
+        'NAME': 'neeri-live-local',
         'USER': 'postgres',
-        'PASSWORD': 'root',
+        'PASSWORD': 'Admin@123',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -113,7 +113,10 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = '587'
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-
+AUTH_KEY = env('AUTH_KEY')
+SMS_SENDER_ID = env('SMS_SENDER_ID')
+ROUTE = env('ROUTE')
+COUNTRY_CODE = env('COUNTRY_CODE')
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
