@@ -701,11 +701,16 @@ class UserAuthentication(models.Model):
     )
     email_verified = models.BooleanField(default=False)
     mobile_verified = models.BooleanField(default=False)
+    # reset_verified = models.BooleanField(default=False)
     # email_otp = models.IntegerField(null=True, blank=True)
     email_token = models.CharField(max_length=200, null=True, blank=True)
+    sms_token = models.CharField(max_length=200, null=True, blank=True)
+    reset_token = models.CharField(max_length=200, null=True, blank=True)
     mobile_otp = models.IntegerField(null=True, blank=True)
     email_otp_expiry = models.DateTimeField(null=True, blank=True)
     mobile_otp_expiry = models.DateTimeField(null=True, blank=True)
+    reset_otp_expiry = models.DateTimeField(null=True, blank=True)
+    is_first_login = models.BooleanField(blank=True, null=True, default=True)
 
     def __str__(self):
         return self.user.email

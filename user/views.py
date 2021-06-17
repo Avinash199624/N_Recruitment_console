@@ -2,13 +2,14 @@ import datetime
 import uuid
 
 from django.db.transaction import atomic
-
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
+
+from neeri_recruitment_portal.helpers import send_otp, send_verification_mail, send_forget_password_mail
 from neeri_recruitment_portal.settings import BASE_URL
 from user.models import (
     User,
@@ -68,7 +69,8 @@ from job_posting.serializer import ApplicantJobPositionsSerializer
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
-from neeri_recruitment_portal.messeges import INACTIVE_ACCOUNT_ERROR
+from neeri_recruitment_portal.messeges import INACTIVE_ACCOUNT_ERROR, INACTIVE_EMAIL_ERROR, INACTIVE_MOBILE_ERROR, \
+    INACTIVE_EMAIL_MOBILE_ERROR
 from django.contrib.auth import login, logout
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
@@ -132,9 +134,16 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
                 data={"message": "You're not authorized to login.."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        authentication = UserAuthentication.objects.get(user=user)
 
-        if not getattr(user, "is_active", None):
-            raise AuthenticationFailed(INACTIVE_ACCOUNT_ERROR, code="account_disabled")
+        if not getattr(user, "is_active", None) and not authentication.mobile_verified and not authentication.email_verified:
+            raise AuthenticationFailed(INACTIVE_EMAIL_MOBILE_ERROR, code="account_disabled")
+        # if not getattr(user, "is_active", None) and not authentication.mobile_verified:
+        #     raise AuthenticationFailed(INACTIVE_MOBILE_ERROR, code="account_disabled")
+        if not getattr(user, "is_active", None) and not authentication.email_verified:
+            raise AuthenticationFailed(INACTIVE_EMAIL_ERROR, code="account_disabled")
+
+
         res = login(request, user)
         print("res", res)
 
@@ -319,7 +328,8 @@ class UserRegistartionView(APIView):
             user.save()
             # user_otp = random.randint(100000, 999999)
             user_email_token = str(uuid.uuid4())
-            UserAuthentication.objects.create(user=user, email_token=user_email_token)
+            user_sms_token = str(uuid.uuid4())
+            UserAuthentication.objects.create(user=user, email_token=user_email_token, sms_token=user_sms_token)
             print("user.is_active---------->", user.is_active)
             UserRoles.objects.create(role=role, user=user)
             roles = [
@@ -332,48 +342,69 @@ class UserRegistartionView(APIView):
                 ).distinct("permission")
             ]
             serializer = UserSerializer(user)
-
             result = {}
-            # authentication = UserAuthentication.objects.get(user=user)
-
             result["user"] = serializer.data
             result["roles"] = roles
             result["permissions"] = permissions
-            # mess = "Hello " + user.first_name + ", your OTP for account activation is " + str(user_otp) + ". Thank You for Registering!!"
-
-            subject = 'Welcome to NEERI - Verify your Email.'
-            message = f'Hi, please click on the link to verify your account ' + BASE_URL + f'/user/email_token_verify/{user_email_token}/'
-            email_from = settings.EMAIL_HOST_USER
-            recipient_list = [user.email]
-            send_mail(
-                subject,
-                message,
-                email_from,
-                recipient_list,
-                fail_silently=False
-            )
-            # result['email_verified'] = authentication.email_verified
-            # result['mobile_verified'] = authentication.mobile_verified
+            # send_otp(mobile_no, user_sms_token)
+            send_verification_mail(email, user_email_token)
             return JsonResponse(data=result, safe=False)
+
+
+def verify_sms(request, user_sms_token):
+    try:
+        user_sms_auth = UserAuthentication.objects.filter(sms_token=user_sms_token).first()
+        if user_sms_auth:
+            if user_sms_auth.mobile_verified:
+                return JsonResponse(
+                    data={"message": "Your mobile is already verified."},
+                )
+            user_sms_auth.mobile_verified = True
+            user_sms_auth.save()
+            if user_sms_auth.email_verified:
+                user_sms_auth.user.is_active = True
+                user_sms_auth.user.save()
+                return JsonResponse(
+                    data={"message": "Your account has been verified."},
+                )
+            return JsonResponse(
+                data={"message": "Your mobile has been verified."},
+            )
+        # if user_sms_auth.mobile_verified and user_sms_auth.email_verified:
+        #     user_sms_auth.user.is_active = True
+        #     user_sms_auth.user.save()
+        #     return JsonResponse(
+        #         data={"message": "Your account has been verified."},
+        #     )
+        else:
+            return JsonResponse(
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    except Exception as e:
+        print(e)
+        return JsonResponse(
+            status=status.HTTP_200_OK,
+        )
 
 
 def verify_email(request, user_email_token):
     try:
-        user_auth = UserAuthentication.objects.filter(email_token=user_email_token).first()
-
-        if user_auth:
-            if user_auth.email_verified:
-                # messages.success(request, 'Your account is already verified.')
+        user_email_auth = UserAuthentication.objects.filter(email_token=user_email_token).first()
+        if user_email_auth:
+            if user_email_auth.email_verified:
                 return JsonResponse(
-                    data={"message": "Your account is already verified."},
+                    data={"message": "Your email is already verified."},
                 )
-            user_auth.email_verified = True
-            user_auth.user.is_active = True
-            user_auth.user.save()
-            user_auth.save()
-            # messages.success(request, 'Your account has been verified.')
+            user_email_auth.email_verified = True
+            user_email_auth.save()
+            # if user_email_auth.sms_verified:
+            #     user_email_auth.user.is_active = True
+            #     user_email_auth.user.save()
+            #     return JsonResponse(
+            #         data={"message": "Your account has been verified."},
+            #     )
             return JsonResponse(
-                data={"message": "Your account has been verified."},
+                data={"message": "Your email has been verified."},
             )
         else:
             return JsonResponse(
@@ -524,32 +555,59 @@ class ForgotPassword(APIView):
     def post(self, request, *args, **kwargs):
         data = self.request.data
         email = data["email"]
-
+        print("email--------------->", email)
         try:
-            user = User.objects.get(email__exact=email)
+            user = User.objects.get(email=email)
+            print("user--------------->", user)
+
             if user:
                 # Need to send Email with a link where user can reset password.
+                user_reset_token = str(uuid.uuid4())
+                print("user--------------->", user_reset_token, user.email)
+
+                auth = UserAuthentication.objects.filter(user=user).first()
+                auth.reset_token = user_reset_token
+                auth.save()
+                send_forget_password_mail(user.email, user_reset_token)
+
                 return Response(
-                    data={"messege": "Link sent to your registered Email."},
+                    data={"message": "Link sent to your registered Email.", "email": user.email},
                 )
         except:
             return Response(
-                data={"messege": "Email not found, enter valid email."},
+                data={"message": "Email not found, enter valid email."},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-
 class ResetPassword(APIView):
+    permission_classes = [
+        AllowAny,
+    ]
     def post(self, request, *args, **kwargs):
         data = self.request.data
-        id = self.kwargs["id"]
-        user = User.objects.get(user_id=id)
-        password = data["password"]
-        user.set_password(password)
-        user.save()
-        return Response(
-            data={"messege": "Password reset Successfully."},
-        )
+        password = data['password']
+        confirm_password = data['confirm_password']
+        token = str(self.kwargs["token"])
+        auth = UserAuthentication.objects.filter(reset_token=token).first()
+        if auth:
+            user_obj = User.objects.get(user_id=auth.user.user_id)
+            if password == confirm_password:
+                user_obj.set_password(password)
+                user_obj.save()
+                auth.reset_token = None
+                auth.save()
+            else:
+                return Response(
+                    data={"message": "Password and Confirm password are different."},
+                )
+            print("auth.reset_token------------->", auth.reset_token)
+            return Response(
+                data={"message": "Password reset Successfully."},
+            )
+        else:
+            return Response(
+                data={"message": "Token has been expired. Please request again."},
+            )
 
 
 class RoleMasterView(APIView):

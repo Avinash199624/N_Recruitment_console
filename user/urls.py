@@ -16,7 +16,7 @@ from user.views import (
     TraineeSearchListView,
     NeeriUserSearchListView,
     ApplicantIsFresherUpdateView,
-    UserDocumentView, verify_email, ApplicantIsAddressUpdateView,
+    UserDocumentView, ApplicantIsAddressUpdateView, verify_email, verify_sms,
 )
 from user.views import (
     LoginView,
@@ -84,6 +84,7 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("signup/", UserRegistartionView.as_view(), name="signup"),
     path("email_token_verify/<user_email_token>/", verify_email, name="email-token-verification"),
+    path("sms_token_verify/<user_sms_token>/", verify_sms, name="sms-token-verification"),
     path("get-user/<uuid:id>/", RetrieveUserView.as_view(), name="get-user"),
     path("delete-user/<uuid:id>/", DeleteUserView.as_view(), name="delete-user"),
     path("update-user/<uuid:id>/", UpdateUserView.as_view(), name="update-user"),
@@ -97,8 +98,8 @@ urlpatterns = [
     path("neeri_user/", NeeriUserListView.as_view(), name="neeri-user"),
     path("neeri_user/<uuid:id>/", CreateNeeriUserView.as_view(), name="neeri-user-api"),
     path("user-list/", UserListView.as_view(), name="user-list"),
-    path("forgot-password/", ForgotPassword.as_view(), name="forgot-password"),
-    path("reset_password/<uuid:id>/", ResetPassword.as_view(), name="reset-password"),
+    path("forgot_password/", ForgotPassword.as_view(), name="forgot-password"),
+    path("reset_password/<uuid:token>/", ResetPassword.as_view(), name="reset-password"),
     #### Public Portal User URL's
     path(
         "public/personal_info/<uuid:id>/",
