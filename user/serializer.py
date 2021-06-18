@@ -26,7 +26,7 @@ from user.models import (
     MentorMaster,
     Trainee,
     RelaxationCategoryMaster,
-    RelaxationMaster,
+    RelaxationMaster, UserAuthentication,
 )
 
 
@@ -310,6 +310,13 @@ class UserPermissionSerializer(serializers.ModelSerializer):
         user_permission = obj.permission.permission_name
         return user_permission
 
+class UserAuthenticationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAuthentication
+        fields = (
+            "is_first_login",
+        )
+
 
 class UserSerializer(serializers.ModelSerializer):
     user_profile = UserProfileSerializer(required=False)
@@ -325,6 +332,9 @@ class UserSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField(
         method_name="get_username", read_only=True
     )
+    is_first_login = serializers.SerializerMethodField(
+        method_name="get_first_login", read_only=True
+    )
 
     class Meta:
         model = User
@@ -339,11 +349,22 @@ class UserSerializer(serializers.ModelSerializer):
                      "mobile_no",
                      "created_at",
                      "is_deleted",
+                     "is_first_login",
                      # "user_roles",
                  ) + profile_names
 
     def get_username(self, obj):
         return obj.email or obj.get_full_name()
+
+    def get_first_login(self, obj):
+        auth = UserAuthentication.objects.get(user=obj)
+        is_first_login = auth.is_first_login
+        return is_first_login
+
+    # def get_first_login(self, obj):
+    #     auth = UserAuthentication.objects.get(user__user_id=obj.user_id)
+    #     is_first_login = UserAuthenticationSerializer(auth)
+    #     return is_first_login
 
     # def get_user_roles(self, obj):
     #     user_roles = UserRoles.objects.filter(user=obj)
@@ -357,6 +378,7 @@ class UserSerializer(serializers.ModelSerializer):
     #     user_permissions = UserPermissions.objects.filter(role__in=roles).distinct('permission')
     #     serializer = UserPermissionSerializer(user_permissions, many=True)
     #     return serializer.data
+
 
 
 class NeeriUserSerializer(serializers.ModelSerializer):
@@ -529,19 +551,15 @@ class CustomUserSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
 
         instance.username = (
-            validated_data["username"]
-            if validated_data["username"]
-            else instance.username
+            validated_data.get("username") or instance.username
         )
 
         instance.email = (
-            validated_data["email"] if validated_data["email"] else instance.email
+            validated_data.get("email") or instance.email
         )
 
         instance.created_at = (
-            validated_data["created_at"]
-            if validated_data["created_at"]
-            else instance.created_at
+            validated_data.get("created_at") or instance.created_at
         )
 
         try:
@@ -549,36 +567,32 @@ class CustomUserSerializer(serializers.ModelSerializer):
             permanent_address_instance = (
                 instance.user_profile.permanent_address.filter()
             )
-            local_address_data = validated_data["local_address"][0]
-            permanent_address_data = validated_data["permanent_address"][0]
+            local_address_data = validated_data.get("local_address")[0]
+            permanent_address_data = validated_data.get("permanent_address")[0]
 
             if instance.user_profile:
                 instance.user_profile.phone_no = (
-                    validated_data["phone_no"]
-                    if validated_data["phone_no"]
-                    else instance.user_profile.phone_no
+                    validated_data.get("phone_no")
+                    or instance.user_profile.phone_no
                 )
 
-                # instance.user_profile.mobile_no = (
-                #     validated_data["mobile_no"] if validated_data["mobile_no"] else instance.user_profile.mobile_no
-                # )
+                instance.mobile_no = (
+                    validated_data.get("mobile_no") or instance.mobile_no
+                )
 
                 instance.user_profile.gender = (
-                    validated_data["gender"]
-                    if validated_data["gender"]
-                    else instance.user_profile.gender
+                    validated_data.get("gender")
+                    or instance.user_profile.gender
                 )
 
                 instance.user_profile.date_of_birth = (
-                    validated_data["date_of_birth"]
-                    if validated_data["date_of_birth"]
-                    else instance.user_profile.date_of_birth
+                    validated_data.get("date_of_birth")
+                    or instance.user_profile.date_of_birth
                 )
 
                 instance.user_profile.status = (
-                    validated_data["status"]
-                    if validated_data["status"]
-                    else instance.user_profile.status
+                    validated_data.get("status")
+                    or instance.user_profile.status
                 )
 
             if local_address_instance:
@@ -1686,7 +1700,10 @@ class NeeriUsersSerializer(serializers.ModelSerializer):
         serializer = RoleMasterSerializer(role, many=True)
         return serializer.data
 
-    def save(self, validated_data):
+    def save(self, validated_data, password):
+        print("random password----------------->", password)
+        # user.set_password(password)
+        # user.save()
         neeri_user = User.objects.create_user(
             first_name=validated_data["first_name"]
             if "first_name" in validated_data
@@ -1699,7 +1716,7 @@ class NeeriUsersSerializer(serializers.ModelSerializer):
             else None,
             email=validated_data["email"] if "email" in validated_data else None,
             mobile_no=validated_data["mobile_no"],
-            password=validated_data["password"],
+            password=password,
         )
         print("user_id", neeri_user)
         # neeri_user = User.objects.get(email=validated_data['email'])

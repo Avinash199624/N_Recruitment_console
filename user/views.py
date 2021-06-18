@@ -1,6 +1,7 @@
 import datetime
 import uuid
 
+from django.contrib.auth.hashers import check_password
 from django.db.transaction import atomic
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -9,7 +10,8 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
 
-from neeri_recruitment_portal.helpers import send_otp, send_verification_mail, send_forget_password_mail
+from neeri_recruitment_portal.helpers import send_otp, send_verification_mail, send_forget_password_mail, \
+    send_password_mail
 from neeri_recruitment_portal.settings import BASE_URL
 from user.models import (
     User,
@@ -138,13 +140,15 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
 
         if not getattr(user, "is_active", None) and not authentication.mobile_verified and not authentication.email_verified:
             raise AuthenticationFailed(INACTIVE_EMAIL_MOBILE_ERROR, code="account_disabled")
-        # if not getattr(user, "is_active", None) and not authentication.mobile_verified:
-        #     raise AuthenticationFailed(INACTIVE_MOBILE_ERROR, code="account_disabled")
+        if not getattr(user, "is_active", None) and not authentication.mobile_verified:
+            raise AuthenticationFailed(INACTIVE_MOBILE_ERROR, code="account_disabled")
         if not getattr(user, "is_active", None) and not authentication.email_verified:
             raise AuthenticationFailed(INACTIVE_EMAIL_ERROR, code="account_disabled")
 
 
         res = login(request, user)
+        # auth = UserAuthentication.objects.get(is_first_login=False)
+        # if auth:
         print("res", res)
 
         result = super(LoginView, self).post(request, format=None)
@@ -478,18 +482,20 @@ class CreateNeeriUserView(APIView):
         # password = data['password']
         if User.objects.filter(email=email).exists():
             return JsonResponse(
-                data={"messege": "email Already Exist"},
+                data={"message": "email Already Exist"},
             )
         elif User.objects.filter(mobile_no=mobile_no).exists():
             return JsonResponse(
-                data={"messege": "mobile no. Already Exist"},
+                data={"message": "mobile no. Already Exist"},
             )
         else:
             # user = User.objects.create_user(mobile_no=mobile_no, email=email, password=password)
             serializer = NeeriUsersSerializer(data=data)
             serializer.is_valid(raise_exception=True)
-            result = serializer.save(validated_data=data)
+            password = User.objects.make_random_password()
+            result = serializer.save(validated_data=data, password=password)
             neeri_user_profile = NeeriUserProfile.objects.get(user=result)
+            send_password_mail(neeri_user_profile.user.email, password)
             result_serializer = NeeriUsersSerializer(neeri_user_profile)
             return Response(result_serializer.data)
 
@@ -609,6 +615,71 @@ class ResetPassword(APIView):
                 data={"message": "Token has been expired. Please request again."},
             )
 
+class ChangePassword(APIView):
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs["id"]
+        data = self.request.data
+        old_password = data['old_password']
+        new_password = data['new_password']
+        confirm_password = data['confirm_password']
+        auth = User.objects.filter(user_id=id).first()
+        if auth:
+            user_obj = User.objects.get(user_id=auth.user_id)
+            print("user_obj.password------------>", user_obj.password)
+            print("check_password---------->", check_password(old_password, user_obj.password))
+            checked_pwd = check_password(old_password, user_obj.password)
+            if checked_pwd:
+                if new_password == confirm_password:
+                    user_obj.set_password(new_password)
+                    user_obj.save()
+                else:
+                    return Response(
+                        data={"message": "Password and Confirm Password are different."},
+                    )
+                first_login = UserAuthentication.objects.get(user=user_obj)
+                first_login.is_first_login = False
+                first_login.save()
+                return Response(
+                    data={"message": "Password has been Successfully changed."}, status=status.HTTP_200_OK,
+                )
+
+            return Response(
+                data={"message": "Please enter the current password correctly"}, status=status.HTTP_401_UNAUTHORIZED,
+            )
+        return Response(
+            data={"message": "User Not Found."}, status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+# def ForgotPasswordDef(request, token):
+#     context = {}
+#
+#     try:
+#         user_obj = UserAuthentication.objects.filter(reset_token__exact=token).first()
+#         context = {'user_id': user_obj.user.user_id}
+#
+#         if request.method == 'POST':
+#             new_password = request.POST.get('new_password')
+#             confirm_password = request.POST.get('reconfirm_password')
+#             user_id = request.POST.get('user_id')
+#
+#             if user_id is None:
+#                 messages.success(request, 'No user id found.')
+#                 return redirect(f'/change-password/{token}/')
+#
+#             if new_password != confirm_password:
+#                 messages.success(request, 'both should  be equal.')
+#                 return redirect(f'/change-password/{token}/')
+#
+#             user_obj = User.objects.get(id=user_id)
+#             user_obj.set_password(new_password)
+#             user_obj.save()
+#             return redirect('/login/')
+#
+#
+#     except Exception as e:
+#         print(e)
+#     return render(request, 'change-password.html', context)
 
 class RoleMasterView(APIView):
     def get(self, request, *args, **kwargs):

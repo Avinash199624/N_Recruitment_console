@@ -1,7 +1,7 @@
 import http.client
 from django.core.mail import send_mail
 from neeri_recruitment_portal import settings
-from neeri_recruitment_portal.settings import BASE_URL
+from neeri_recruitment_portal.settings import BASE_URL, BASE_DEV_URL
 
 
 def send_otp(mobile, otp):
@@ -26,7 +26,7 @@ def send_otp(mobile, otp):
 
 def send_verification_mail(email, email_token):
     subject = 'Welcome to NEERI - Verify your Email.'
-    message = f'Hi, please click on the link to verify your account ' + BASE_URL + f'/user/email_token_verify/{email_token}/'
+    message = f'Hi, please click on the link to verify your account ' + BASE_DEV_URL + f'/verify_otp/{email_token}/'
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email]
     send_mail(
@@ -43,8 +43,25 @@ def send_verification_mail(email, email_token):
 
 def send_forget_password_mail(email , token ):
     subject = 'Your forget password link'
-    message = f'Hi , click on the link to reset your password ' + BASE_URL + f'/user/reset_password/{token}/'
+    message = f'Hi , click on the link to reset your password ' + BASE_DEV_URL + f'/user/reset_password/{token}/'
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email]
     send_mail(subject, message, email_from, recipient_list)
     return True
+
+
+def send_password_mail(email, password):
+    subject = 'Welcome to NEERI'
+    message = f'Hi, please click on the link to login into your account.' \
+              f'\nFor Temporary login you can use this system generated password. Your Password is {password}.\n' + BASE_DEV_URL + f'/admin/'
+    email_from = settings.EMAIL_HOST_USER
+    recipient_list = [email]
+    send_mail(
+        subject,
+        message,
+        email_from,
+        recipient_list,
+        fail_silently=False
+    )
+    print("email sent")
+    return None

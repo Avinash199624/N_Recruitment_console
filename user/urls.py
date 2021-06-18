@@ -16,7 +16,7 @@ from user.views import (
     TraineeSearchListView,
     NeeriUserSearchListView,
     ApplicantIsFresherUpdateView,
-    UserDocumentView, ApplicantIsAddressUpdateView, verify_email, verify_sms,
+    UserDocumentView, ApplicantIsAddressUpdateView, verify_email, verify_sms, ChangePassword,
 )
 from user.views import (
     LoginView,
@@ -100,6 +100,7 @@ urlpatterns = [
     path("user-list/", UserListView.as_view(), name="user-list"),
     path("forgot_password/", ForgotPassword.as_view(), name="forgot-password"),
     path("reset_password/<uuid:token>/", ResetPassword.as_view(), name="reset-password"),
+    path("change_password/<uuid:id>/", ChangePassword.as_view(), name="change-password"),
     #### Public Portal User URL's
     path(
         "public/personal_info/<uuid:id>/",
