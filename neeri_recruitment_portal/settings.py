@@ -238,4 +238,4 @@ CORS_ORIGIN_REGEX_WHITELIST = config(
     "CORS_ORIGIN_REGEX_WHITELIST", default="", cast=Csv()
 )
 # BASE_URL = 'https://20.198.86.180:8181'
-BASE_URL = 'http://20.198.86.180:8181'
+BASE_URL = env('BASE_URL')
