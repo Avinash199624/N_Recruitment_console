@@ -6,6 +6,7 @@ from django.contrib import auth
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
+from neeri_recruitment_portal.settings import OTP_EXPIRY_TIME
 from neeri_recruitment_portal.validators import EmailValidator
 
 
@@ -719,9 +720,9 @@ class UserAuthentication(models.Model):
         return self.user.email
 
     def save(self, **kwargs):
-        self.email_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=30)
-        self.mobile_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=30)
-        self.reset_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=30)
+        self.email_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=OTP_EXPIRY_TIME)
+        self.mobile_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=OTP_EXPIRY_TIME)
+        self.reset_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=OTP_EXPIRY_TIME)
         super(UserAuthentication, self).save(**kwargs)
 
 
