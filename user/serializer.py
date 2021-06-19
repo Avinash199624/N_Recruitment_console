@@ -26,7 +26,8 @@ from user.models import (
     MentorMaster,
     Trainee,
     RelaxationCategoryMaster,
-    RelaxationMaster, UserAuthentication,
+    RelaxationMaster,
+    UserAuthentication,
 )
 
 
@@ -87,7 +88,7 @@ class LocationSerializer(serializers.ModelSerializer):
         instance.postcode = validated_data.get("postcode") or instance.postcode
 
         instance.telephone_no = (
-                validated_data.get("telephone_no") or instance.telephone_no
+            validated_data.get("telephone_no") or instance.telephone_no
         )
 
         instance.save()
@@ -156,16 +157,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "father_address",
         )
         fields = (
-                     "gender",
-                     # "mobile_no",
-                     "date_of_birth",
-                     "status",
-                     "created_by",
-                     "updated_by",
-                     "created_at",
-                     "updated_at",
-                     "is_deleted",
-                 ) + profile_names
+            "gender",
+            # "mobile_no",
+            "date_of_birth",
+            "status",
+            "created_by",
+            "updated_by",
+            "created_at",
+            "updated_at",
+            "is_deleted",
+        ) + profile_names
 
 
 class CompareApplicantSerializer(serializers.ModelSerializer):
@@ -219,12 +220,12 @@ class CompareApplicantSerializer(serializers.ModelSerializer):
     def get_age_of_applicant(self, obj):
         today = date.today()
         age_of_applicant = (
-                today.year
-                - obj.date_of_birth.year
-                - (
-                        (today.month, today.day)
-                        < (obj.date_of_birth.month, obj.date_of_birth.day)
-                )
+            today.year
+            - obj.date_of_birth.year
+            - (
+                (today.month, today.day)
+                < (obj.date_of_birth.month, obj.date_of_birth.day)
+            )
         )
         return age_of_applicant
 
@@ -310,6 +311,7 @@ class UserPermissionSerializer(serializers.ModelSerializer):
         user_permission = obj.permission.permission_name
         return user_permission
 
+
 class UserAuthenticationSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAuthentication
@@ -344,15 +346,15 @@ class UserSerializer(serializers.ModelSerializer):
         profile_names = ("user_profile",)
 
         fields = (
-                     "user_id",
-                     "username",
-                     "email",
-                     "mobile_no",
-                     "created_at",
-                     "is_deleted",
-                     "is_first_login",
-                     # "user_roles",
-                 ) + profile_names
+            "user_id",
+            "username",
+            "email",
+            "mobile_no",
+            "created_at",
+            "is_deleted",
+            "is_first_login",
+            # "user_roles",
+        ) + profile_names
 
     def get_username(self, obj):
         return obj.email or obj.get_full_name()
@@ -379,7 +381,6 @@ class UserSerializer(serializers.ModelSerializer):
     #     user_permissions = UserPermissions.objects.filter(role__in=roles).distinct('permission')
     #     serializer = UserPermissionSerializer(user_permissions, many=True)
     #     return serializer.data
-
 
 
 class NeeriUserSerializer(serializers.ModelSerializer):
@@ -551,17 +552,11 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
 
-        instance.username = (
-            validated_data.get("username") or instance.username
-        )
+        instance.username = validated_data.get("username") or instance.username
 
-        instance.email = (
-            validated_data.get("email") or instance.email
-        )
+        instance.email = validated_data.get("email") or instance.email
 
-        instance.created_at = (
-            validated_data.get("created_at") or instance.created_at
-        )
+        instance.created_at = validated_data.get("created_at") or instance.created_at
 
         try:
             local_address_instance = instance.user_profile.local_address.filter()
@@ -573,8 +568,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
             if instance.user_profile:
                 instance.user_profile.phone_no = (
-                    validated_data.get("phone_no")
-                    or instance.user_profile.phone_no
+                    validated_data.get("phone_no") or instance.user_profile.phone_no
                 )
 
                 instance.mobile_no = (
@@ -582,8 +576,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
                 )
 
                 instance.user_profile.gender = (
-                    validated_data.get("gender")
-                    or instance.user_profile.gender
+                    validated_data.get("gender") or instance.user_profile.gender
                 )
 
                 instance.user_profile.date_of_birth = (
@@ -592,8 +585,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
                 )
 
                 instance.user_profile.status = (
-                    validated_data.get("status")
-                    or instance.user_profile.status
+                    validated_data.get("status") or instance.user_profile.status
                 )
 
             if local_address_instance:
@@ -1243,11 +1235,14 @@ class ApplicantIsAddressSameSerializer(serializers.ModelSerializer):
             "is_father_address_same_as_local",
         )
 
-
     def update(self, instance, validated_data):
 
-        instance.is_permenant_address_same_as_local = validated_data["is_permenant_address_same_as_local"]
-        instance.is_father_address_same_as_local = validated_data["is_father_address_same_as_local"]
+        instance.is_permenant_address_same_as_local = validated_data[
+            "is_permenant_address_same_as_local"
+        ]
+        instance.is_father_address_same_as_local = validated_data[
+            "is_father_address_same_as_local"
+        ]
         instance.save()
 
 
@@ -1788,7 +1783,7 @@ class NeeriUsersSerializer(serializers.ModelSerializer):
             for role_data in validated_data["roles"]:
                 print("role_data.role_id-------------->", role_data["role_id"])
                 if str(orole.role_id) != str(
-                        role_data["role_id"]
+                    role_data["role_id"]
                 ):  # working deletion now
                     print(str(role_data["role_id"]) + " != " + str(orole.role_id))
                     instance.roles.remove(orole)
@@ -2439,6 +2434,7 @@ class OtherInformationSerializer(serializers.ModelSerializer):
 
 class UserProfilePreviewSerializer(serializers.ModelSerializer):
     name_of_applicant = serializers.CharField(source="user.get_full_name")
+    mobile_no = serializers.CharField(source="user.mobile_no")
     local_address = LocationSerializer()
     permanent_address = LocationSerializer()
     father_address = LocationSerializer()
