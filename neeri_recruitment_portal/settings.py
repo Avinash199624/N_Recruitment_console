@@ -117,7 +117,7 @@ AUTH_KEY = env('AUTH_KEY')
 SMS_SENDER_ID = env('SMS_SENDER_ID')
 ROUTE = env('ROUTE')
 COUNTRY_CODE = env('COUNTRY_CODE')
-OTP_EXPIRY_TIME = 30
+OTP_EXPIRY_TIME = 15  # in minutes
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
