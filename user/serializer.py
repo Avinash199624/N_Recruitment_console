@@ -1233,13 +1233,9 @@ class ApplicantIsAddressSameSerializer(serializers.ModelSerializer):
         method_name="get_user_id", read_only=True
     )
 
-    is_father_address_same_as_local = serializers.SerializerMethodField(
-        method_name="get_is_father_address_same_as_local", read_only=True
-    )
+    is_father_address_same_as_local = serializers.BooleanField()
 
-    is_permenant_address_same_as_local = serializers.SerializerMethodField(
-        method_name="get_is_permenant_address_same_as_local", read_only=True
-    )
+    is_permenant_address_same_as_local = serializers.BooleanField()
 
     class Meta:
         model = UserProfile
@@ -1256,27 +1252,9 @@ class ApplicantIsAddressSameSerializer(serializers.ModelSerializer):
         except:
             return None
 
-    def get_is_permenant_address_same_as_local(self, obj):
-        try:
-            is_permenant_address_same_as_local = obj.is_permenant_address_same_as_local
-            return is_permenant_address_same_as_local
-        except:
-            return None
-
-    def get_is_father_address_same_as_local(self, obj):
-        try:
-            is_father_address_same_as_local = obj.is_father_address_same_as_local
-            return is_father_address_same_as_local
-        except:
-            return None
 
     def update(self, instance, validated_data):
 
-        # instance.is_fresher = (
-        #     validated_data["is_fresher"]
-        #     if validated_data["is_fresher"]
-        #     else instance.is_fresher
-        # )
         instance.is_permenant_address_same_as_local = validated_data["is_permenant_address_same_as_local"]
         instance.is_father_address_same_as_local = validated_data["is_father_address_same_as_local"]
         instance.save()

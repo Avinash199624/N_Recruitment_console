@@ -910,7 +910,7 @@ class ApplicantPersonalInformationUpdateView(APIView):
             return Response(serializer.data)
         else:
             return Response(
-                data={"messege": "UserProfile does not exist"},
+                data={"message": "UserProfile does not exist"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
@@ -927,9 +927,10 @@ class ApplicantIsFresherUpdateView(APIView):
         except:
             return Response(
                 data={
-                    "messege": "UserProfile does not exist",
+                    "message": "UserProfile does not exist",
                     "isEmpty": "true",
                     "mobile_no": user.mobile_no,
+                    "email": user.email,
                 },
             )
 
@@ -941,7 +942,7 @@ class ApplicantIsFresherUpdateView(APIView):
             user_profile = user.user_profile
         except:
             return Response(
-                data={"messege": "UserProfile does not exist"},
+                data={"message": "UserProfile does not exist"},
             )
         serializer = ApplicantIsFresherSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
@@ -961,9 +962,10 @@ class ApplicantIsAddressUpdateView(APIView):
         except:
             return Response(
                 data={
-                    "messege": "UserProfile does not exist",
+                    "message": "UserProfile does not exist",
                     "isEmpty": "true",
                     "mobile_no": user.mobile_no,
+                    "email": user.email,
                 },
             )
 
@@ -975,7 +977,7 @@ class ApplicantIsAddressUpdateView(APIView):
             user_profile = user.user_profile
         except:
             return Response(
-                data={"messege": "UserProfile does not exist"},
+                data={"message": "UserProfile does not exist"},
             )
         serializer = ApplicantIsAddressSameSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
