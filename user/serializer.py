@@ -2452,6 +2452,7 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = (
             "name_of_applicant",
+            "mobile_no",
             "gender",
             "profile_photo",
             "local_address",
