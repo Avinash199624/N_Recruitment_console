@@ -314,7 +314,8 @@ class UserAuthenticationSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAuthentication
         fields = (
-            "is_first_login",
+            "is_suspended",
+            "is_locked",
         )
 
 

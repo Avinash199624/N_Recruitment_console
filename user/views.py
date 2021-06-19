@@ -4,7 +4,7 @@ import uuid
 from django.contrib.auth.hashers import check_password
 from django.db.transaction import atomic
 from rest_framework.filters import SearchFilter
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 
 from rest_framework.views import APIView
 from django.http import JsonResponse
@@ -65,14 +65,14 @@ from user.serializer import (
     RelaxationMasterSerializer,
     RelaxationCategoryMasterSerializer,
     ApplicantIsFresherSerializer,
-    UserDocumentsSerializer, ApplicantIsAddressSameSerializer,
+    UserDocumentsSerializer, ApplicantIsAddressSameSerializer, UserAuthenticationSerializer,
 )
 from job_posting.serializer import ApplicantJobPositionsSerializer
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
 from neeri_recruitment_portal.messeges import INACTIVE_ACCOUNT_ERROR, INACTIVE_EMAIL_ERROR, INACTIVE_MOBILE_ERROR, \
-    INACTIVE_EMAIL_MOBILE_ERROR
+    INACTIVE_EMAIL_MOBILE_ERROR, INACTIVE_LOCKED_ERROR, INACTIVE_SUSPENDED_ERROR, INVALID_PASSWORD_ERROR
 from django.contrib.auth import login, logout
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
@@ -118,7 +118,8 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
     @csrf_exempt
     def post(self, request, *args, **kwargs):
         data = request.data
-        user = User.objects.get(email__exact=data["email"])
+        user = User.objects.filter(email__exact=data["email"]).first()
+        password = data["password"]
         roles = [role.role.role_name for role in UserRoles.objects.filter(user=user)]
         permissions = [
             permission.permission.permission_name
@@ -144,6 +145,10 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
             raise AuthenticationFailed(INACTIVE_MOBILE_ERROR, code="account_disabled")
         if not getattr(user, "is_active", None) and not authentication.email_verified:
             raise AuthenticationFailed(INACTIVE_EMAIL_ERROR, code="account_disabled")
+        if not getattr(user, "is_active", None) and not authentication.is_suspended:
+            raise AuthenticationFailed(INACTIVE_SUSPENDED_ERROR, code="account_disabled")
+        if not getattr(user, "is_active", None) and not authentication.is_locked:
+            raise AuthenticationFailed(INACTIVE_LOCKED_ERROR, code="account_disabled")
 
 
         res = login(request, user)
@@ -686,6 +691,87 @@ class RoleMasterView(APIView):
         roles = RoleMaster.objects.filter(is_deleted=False)
         serializer = RoleMasterSerializer(roles, many=True)
         return Response(serializer.data)
+
+
+class ApplicantSuspendStatusView(RetrieveUpdateAPIView):
+    queryset = UserProfile.objects.all()
+    serializer_class = ApplicantUserPersonalInformationSerializer
+    lookup_url_kwarg = "id"
+
+    @atomic
+    def put(self, request, *args, **kwargs):
+        status_data = self.request.data
+        applicant_id = self.kwargs["id"]
+        print("data------------->", status_data)
+        try:
+            print("try data------------->", status_data)
+            status = UserAuthentication.objects.filter(user__user_id=applicant_id).first()
+            print("status------------->", status)
+
+            print("is_suspended------------->", status.is_suspended)
+            print("status_data------------->", status_data)
+            if status_data["is_suspended"]:
+                status.is_suspended = status_data["is_suspended"]
+                print("is_suspended true------------->", status.is_suspended)
+                user = User.objects.filter(user_id=applicant_id).first()
+                user.is_active = False
+                user.save()
+                serializer = UserAuthenticationSerializer(status, data=status_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.update(instance=status, validated_data=status_data)
+                return Response(serializer.data, status=200)
+            if not status_data["is_suspended"]:
+                status.is_suspended = status_data["is_suspended"]
+                print("is_suspended false------------->", status.is_suspended)
+                user = User.objects.filter(user_id=applicant_id).first()
+                user.is_active = True
+                user.save()
+                serializer = UserAuthenticationSerializer(status, data=status_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.update(instance=status, validated_data=status_data)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"message": "Detail not found inside."}, status=401)
+        except:
+            return Response(data={"message": "Detail not found"}, status=401)
+
+
+class ApplicantLockedStatusView(RetrieveUpdateAPIView):
+    queryset = UserProfile.objects.all()
+    serializer_class = ApplicantUserPersonalInformationSerializer
+    lookup_url_kwarg = "id"
+
+    @atomic
+    def put(self, request, *args, **kwargs):
+        status_data = self.request.data
+        applicant_id = self.kwargs["id"]
+        print("data------------->", status_data)
+        try:
+            print("try data------------->", status_data)
+            status = UserAuthentication.objects.filter(user__user_id=applicant_id).first()
+            print("status------------->", status)
+
+            print("is_suspended------------->", status.is_suspended)
+            print("status_data------------->", status_data)
+            if status_data["is_locked"]:
+                print("is_locked true------------->", status.is_locked)
+                status.is_locked = status_data["is_locked"]
+                serializer = UserAuthenticationSerializer(status, data=status_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.update(instance=status, validated_data=status_data)
+                return Response(serializer.data, status=200)
+            if not status_data["is_locked"]:
+                print("is_locked false------------->", status.is_locked)
+                status.is_locked = status_data["is_locked"]
+                serializer = UserAuthenticationSerializer(status, data=status_data)
+                serializer.is_valid(raise_exception=True)
+                serializer.update(instance=status, validated_data=status_data)
+                return Response(serializer.data, status=200)
+            else:
+                return Response(data={"message": "Detail not found inside."}, status=401)
+        except:
+            return Response(data={"message": "Detail not found"}, status=401)
+
 
 
 class ApplicantPersonalInformationView(APIView):

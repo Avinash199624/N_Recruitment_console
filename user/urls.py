@@ -17,6 +17,7 @@ from user.views import (
     NeeriUserSearchListView,
     ApplicantIsFresherUpdateView,
     UserDocumentView, ApplicantIsAddressUpdateView, verify_email, verify_sms, ChangePassword,
+    ApplicantLockedStatusView, ApplicantSuspendStatusView,
 )
 from user.views import (
     LoginView,
@@ -106,6 +107,16 @@ urlpatterns = [
         "public/personal_info/<uuid:id>/",
         ApplicantPersonalInformationView.as_view(),
         name="get-applicant-personal-info",
+    ),
+    path(
+        "public/applicant_suspend/<uuid:id>/",
+        ApplicantSuspendStatusView.as_view(),
+        name="get-applicant-status-suspend",
+    ),
+    path(
+        "public/applicant_locked/<uuid:id>/",
+        ApplicantLockedStatusView.as_view(),
+        name="get-applicant-status-locked",
     ),
     path(
         "public/personal_info/",

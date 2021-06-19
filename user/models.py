@@ -711,6 +711,8 @@ class UserAuthentication(models.Model):
     mobile_otp_expiry = models.DateTimeField(null=True, blank=True)
     reset_otp_expiry = models.DateTimeField(null=True, blank=True)
     is_first_login = models.BooleanField(blank=True, null=True, default=True)
+    is_suspended = models.BooleanField(blank=True, null=True, default=False)#is_active false  and is_suspended true
+    is_locked = models.BooleanField(blank=True, null=True, default=False) #is_active false  and is_locked true
 
     def __str__(self):
         return self.user.email
