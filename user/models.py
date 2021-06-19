@@ -1,3 +1,4 @@
+import datetime
 import random
 import uuid
 
@@ -716,6 +717,12 @@ class UserAuthentication(models.Model):
 
     def __str__(self):
         return self.user.email
+
+    def save(self, **kwargs):
+        self.email_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=30)
+        self.mobile_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=30)
+        self.reset_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=30)
+        super(UserAuthentication, self).save(**kwargs)
 
 
 class MentorMaster(BaseModel):

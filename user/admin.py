@@ -101,7 +101,7 @@ class LocationAdmin(admin.ModelAdmin):
 
 @register(UserAuthentication)
 class UserAuthenticationAdmin(admin.ModelAdmin):
-    list_display = ['user', 'email_verified', 'mobile_verified', 'email_token', 'sms_token', 'email_otp_expiry', 'mobile_otp_expiry']
+    list_display = ['user', 'email_verified', 'mobile_verified', 'is_first_login', 'is_suspended', 'email_otp_expiry', 'mobile_otp_expiry']
 
 
 @register(MentorMaster)

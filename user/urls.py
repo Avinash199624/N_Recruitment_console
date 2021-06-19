@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from user.views import (
-    UserRegistartionView,
+    UserRegistrationView,
     NeeriPersonalInformation,
     CompareApplicantListView,
     NeeriLoginView,
@@ -83,7 +83,7 @@ urlpatterns = [
     path("temp_login/", TempLoginView.as_view(), name="login"),
     path("neeri_login/", NeeriLoginView.as_view(), name="neeri-login"),
     path("logout/", LogoutView.as_view(), name="logout"),
-    path("signup/", UserRegistartionView.as_view(), name="signup"),
+    path("signup/", UserRegistrationView.as_view(), name="signup"),
     path("email_token_verify/<user_email_token>/", verify_email, name="email-token-verification"),
     path("sms_token_verify/<user_sms_token>/", verify_sms, name="sms-token-verification"),
     path("get-user/<uuid:id>/", RetrieveUserView.as_view(), name="get-user"),

@@ -313,7 +313,7 @@ class LogoutView(KnoxLogoutView):
         )
 
 
-class UserRegistartionView(APIView):
+class UserRegistrationView(APIView):
     permission_classes = [
         AllowAny,
     ]
@@ -362,67 +362,121 @@ class UserRegistartionView(APIView):
 
 def verify_sms(request, user_sms_token):
     try:
-        user_sms_auth = UserAuthentication.objects.filter(sms_token=user_sms_token).first()
-        if user_sms_auth:
-            if user_sms_auth.mobile_verified:
-                return JsonResponse(
-                    data={"message": "Your mobile is already verified."},
-                )
-            user_sms_auth.mobile_verified = True
-            user_sms_auth.save()
-            if user_sms_auth.email_verified:
-                user_sms_auth.user.is_active = True
-                user_sms_auth.user.save()
-                return JsonResponse(
-                    data={"message": "Your account has been verified."},
-                )
+        is_token_expired = UserAuthentication.objects.filter(sms_token=user_sms_token).first()
+        if not is_token_expired:
             return JsonResponse(
-                data={"message": "Your mobile has been verified."},
+                data={"message": "Link Expired, request again."},
             )
-        # if user_sms_auth.mobile_verified and user_sms_auth.email_verified:
-        #     user_sms_auth.user.is_active = True
-        #     user_sms_auth.user.save()
-        #     return JsonResponse(
-        #         data={"message": "Your account has been verified."},
-        #     )
+        if datetime.datetime.now() >= is_token_expired.mobile_otp_expiry:
+            is_token_expired.sms_token = None
+            is_token_expired.save()
+            return JsonResponse(
+                data={"message": "Link Expired, request again."},
+            )
         else:
-            return JsonResponse(
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+
+            if is_token_expired:
+
+                try:
+                    user_sms_auth = UserAuthentication.objects.filter(sms_token=user_sms_token).first()
+                    if user_sms_auth:
+                        if user_sms_auth.mobile_verified:
+                            return JsonResponse(
+                                data={"message": "Your mobile is already verified."},
+                            )
+                        user_sms_auth.mobile_verified = True
+                        user_sms_auth.save()
+                        if user_sms_auth.email_verified:
+                            user_sms_auth.user.is_active = True
+                            user_sms_auth.user.save()
+                            return JsonResponse(
+                                data={"message": "Your account has been verified."},
+                            )
+                        return JsonResponse(
+                            data={"message": "Your mobile has been verified."},
+                        )
+                    # if user_sms_auth.mobile_verified and user_sms_auth.email_verified:
+                    #     user_sms_auth.user.is_active = True
+                    #     user_sms_auth.user.save()
+                    #     return JsonResponse(
+                    #         data={"message": "Your account has been verified."},
+                    #     )
+                    else:
+                        return JsonResponse(
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                except Exception as e:
+                    print(e)
+                    return JsonResponse(
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            else:
+                return JsonResponse(
+                    data={"message": "Token is invalid, request again to verify."},
+                )
     except Exception as e:
         print(e)
         return JsonResponse(
-            status=status.HTTP_200_OK,
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
 
 def verify_email(request, user_email_token):
+
+
     try:
-        user_email_auth = UserAuthentication.objects.filter(email_token=user_email_token).first()
-        if user_email_auth:
-            if user_email_auth.email_verified:
-                return JsonResponse(
-                    data={"message": "Your email is already verified."},
-                )
-            user_email_auth.email_verified = True
-            user_email_auth.save()
-            # if user_email_auth.sms_verified:
-            #     user_email_auth.user.is_active = True
-            #     user_email_auth.user.save()
-            #     return JsonResponse(
-            #         data={"message": "Your account has been verified."},
-            #     )
+        is_token_expired = UserAuthentication.objects.filter(email_token=user_email_token).first()
+        if not is_token_expired:
             return JsonResponse(
-                data={"message": "Your email has been verified."},
+                data={"message": "Link Expired, request again."},
+            )
+        if datetime.datetime.now() >= is_token_expired.email_otp_expiry:
+            is_token_expired.email_token = None
+            is_token_expired.save()
+            return JsonResponse(
+                data={"message": "Link Expired."},
             )
         else:
-            return JsonResponse(
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+
+            if is_token_expired:
+                try:
+                    user_email_auth = UserAuthentication.objects.filter(email_token=user_email_token).first()
+                    if user_email_auth:
+                        if user_email_auth.email_verified:
+                            return JsonResponse(
+                                data={"message": "Your email is already verified."},
+                            )
+                        user_email_auth.email_verified = True
+                        user_email_auth.save()
+
+                        user_email_auth.email_token = None
+                        user_email_auth.save()
+                        # if user_email_auth.sms_verified:
+                        #     user_email_auth.user.is_active = True
+                        #     user_email_auth.user.save()
+                        #     return JsonResponse(
+                        #         data={"message": "Your account has been verified."},
+                        #     )
+                        return JsonResponse(
+                            data={"message": "Your email has been verified."},
+                        )
+                    else:
+                        return JsonResponse(
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                except Exception as e:
+                    print(e)
+                    return JsonResponse(
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            else:
+                return JsonResponse(
+                    data={"message": "Token is invalid, request again to verify."},
+                )
     except Exception as e:
         print(e)
         return JsonResponse(
-            status=status.HTTP_200_OK,
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
 
@@ -500,6 +554,8 @@ class CreateNeeriUserView(APIView):
             password = User.objects.make_random_password()
             result = serializer.save(validated_data=data, password=password)
             neeri_user_profile = NeeriUserProfile.objects.get(user=result)
+            authuser = User.objects.filter(user_id=neeri_user_profile.user.user_id).first()
+            UserAuthentication.objects.create(user=authuser)
             send_password_mail(neeri_user_profile.user.email, password)
             result_serializer = NeeriUsersSerializer(neeri_user_profile)
             return Response(result_serializer.data)
@@ -599,25 +655,57 @@ class ResetPassword(APIView):
         password = data['password']
         confirm_password = data['confirm_password']
         token = str(self.kwargs["token"])
-        auth = UserAuthentication.objects.filter(reset_token=token).first()
-        if auth:
-            user_obj = User.objects.get(user_id=auth.user.user_id)
-            if password == confirm_password:
-                user_obj.set_password(password)
-                user_obj.save()
-                auth.reset_token = None
-                auth.save()
-            else:
-                return Response(
-                    data={"message": "Password and Confirm password are different."},
+        # auth = UserAuthentication.objects.filter(reset_token=token).first()
+        try:
+            is_token_expired = UserAuthentication.objects.filter(reset_token=token).first()
+            print("is_token_expired.reset_token----------->", is_token_expired)
+            if not is_token_expired:
+                return JsonResponse(
+                    data={"message": "Link Expired, request again"},
                 )
-            print("auth.reset_token------------->", auth.reset_token)
-            return Response(
-                data={"message": "Password reset Successfully."},
-            )
-        else:
-            return Response(
-                data={"message": "Token has been expired. Please request again."},
+            if datetime.datetime.now() >= is_token_expired.reset_otp_expiry:
+                print("datetime.datetime.now() >= is_token_expired.reset_otp_expiry----->", datetime.datetime.now(),
+                      is_token_expired.reset_otp_expiry)
+                # e = UserAuthentication.objects.get(user=is_token_expired)
+                print("is_token_expired.reset_token----------->", is_token_expired.reset_token)
+                is_token_expired.reset_token = None
+                is_token_expired.save()
+                print("is_token_expired.reset_token----------->", is_token_expired.reset_token)
+
+                return JsonResponse(
+                    data={"message": "Link Expired, request again"},
+                )
+            else:
+
+                if is_token_expired:
+                    try:
+                        user_obj = User.objects.get(user_id=is_token_expired.user.user_id)
+                        if password == confirm_password:
+                            user_obj.set_password(password)
+                            user_obj.save()
+                            is_token_expired.reset_token = None
+                            is_token_expired.save()
+                        else:
+                            return Response(
+                                data={"message": "Password and Confirm password are different."},
+                            )
+                        print("auth.reset_token------------->", is_token_expired.reset_token)
+                        return Response(
+                            data={"message": "Password reset Successfully."},
+                        )
+                    except Exception as e:
+                        print(e)
+                        return JsonResponse(
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                else:
+                    return Response(
+                        data={"message": "Token has been expired. Please request again."},
+                    )
+        except Exception as e:
+            print(e)
+            return JsonResponse(
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
 class ChangePassword(APIView):
