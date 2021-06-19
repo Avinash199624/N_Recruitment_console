@@ -1,6 +1,4 @@
 from job_posting.models import (
-    UserJobPositions,
-    QualificationMaster,
     JobPostingRequirementPositions,
     AppealMaster,
     NewPositionMaster,
@@ -26,12 +24,7 @@ from job_posting.models import (
 )
 from document.serializer import InformationMasterSerializer, NewDocumentMasterSerializer
 from document.models import NewDocumentMaster, InformationMaster
-from user.models import UserEducationDetails, UserExperienceDetails, UserProfile
-from user.serializer import (
-    SubjectSpecializationSerializer,
-    EmployeeExperienceSerializer,
-    UserExperienceDetailsSerializer,
-)
+from user.serializer import UserProfilePreviewSerializer
 
 
 class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
@@ -938,102 +931,29 @@ class ApplicationCountForJobPositionSerializer(serializers.ModelSerializer):
 
 
 class UserJobPositionsSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField(method_name="get_name", required=False)
-
-    user_id = serializers.SerializerMethodField(
-        method_name="get_user_id", required=False
-    )
-    profile_photo = serializers.SerializerMethodField(
-        method_name="get_user_photo", required=False
-    )
-    division = serializers.SerializerMethodField(
-        method_name="get_division", required=False
-    )
-
-    status = serializers.SerializerMethodField(
-        method_name="get_applied_job_status", required=False
-    )
-
-    position = serializers.SerializerMethodField(
-        method_name="get_position", required=False
-    )
-    job_posting_id = serializers.SerializerMethodField(
-        method_name="get_job_posting_id", required=False
-    )
-    date_applied = serializers.SerializerMethodField(
-        method_name="get_date_applied", required=False
-    )
-
-    contact = serializers.SerializerMethodField(
-        method_name="get_contact", required=False
-    )
-    application_id = serializers.SerializerMethodField(
-        method_name="get_application_id", required=False
-    )
+    user_profile = UserProfilePreviewSerializer(source="user.user_profile")
+    division = serializers.CharField(source="job_posting.division.division_name")
+    position = serializers.CharField(source="position.position_display_name")
+    job_posting_id = serializers.UUIDField(source="job_posting.job_posting_id")
+    application_id = serializers.IntegerField(source="id")
 
     class Meta:
         model = UserJobPositions
         fields = (
+            "user_profile",
             "application_id",
-            "user_id",
-            "profile_photo",
-            "name",
             "division",
-            "status",
+            "applied_job_status",
             "job_posting_id",
             "position",
-            "date_applied",
-            "contact",
+            "date_of_application",
         )
-
-    def get_name(self, obj):
-        first_name = obj.user.first_name if obj.user.first_name else None
-        middle_name = obj.user.middle_name if obj.user.middle_name else None
-        last_name = obj.user.last_name if obj.user.last_name else None
-        return first_name + " " + middle_name + " " + last_name
-
-    def get_user_id(self, obj):
-        return obj.user.user_id
-
-    def get_application_id(self, obj):
-        return obj.id
-
-    def get_user_photo(self, obj):
-        profile = UserProfile.objects.get(user__user_id=obj.user.user_id)
-        user_profile = profile.profile_photo
-        return user_profile
-
-    def get_division(self, obj):
-        return obj.job_posting.division.division_name
-
-    def get_applied_job_status(self, obj):
-        try:
-            applied_job_status = obj.applied_job_status
-            return applied_job_status
-        except:
-            return None
-
-    def get_position(self, obj):
-        return obj.position.position.position_name
-
-    def get_job_posting_id(self, obj):
-        return obj.job_posting.job_posting_id
-
-    def get_date_applied(self, obj):
-        return obj.date_of_application
-
-    def get_contact(self, obj):
-        return obj.user.mobile_no
 
     def update(self, instance, validated_data):
         instance.applied_job_status = (
-            validated_data["status"]
-            if validated_data["status"]
-            else instance.applied_job_status
+            validated_data.get("applied_job_status") or instance.applied_job_status
         )
-
         instance.save()
-
         return instance.id
 
 
@@ -1094,19 +1014,31 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
 
     def save(self, validated_data):
         posi = NewPositionMaster.objects.create(
-            position_name=validated_data["perm_position_master"]["position_name"] if "position_name" in validated_data["perm_position_master"] else None,
+            position_name=validated_data["perm_position_master"]["position_name"]
+            if "position_name" in validated_data["perm_position_master"]
+            else None,
             position_display_name=validated_data["perm_position_master"][
                 "position_display_name"
             ],
-            min_age=validated_data["perm_position_master"]["min_age"] if "min_age" in validated_data["perm_position_master"] else None,
-            max_age=validated_data["perm_position_master"]["max_age"] if "max_age" in validated_data["perm_position_master"] else None,
-            qualification_desc=validated_data["perm_position_master"]["qualification_desc"] if "qualification_desc" in validated_data["perm_position_master"] else None,
+            min_age=validated_data["perm_position_master"]["min_age"]
+            if "min_age" in validated_data["perm_position_master"]
+            else None,
+            max_age=validated_data["perm_position_master"]["max_age"]
+            if "max_age" in validated_data["perm_position_master"]
+            else None,
+            qualification_desc=validated_data["perm_position_master"][
+                "qualification_desc"
+            ]
+            if "qualification_desc" in validated_data["perm_position_master"]
+            else None,
         )
         print("validated_data--------->", validated_data)
 
-        qualification = validated_data["perm_position_master"][
-            "qualification"] if "qualification" in validated_data[
-            "perm_position_master"] else None
+        qualification = (
+            validated_data["perm_position_master"]["qualification"]
+            if "qualification" in validated_data["perm_position_master"]
+            else None
+        )
 
         print("qualification--------->", qualification)
         if qualification:
@@ -1121,9 +1053,11 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
                 validated_data["perm_position_master"]["qualification_job_history"],
             )
 
-        qualification_hist = validated_data["perm_position_master"][
-            "qualification_job_history"] if "qualification_job_history" in validated_data[
-            "perm_position_master"] else None
+        qualification_hist = (
+            validated_data["perm_position_master"]["qualification_job_history"]
+            if "qualification_job_history" in validated_data["perm_position_master"]
+            else None
+        )
 
         print("qualification_hist #####--------->", qualification_hist)
         if qualification_hist:
@@ -1134,9 +1068,11 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
                 )
                 posi.qualification_job_history.add(emp_exp)
 
-        information = validated_data["perm_position_master"][
-            "information_required"] if "information_required" in validated_data[
-            "perm_position_master"] else None
+        information = (
+            validated_data["perm_position_master"]["information_required"]
+            if "information_required" in validated_data["perm_position_master"]
+            else None
+        )
 
         print("information--------->", information)
         if information:
@@ -1144,9 +1080,11 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
                 info = InformationMaster.objects.get(info_id=info_data["info_id"])
                 posi.information_required.add(info)
 
-        document = validated_data["perm_position_master"][
-            "documents_required"] if "documents_required" in validated_data[
-            "perm_position_master"] else None
+        document = (
+            validated_data["perm_position_master"]["documents_required"]
+            if "documents_required" in validated_data["perm_position_master"]
+            else None
+        )
 
         print("document--------->", document)
         if document:
@@ -1405,18 +1343,32 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
 
     def save(self, validated_data):
         posi = NewPositionMaster.objects.create(
-            position_name=validated_data["temp_position_master"]["position_name"] if "position_name" in validated_data["temp_position_master"] else None,
+            position_name=validated_data["temp_position_master"]["position_name"]
+            if "position_name" in validated_data["temp_position_master"]
+            else None,
             position_display_name=validated_data["temp_position_master"][
                 "position_display_name"
             ],
-            min_age=validated_data["temp_position_master"]["min_age"] if "min_age" in validated_data["temp_position_master"] else None,
+            min_age=validated_data["temp_position_master"]["min_age"]
+            if "min_age" in validated_data["temp_position_master"]
+            else None,
             # validated_data["temp_position_master"]["min_age"],
-            max_age=validated_data["temp_position_master"]["max_age"] if "max_age" in validated_data["temp_position_master"] else None,
-            qualification_desc=validated_data["temp_position_master"]["qualification_desc"] if "qualification_desc" in validated_data["temp_position_master"] else None,
+            max_age=validated_data["temp_position_master"]["max_age"]
+            if "max_age" in validated_data["temp_position_master"]
+            else None,
+            qualification_desc=validated_data["temp_position_master"][
+                "qualification_desc"
+            ]
+            if "qualification_desc" in validated_data["temp_position_master"]
+            else None,
         )
         print("validated_data--------->", validated_data)
 
-        qualification = validated_data["temp_position_master"]["qualification"] if "qualification" in validated_data["temp_position_master"] else None
+        qualification = (
+            validated_data["temp_position_master"]["qualification"]
+            if "qualification" in validated_data["temp_position_master"]
+            else None
+        )
 
         print("qualification--------->", qualification)
         if qualification:
@@ -1430,8 +1382,11 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
                 validated_data["temp_position_master"]["qualification_job_history"],
             )
 
-        qualification_hist = validated_data["temp_position_master"]["qualification_job_history"] if "qualification_job_history" in validated_data[
-            "temp_position_master"] else None
+        qualification_hist = (
+            validated_data["temp_position_master"]["qualification_job_history"]
+            if "qualification_job_history" in validated_data["temp_position_master"]
+            else None
+        )
 
         print("qualification_hist--------->", qualification_hist)
         if qualification_hist:
@@ -1441,9 +1396,11 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
                     qualification_job_id=exp["qualification_job_id"]
                 )
                 posi.qualification_job_history.add(emp_exp)
-        information = validated_data["temp_position_master"][
-            "information_required"] if "information_required" in validated_data[
-            "temp_position_master"] else None
+        information = (
+            validated_data["temp_position_master"]["information_required"]
+            if "information_required" in validated_data["temp_position_master"]
+            else None
+        )
 
         print("information--------->", information)
         if information:
@@ -1451,9 +1408,11 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
                 info = InformationMaster.objects.get(info_id=info_data["info_id"])
                 posi.information_required.add(info)
 
-        document = validated_data["temp_position_master"][
-            "documents_required"] if "documents_required" in validated_data[
-            "temp_position_master"] else None
+        document = (
+            validated_data["temp_position_master"]["documents_required"]
+            if "documents_required" in validated_data["temp_position_master"]
+            else None
+        )
 
         print("document--------->", document)
         if document:

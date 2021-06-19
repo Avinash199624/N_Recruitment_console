@@ -553,9 +553,9 @@ class ApplicantListByJobPositions(APIView):
     def get(self, request, *args, **kwargs):
         try:
             job_posting_id = self.kwargs["id"]
-            applicants = UserJobPositions.objects.filter(
-                job_posting__job_posting_id=job_posting_id, is_deleted=False
-            )
+            applicants = UserJobPositions.objects.prefetch_related(
+                "user", "user__user_profile", "job_posting", "position"
+            ).filter(job_posting__job_posting_id=job_posting_id, is_deleted=False)
             serializer = UserJobPositionsSerializer(applicants, many=True)
             return Response(serializer.data, status=200)
         except:
