@@ -1229,9 +1229,7 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
 
 
 class ApplicantIsAddressSameSerializer(serializers.ModelSerializer):
-    user_id = serializers.SerializerMethodField(
-        method_name="get_user_id", read_only=True
-    )
+    user_id = serializers.UUIDField(source="user.user_id", read_only=True)
 
     is_father_address_same_as_local = serializers.BooleanField()
 
@@ -1244,13 +1242,6 @@ class ApplicantIsAddressSameSerializer(serializers.ModelSerializer):
             "is_permenant_address_same_as_local",
             "is_father_address_same_as_local",
         )
-
-    def get_user_id(self, obj):
-        try:
-            user_id = obj.user.user_id
-            return user_id
-        except:
-            return None
 
 
     def update(self, instance, validated_data):
