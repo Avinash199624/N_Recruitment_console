@@ -34,7 +34,7 @@ class NewDocumentListView(APIView):
             else:
                 return Response(data={"message": "Details Not Found."}, status=401)
         except:
-            docs = NewDocumentMaster.objects.filter(is_deleted=False)
+            docs = NewDocumentMaster.objects.filter(is_deleted=False).order_by('doc_name')
             serializer = NewDocumentMasterSerializer(docs, many=True)
             return Response(serializer.data, status=200)
 
@@ -77,7 +77,7 @@ class InformationListView(APIView):
             else:
                 return Response(data={"message": "Details Not Found."}, status=401)
         except:
-            info = InformationMaster.objects.filter(is_deleted=False)
+            info = InformationMaster.objects.filter(is_deleted=False).order_by('info_name')
             serializer = InformationMasterSerializer(info, many=True)
             return Response(serializer.data, status=200)
 
