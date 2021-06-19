@@ -876,6 +876,7 @@ class ApplicantPersonalInformationView(APIView):
                             "messege": "UserProfile does not exist",
                             "isEmpty": "true",
                             "mobile_no": user.mobile_no,
+                            "email": user.email,
                         },
                         status=status.HTTP_200_OK,
                     )
@@ -885,6 +886,7 @@ class ApplicantPersonalInformationView(APIView):
                         "messege": "UserProfile does not exist",
                         "isEmpty": "true",
                         "mobile_no": user.mobile_no,
+                        "email": user.email,
                     },
                     status=status.HTTP_200_OK,
                 )
