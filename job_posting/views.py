@@ -22,6 +22,7 @@ from job_posting.models import (
     PermanentPositionMaster,
     TemporaryPositionMaster,
     QualificationJobHistoryMaster,
+    SubscriptionFee,
 )
 from job_posting.serializer import (
     DepartmentSerializer,
@@ -938,3 +939,35 @@ class TemporaryPositionMasterViews(APIView):
         posi = TemporaryPositionMaster.objects.get(temp_position_id=result)
         serializer = TemporaryPositionMasterSerializer(posi)
         return Response(serializer.data, status=200)
+
+
+class JobApplyCheckoutView(APIView):
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        job_posting = JobPosting.objects.get(job_posting_id=data["job_posting_id"])
+        positions = PositionQualificationMapping.objects.filter(
+            id__in=data["positions"]
+        )
+        user = request.user
+        if job_posting.job_type == JobPosting.Contract_Basis:
+            if user.subscription.filter(user=user, expired=False).exists():
+                for position in positions:
+                    UserJobPositions.objects.create(
+                        user=user,
+                        position=position,
+                        job_posting=job_posting,
+                        applied_job_status=UserJobPositions.RECEIVED,
+                    )
+                return Response(
+                    data={"success": True, "message": "Job application successful"}
+                )
+            subscription_fee = SubscriptionFee.objects.get()
+            return Response(
+                data={
+                    "subscribed": False,
+                    "message": "User subscription expired",
+                    "fee": subscription_fee,
+                }
+            )
+        else:
+            relaxation_rule = user.user_profile.relaxation_rule
