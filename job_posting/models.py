@@ -430,7 +430,7 @@ class UserJobPositions(BaseModel):
     )  # It will be like notifiction_id/job_posting_id/user_id/position_id
 
     def __str__(self):
-        return self.user.email
+        return self.job_posting.notification_title
 
 
 class AppealMaster(BaseModel):
