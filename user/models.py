@@ -825,3 +825,15 @@ class RelaxationMaster(BaseModel):
 
     def __str__(self):
         return self.relaxation.relaxation_category
+
+
+class Subscription(BaseModel):
+    user = models.ForeignKey("User", related_name="subscription", on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    expired = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.user.email
+
+

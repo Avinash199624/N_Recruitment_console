@@ -561,3 +561,7 @@ class ServiceConditions(BaseModel):
 
     def __str__(self):
         return str(self.pk)
+
+
+class SubscriptionFee(models.Model):
+    fee = models.FloatField()
