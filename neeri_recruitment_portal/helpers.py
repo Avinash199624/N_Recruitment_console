@@ -29,7 +29,8 @@ def send_verification_mail(email, email_token):
     template = CommunicationMaster.objects.filter(comm_type__communication_type='EMAIL',
                                                   action_type__comm_action_type='VERIFY EMAIL', is_active=True).first()
     subject = template.subject
-    message = template.body + " " + BASE_DEV_URL + f'/verify_otp/{email_token}/'
+    message = template.body + "\n" + BASE_DEV_URL + f'/verify_otp/{email_token}/\n\n' \
+                                                   f'Regards,\nNEERI Recruitment Team'
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email]
     send_mail(
