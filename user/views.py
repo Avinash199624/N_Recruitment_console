@@ -145,9 +145,9 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
             raise AuthenticationFailed(INACTIVE_MOBILE_ERROR, code="account_disabled")
         if not getattr(user, "is_active", None) and not authentication.email_verified:
             raise AuthenticationFailed(INACTIVE_EMAIL_ERROR, code="account_disabled")
-        if not getattr(user, "is_active", None) and not authentication.is_suspended:
+        if not getattr(user, "is_active", None) and authentication.is_suspended:
             raise AuthenticationFailed(INACTIVE_SUSPENDED_ERROR, code="account_disabled")
-        if not getattr(user, "is_active", None) and not authentication.is_locked:
+        if not getattr(user, "is_active", None) and authentication.is_locked:
             raise AuthenticationFailed(INACTIVE_LOCKED_ERROR, code="account_disabled")
 
 
