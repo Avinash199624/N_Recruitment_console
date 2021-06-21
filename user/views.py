@@ -1,4 +1,5 @@
 import datetime
+import random
 import uuid
 
 from django.contrib.auth.hashers import check_password
@@ -335,10 +336,10 @@ class UserRegistrationView(APIView):
             user = User.objects.create_user(mobile_no, email, password)
             user.is_active = False
             user.save()
-            # user_otp = random.randint(100000, 999999)
+            user_mobile_otp = random.randint(100000, 999999)
             user_email_token = str(uuid.uuid4())
-            user_sms_token = str(uuid.uuid4())
-            UserAuthentication.objects.create(user=user, email_token=user_email_token, sms_token=user_sms_token)
+            # user_sms_token = str(uuid.uuid4())
+            UserAuthentication.objects.create(user=user, email_token=user_email_token, mobile_otp=user_mobile_otp)
             print("user.is_active---------->", user.is_active)
             UserRoles.objects.create(role=role, user=user)
             roles = [
@@ -355,20 +356,20 @@ class UserRegistrationView(APIView):
             result["user"] = serializer.data
             result["roles"] = roles
             result["permissions"] = permissions
-            # send_otp(mobile_no, user_sms_token)
+            # send_otp(mobile_no, user_mobile_otp)
             send_verification_mail(email, user_email_token)
             return JsonResponse(data=result, safe=False)
 
 
-def verify_sms(request, user_sms_token):
+def verify_sms(request, user_mobile_otp):
     try:
-        is_token_expired = UserAuthentication.objects.filter(sms_token=user_sms_token).first()
+        is_token_expired = UserAuthentication.objects.filter(mobile_otp=user_mobile_otp).first()
         if not is_token_expired:
             return JsonResponse(
                 data={"message": "Link Expired, request again."},
             )
         if datetime.datetime.now() >= is_token_expired.mobile_otp_expiry:
-            is_token_expired.sms_token = None
+            is_token_expired.mobile_otp = None
             is_token_expired.save()
             return JsonResponse(
                 data={"message": "Link Expired, request again."},
@@ -378,13 +379,14 @@ def verify_sms(request, user_sms_token):
             if is_token_expired:
 
                 try:
-                    user_sms_auth = UserAuthentication.objects.filter(sms_token=user_sms_token).first()
+                    user_sms_auth = UserAuthentication.objects.filter(mobile_otp=user_mobile_otp).first()
                     if user_sms_auth:
                         if user_sms_auth.mobile_verified:
                             return JsonResponse(
                                 data={"message": "Your mobile is already verified."},
                             )
                         user_sms_auth.mobile_verified = True
+                        user_sms_auth.mobile_otp = None
                         user_sms_auth.save()
                         if user_sms_auth.email_verified:
                             user_sms_auth.user.is_active = True
