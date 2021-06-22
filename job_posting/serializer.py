@@ -931,6 +931,7 @@ class ApplicationCountForJobPositionSerializer(serializers.ModelSerializer):
 
 
 class UserJobPositionsSerializer(serializers.ModelSerializer):
+    user_id = serializers.UUIDField(source="user.user_id")
     user_profile = UserProfilePreviewSerializer(source="user.user_profile")
     division = serializers.CharField(source="job_posting.division.division_name")
     position = serializers.CharField(source="position.position_display_name")
@@ -940,6 +941,7 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserJobPositions
         fields = (
+            "user_id",
             "user_profile",
             "application_id",
             "division",

@@ -17,7 +17,7 @@ from user.views import (
     NeeriUserSearchListView,
     ApplicantIsFresherUpdateView,
     UserDocumentView, ApplicantIsAddressUpdateView, verify_email, verify_sms, ChangePassword,
-    ApplicantLockedStatusView, ApplicantSuspendStatusView,
+    ApplicantLockedStatusView, ApplicantSuspendStatusView, MobileOTP,
 )
 from user.views import (
     LoginView,
@@ -85,7 +85,8 @@ urlpatterns = [
     path("logout/", LogoutView.as_view(), name="logout"),
     path("signup/", UserRegistrationView.as_view(), name="signup"),
     path("email_token_verify/<user_email_token>/", verify_email, name="email-token-verification"),
-    path("sms_token_verify/<user_sms_token>/", verify_sms, name="sms-token-verification"),
+    # path("sms_token_verify/<user_mobile_otp>/", verify_sms, name="sms-token-verification"),
+    path("sms_token_verify/<int:id>/", MobileOTP.as_view(), name="sms-token-verification"),
     path("get-user/<uuid:id>/", RetrieveUserView.as_view(), name="get-user"),
     path("delete-user/<uuid:id>/", DeleteUserView.as_view(), name="delete-user"),
     path("update-user/<uuid:id>/", UpdateUserView.as_view(), name="update-user"),

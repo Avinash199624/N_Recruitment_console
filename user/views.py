@@ -1,4 +1,5 @@
 import datetime
+import random
 import uuid
 
 from django.contrib.auth.hashers import check_password
@@ -145,9 +146,9 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
             raise AuthenticationFailed(INACTIVE_MOBILE_ERROR, code="account_disabled")
         if not getattr(user, "is_active", None) and not authentication.email_verified:
             raise AuthenticationFailed(INACTIVE_EMAIL_ERROR, code="account_disabled")
-        if not getattr(user, "is_active", None) and not authentication.is_suspended:
+        if not getattr(user, "is_active", None) and authentication.is_suspended:
             raise AuthenticationFailed(INACTIVE_SUSPENDED_ERROR, code="account_disabled")
-        if not getattr(user, "is_active", None) and not authentication.is_locked:
+        if not getattr(user, "is_active", None) and authentication.is_locked:
             raise AuthenticationFailed(INACTIVE_LOCKED_ERROR, code="account_disabled")
 
 
@@ -335,10 +336,10 @@ class UserRegistrationView(APIView):
             user = User.objects.create_user(mobile_no, email, password)
             user.is_active = False
             user.save()
-            # user_otp = random.randint(100000, 999999)
+            user_mobile_otp = random.randint(100000, 999999)
             user_email_token = str(uuid.uuid4())
-            user_sms_token = str(uuid.uuid4())
-            UserAuthentication.objects.create(user=user, email_token=user_email_token, sms_token=user_sms_token)
+            # user_sms_token = str(uuid.uuid4())
+            UserAuthentication.objects.create(user=user, email_token=user_email_token, mobile_otp=user_mobile_otp)
             print("user.is_active---------->", user.is_active)
             UserRoles.objects.create(role=role, user=user)
             roles = [
@@ -355,20 +356,20 @@ class UserRegistrationView(APIView):
             result["user"] = serializer.data
             result["roles"] = roles
             result["permissions"] = permissions
-            # send_otp(mobile_no, user_sms_token)
+            # send_otp(mobile_no, user_mobile_otp)
             send_verification_mail(email, user_email_token)
             return JsonResponse(data=result, safe=False)
 
 
-def verify_sms(request, user_sms_token):
+def verify_sms(request, user_mobile_otp):
     try:
-        is_token_expired = UserAuthentication.objects.filter(sms_token=user_sms_token).first()
+        is_token_expired = UserAuthentication.objects.filter(mobile_otp=user_mobile_otp).first()
         if not is_token_expired:
             return JsonResponse(
                 data={"message": "Link Expired, request again."},
             )
         if datetime.datetime.now() >= is_token_expired.mobile_otp_expiry:
-            is_token_expired.sms_token = None
+            is_token_expired.mobile_otp = None
             is_token_expired.save()
             return JsonResponse(
                 data={"message": "Link Expired, request again."},
@@ -378,13 +379,14 @@ def verify_sms(request, user_sms_token):
             if is_token_expired:
 
                 try:
-                    user_sms_auth = UserAuthentication.objects.filter(sms_token=user_sms_token).first()
+                    user_sms_auth = UserAuthentication.objects.filter(mobile_otp=user_mobile_otp).first()
                     if user_sms_auth:
                         if user_sms_auth.mobile_verified:
                             return JsonResponse(
                                 data={"message": "Your mobile is already verified."},
                             )
                         user_sms_auth.mobile_verified = True
+                        user_sms_auth.mobile_otp = None
                         user_sms_auth.save()
                         if user_sms_auth.email_verified:
                             user_sms_auth.user.is_active = True
@@ -456,6 +458,10 @@ def verify_email(request, user_email_token):
                         #     user_email_auth.user.save()
                         #     return JsonResponse(
                         #         data={"message": "Your account has been verified."},
+                        #     )
+                        # else:
+                        #     return JsonResponse(
+                        #         data={"message": "Mobile Number is not verified."},
                         #     )
                         return JsonResponse(
                             data={"message": "Your email has been verified."},
@@ -645,6 +651,73 @@ class ForgotPassword(APIView):
                 data={"message": "Email not found, enter valid email."},
                 status=status.HTTP_404_NOT_FOUND,
             )
+
+class MobileOTP(APIView):
+    permission_classes = [
+        AllowAny,
+    ]
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        user_otp = data['user_otp']
+        token = str(self.kwargs["id"])
+        # auth = UserAuthentication.objects.filter(reset_token=token).first()
+        try:
+            is_token_expired = UserAuthentication.objects.filter(mobile_otp=token).first()
+            print("is_token_expired.reset_token----------->", is_token_expired)
+            if not is_token_expired:
+                return JsonResponse(
+                    data={"message": "OTP Expired or invalid."},
+                )
+            if datetime.datetime.now() >= is_token_expired.reset_otp_expiry:
+                print("datetime.datetime.now() >= is_token_expired.reset_otp_expiry----->", datetime.datetime.now(),
+                      is_token_expired.reset_otp_expiry)
+                # e = UserAuthentication.objects.get(user=is_token_expired)
+                print("is_token_expired.reset_token----------->", is_token_expired.mobile_otp)
+                is_token_expired.mobile_otp = None
+                is_token_expired.save()
+                print("is_token_expired.mobile_otp----------->", is_token_expired.mobile_otp)
+
+                return JsonResponse(
+                    data={"message": "OTP Expired, request again"},
+                )
+            else:
+
+                if is_token_expired:
+                    try:
+                        # user_obj = User.objects.get(user_id=is_token_expired.user.user_id)
+                        if user_otp == is_token_expired.mobile_otp:
+                            is_token_expired.mobile_verified = True
+                            is_token_expired.mobile_otp = None
+                            is_token_expired.save()
+                        else:
+                            return Response(
+                                data={"message": "Please enter a valid OTP."},
+                            )
+                        print("auth.reset_token------------->", is_token_expired.mobile_otp)
+                        if is_token_expired.email_verified:
+                            is_token_expired.user.is_active = True
+                            is_token_expired.user.save()
+                            return JsonResponse(
+                                data={"message": "Your account has been verified."},
+                            )
+                        return Response(
+                            data={"message": "Your mobile has been verified."},
+                        )
+                    except Exception as e:
+                        print(e)
+                        return JsonResponse(
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                else:
+                    return Response(
+                        data={"message": "OTP has been expired. Please request again."},
+                    )
+        except Exception as e:
+            print(e)
+            return JsonResponse(
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
 
 class ResetPassword(APIView):
     permission_classes = [

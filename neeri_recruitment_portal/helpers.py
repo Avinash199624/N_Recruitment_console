@@ -1,5 +1,6 @@
 import http.client
 from django.core.mail import send_mail
+from communication_template.models import CommunicationMaster
 from neeri_recruitment_portal import settings
 from neeri_recruitment_portal.settings import BASE_URL, BASE_DEV_URL
 
@@ -25,8 +26,11 @@ def send_otp(mobile, otp):
 
 
 def send_verification_mail(email, email_token):
-    subject = 'Welcome to NEERI - Verify your Email.'
-    message = f'Hi, please click on the link to verify your account ' + BASE_DEV_URL + f'/verify_otp/{email_token}/'
+    template = CommunicationMaster.objects.filter(comm_type__communication_type='EMAIL',
+                                                  action_type__comm_action_type='VERIFY EMAIL', is_active=True).first()
+    subject = template.subject
+    message = template.body + "\n" + BASE_DEV_URL + f'/verify_otp/{email_token}/\n\n' \
+                                                   f'Regards,\nNEERI Recruitment Team'
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email]
     send_mail(
@@ -42,8 +46,10 @@ def send_verification_mail(email, email_token):
 
 
 def send_forget_password_mail(email , token ):
-    subject = 'Your forget password link'
-    message = f'Hi , click on the link to reset your password ' + BASE_DEV_URL + f'/user/reset_password/{token}/'
+    template = CommunicationMaster.objects.filter(comm_type__communication_type='EMAIL',
+                                                  action_type__comm_action_type='FORGOT PASSWORD', is_active=True).first()
+    subject = template.subject
+    message = template.body+" " + BASE_DEV_URL + f'/user/reset_password/{token}/'
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email]
     send_mail(subject, message, email_from, recipient_list)
@@ -51,9 +57,11 @@ def send_forget_password_mail(email , token ):
 
 
 def send_password_mail(email, password):
-    subject = 'Welcome to NEERI'
-    message = f'Hi, please click on the link to login into your account.' \
-              f'\nFor Temporary login you can use this system generated password. Your Password is {password}.\n' + BASE_DEV_URL + f'/admin/'
+    template = CommunicationMaster.objects.filter(comm_type__communication_type='EMAIL',
+                                                  action_type__comm_action_type='CHANGE PASSWORD',
+                                                  is_active=True).first()
+    subject = template.subject
+    message = template.body + f' {password}.\n' + BASE_DEV_URL + f'/admin/'
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email]
     send_mail(
