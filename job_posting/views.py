@@ -636,26 +636,27 @@ class UserAppealForJobPositions(APIView):
     def put(self, request, *args, **kwargs):
         data = self.request.data
         appeal_id = self.kwargs["id"]
-        try:
-            applicants = UserJobPositions.objects.get(id=appeal_id)
-            if (
-                applicants.applied_job_status == "rejected"
-                and applicants.appealed == False
-            ):
-                applicants.appealed = True
-                applicants.save()
-                serializer = UserAppealForJobPositionsSerializer(applicants, data=data)
-                serializer.is_valid(raise_exception=True)
-                serializer.update(applicants, validated_data=data)
-                return Response(serializer.data, status=200)
-            else:
-                return Response(
-                    data={"message": "You've already appealed for this job..."},
-                    status=200,
-                )
-        except:
+        applicants = UserJobPositions.objects.get(id=appeal_id)
+        if (
+            applicants.applied_job_status == "rejected"
+        ):
+            applicants.applied_job_status = "appealed"
+            applicants.save()
+            serializer = UserAppealForJobPositionsSerializer(applicants, data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.update(applicants, validated_data=data)
+            return Response(serializer.data, status=200)
+        if (
+            applicants.applied_job_status == "appealed"
+        ):
             return Response(
-                data={"message": "you are not eligible for the appeal..."}, status=401
+                data={"message": "You've already appealed for this job..."},
+                status=200,
+            )
+        else:
+            return Response(
+                data={"message": "you are not eligible for the appeal..."},
+                status=200,
             )
 
 

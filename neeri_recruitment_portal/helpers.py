@@ -5,7 +5,7 @@ from neeri_recruitment_portal import settings
 from neeri_recruitment_portal.settings import BASE_URL, BASE_DEV_URL
 
 
-def send_otp(mobile, otp):
+def send_otp(mobile, otp):  # /verify_mobile/
     conn = http.client.HTTPSConnection("api.msg91.com")
     authkey = settings.AUTH_KEY
     senderid = "NEERIC"
@@ -29,7 +29,7 @@ def send_verification_mail(email, email_token):
     template = CommunicationMaster.objects.filter(comm_type__communication_type='EMAIL',
                                                   action_type__comm_action_type='VERIFY EMAIL', is_active=True).first()
     subject = template.subject
-    message = template.body + "\n" + BASE_DEV_URL + f'/verify_otp/{email_token}/\n\n' \
+    message = template.body + "\n" + BASE_DEV_URL + f'/verify_email/{email_token}/\n\n' \
                                                    f'Regards,\nNEERI Recruitment Team'
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email]
@@ -49,7 +49,7 @@ def send_forget_password_mail(email , token ):
     template = CommunicationMaster.objects.filter(comm_type__communication_type='EMAIL',
                                                   action_type__comm_action_type='FORGOT PASSWORD', is_active=True).first()
     subject = template.subject
-    message = template.body+" " + BASE_DEV_URL + f'/user/reset_password/{token}/'
+    message = template.body+" " + BASE_DEV_URL + f'/reset_password/{token}/'
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email]
     send_mail(subject, message, email_from, recipient_list)

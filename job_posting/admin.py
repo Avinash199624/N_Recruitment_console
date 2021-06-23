@@ -113,7 +113,7 @@ class UserJobPositionsAdmin(admin.ModelAdmin):
         "job_posting",
         "position",
         "applied_job_status",
-        "appealed",
+        "appeal",
         "date_of_application",
         "date_of_closing",
         "user_job_position_id",
