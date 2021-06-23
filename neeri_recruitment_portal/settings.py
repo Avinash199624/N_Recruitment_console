@@ -16,6 +16,9 @@ from decouple import Csv, config
 from rest_framework import ISO_8601
 from datetime import timedelta
 from corsheaders.defaults import default_headers
+import environ
+env = environ.Env()
+environ.Env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -46,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'django_filters',
     'knox',
     'corsheaders',
     'user',
@@ -65,6 +69,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 ]
+AUTOCREATE_VALID_SSL_USERS = True
 
 ROOT_URLCONF = 'neeri_recruitment_portal.urls'
 
@@ -93,7 +98,7 @@ WSGI_APPLICATION = 'neeri_recruitment_portal.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'neeri-live-qa',
+        'NAME': 'neeri-live',
         'USER': 'postgres',
         'PASSWORD': 'root',
         'HOST': 'localhost',
@@ -101,6 +106,18 @@ DATABASES = {
     }
 }
 
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.zoho.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = '587'
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+AUTH_KEY = env('AUTH_KEY')
+SMS_SENDER_ID = env('SMS_SENDER_ID')
+ROUTE = env('ROUTE')
+COUNTRY_CODE = env('COUNTRY_CODE')
+OTP_EXPIRY_TIME = 15  # in minutes
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -185,6 +202,7 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["knox.auth.TokenAuthentication"],
     # Default permission to use on all our views
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"]
 
 }
 
@@ -212,7 +230,15 @@ CORS_ALLOW_HEADERS = list(default_headers) + config(
 )
 CORS_EXPOSE_HEADERS = config("CORS_EXPOSE_HEADERS", default="", cast=Csv())
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default="", cast=Csv())
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://shreyastechnosoft.centralindia.cloudapp.azure.com",
+    "https://neeri-findinpi.vercel.app"
+]
 CORS_ORIGIN_REGEX_WHITELIST = config(
     "CORS_ORIGIN_REGEX_WHITELIST", default="", cast=Csv()
 )
-BASE_URL = 'http://20.198.86.180:8181'
+# BASE_URL = 'https://20.198.86.180:8181'
+BASE_URL = env('BASE_URL')
+BASE_DEV_URL = env('BASE_DEV_URL')
+BASE_QA_URL = env('BASE_QA_URL')
