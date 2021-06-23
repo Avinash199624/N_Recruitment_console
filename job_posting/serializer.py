@@ -969,24 +969,29 @@ class AppealReasonMasterSerializer(serializers.ModelSerializer):
 
 
 class UserAppealForJobPositionsSerializer(serializers.ModelSerializer):
+    appeal = serializers.UUIDField(source="appeal.appeal_id")
+
     class Meta:
         model = UserJobPositions
         fields = (
             "id",
-            "appealed",
+            "appeal",
             "reason_to_appeal",
         )
 
-        def update(self, instance, validated_data):
+    def update(self, instance, validated_data):
+        if instance:
             instance.reason_to_appeal = (
-                validated_data["reason_to_appeal"]
-                if validated_data["reason_to_appeal"]
-                else instance.reason_to_appeal
+                validated_data.get("reason_to_appeal")
+                or instance.reason_to_appeal
             )
-
+            appeal_id = validated_data["appeal"]
+            appeal = AppealMaster.objects.filter(appeal_id=appeal_id).first()
+            if appeal:
+                instance.appeal = appeal
             instance.save()
 
-            return instance.id
+        return instance.id
 
 
 class PermanentPositionMasterSerializer(serializers.ModelSerializer):
