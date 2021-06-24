@@ -834,126 +834,54 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
     #         return None
 
     def update(self, instance, validated_data):
-        instance.status = (
-            validated_data["status"] if validated_data["status"] else instance.status
-        )
+        instance.status = validated_data.get("status") or instance.status
 
-        instance.gender = (
-            validated_data["gender"] if validated_data["gender"] else instance.gender
-        )
+        instance.gender = validated_data.get("gender") or instance.gender
 
         # instance.mobile_no = (
         #     validated_data["mobile_no"] if validated_data["mobile_no"] else instance.mobile_no
         # )
 
-        instance.date_of_birth = (
-            validated_data["date_of_birth"]
-            if validated_data["date_of_birth"]
-            else instance.date_of_birth
-        )
+        instance.date_of_birth = validated_data.get("date_of_birth") or instance.date_of_birth
 
-        instance.date_of_birth_in_words = (
-            validated_data["date_of_birth_in_words"]
-            if validated_data["date_of_birth_in_words"]
-            else instance.date_of_birth_in_words
-        )
+        instance.date_of_birth_in_words = validated_data.get("date_of_birth_in_words") or instance.date_of_birth_in_words
 
-        instance.place_of_birth = (
-            validated_data["place_of_birth"]
-            if validated_data["place_of_birth"]
-            else instance.place_of_birth
-        )
+        instance.place_of_birth = validated_data.get("place_of_birth") or instance.place_of_birth
 
-        instance.father_name = (
-            validated_data["father_name"]
-            if validated_data["father_name"]
-            else instance.father_name
-        )
+        instance.father_name = validated_data.get("father_name") or instance.father_name
 
-        instance.father_occupation = (
-            validated_data["father_occupation"]
-            if validated_data["father_occupation"]
-            else instance.father_occupation
-        )
+        instance.father_occupation = validated_data.get("father_occupation") or instance.father_occupation
 
-        instance.religion = (
-            validated_data["religion"]
-            if validated_data["religion"]
-            else instance.religion
-        )
+        instance.religion = validated_data.get("religion") or instance.religion
 
-        instance.caste = (
-            validated_data["caste"] if validated_data["caste"] else instance.caste
-        )
+        instance.caste = validated_data.get("caste") or instance.caste
 
-        instance.passport_number = (
-            validated_data["passport_number"]
-            if validated_data["passport_number"]
-            else instance.passport_number
-        )
+        instance.passport_number = validated_data.get("passport_number") or instance.passport_number
 
-        instance.passport_expiry = (
-            validated_data["passport_expiry"]
-            if validated_data["passport_expiry"]
-            else instance.passport_expiry
-        )
+        instance.passport_expiry = validated_data.get("passport_expiry") or instance.passport_expiry
 
-        instance.profile_photo = (
-            validated_data["profile_photo"]
-            if validated_data["profile_photo"]
-            else instance.profile_photo
-        )
+        instance.profile_photo = validated_data.get("profile_photo") or instance.profile_photo
 
-        instance.whatsapp_id = (
-            validated_data["whatsapp_id"]
-            if validated_data["whatsapp_id"]
-            else instance.whatsapp_id
-        )
+        instance.whatsapp_id = validated_data.get("whatsapp_id") or instance.whatsapp_id
 
-        instance.skype_id = (
-            validated_data["skype_id"]
-            if validated_data["skype_id"]
-            else instance.skype_id
-        )
+        instance.skype_id = validated_data.get("skype_id") or instance.skype_id
 
-        instance.fax_number = (
-            validated_data["fax_number"]
-            if validated_data["fax_number"]
-            else instance.fax_number
-        )
+        instance.fax_number = validated_data.get("fax_number") or instance.fax_number
 
-        instance.is_indian_citizen = (
-            validated_data["is_indian_citizen"]
-            if validated_data["is_indian_citizen"]
-            else instance.is_indian_citizen
-        )
+        instance.is_indian_citizen = validated_data.get("is_indian_citizen") or instance.is_indian_citizen
 
         # instance.nationality = (
         #     validated_data["nationality"] if validated_data["nationality"] else instance.nationality
         # )
-        instance.is_fresher = (
-            validated_data["is_fresher"]
-            if validated_data["is_fresher"]
-            else instance.is_fresher
-        )
+        instance.is_fresher = validated_data.get("is_fresher") or instance.is_fresher
 
-        instance.user.first_name = (
-            validated_data["first_name"]
-            if validated_data["first_name"]
-            else instance.user.first_name
-        )
+        instance.user.first_name = validated_data.get("first_name") or instance.user.first_name
 
-        instance.user.last_name = (
-            validated_data["last_name"]
-            if validated_data["last_name"]
-            else instance.user.last_name
-        )
+        instance.user.last_name = validated_data.get("last_name") or instance.user.last_name
 
-        instance.user.middle_name = (
-            validated_data["middle_name"]
-            if validated_data["middle_name"]
-            else instance.user.middle_name
-        )
+
+        instance.user.middle_name = validated_data.get("middle_name") or instance.user.middle_name
+
         instance.is_fresher = validated_data["is_fresher"]
         instance.is_indian_citizen = validated_data["is_indian_citizen"]
         instance.user.save()
