@@ -1099,7 +1099,6 @@ class PermanentPositionMasterSerializer(serializers.ModelSerializer):
                 docs = NewDocumentMaster.objects.get(doc_id=doc["doc_id"])
                 posi.documents_required.add(docs)
 
-        print("validated_data------>", validated_data)
         # posi_id = NewPositionMaster.objects.get(
         #     position_name=validated_data["perm_position_master"]["position_name"]
         # )
@@ -1312,42 +1311,6 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
         serializer = NewPositionMasterSerializer(obj.temp_position_master)
         return serializer.data
 
-    # def save(self, validated_data):
-    #     print("validated_data------>", validated_data)
-    #     posi_id = NewPositionMaster.objects.get(
-    #         position_name=validated_data["temp_position_master"]["position_name"]
-    #     )
-    #     print("posi_id------>", posi_id)
-    #
-    #     posi = TemporaryPositionMaster.objects.create(
-    #         temp_position_master=posi_id,
-    #         salary=validated_data["salary"],
-    #         allowance="hra",
-    #     )
-    #     print("Done")
-    #
-    #     return posi.temp_position_id
-
-    # def update(self, instance, validated_data):
-    #     print("validated_data------>", validated_data)
-    #
-    #     if instance:
-    #         instance.salary = (
-    #             validated_data["salary"]
-    #             if validated_data["salary"]
-    #             else instance.salary
-    #         )
-    #         # insta
-    #         # instance.allowance = (
-    #         #     validated_data["allowance"]
-    #         #     if validated_data["allowance"]
-    #         #     else instance.allowance
-    #         # )
-    #         instance.save()
-    #     print("Done")
-    #
-    #     return instance.temp_position_id
-
     def save(self, validated_data):
         posi = NewPositionMaster.objects.create(
             position_name=validated_data["temp_position_master"]["position_name"]
@@ -1369,7 +1332,6 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
             if "qualification_desc" in validated_data["temp_position_master"]
             else None,
         )
-        print("validated_data--------->", validated_data)
 
         qualification = (
             validated_data["temp_position_master"]["qualification"]
@@ -1377,7 +1339,6 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
             else None
         )
 
-        print("qualification--------->", qualification)
         if qualification:
             for qualification_data in qualification:
                 qualification = QualificationMaster.objects.get(
@@ -1395,10 +1356,8 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
             else None
         )
 
-        print("qualification_hist--------->", qualification_hist)
         if qualification_hist:
             for exp in qualification_hist:
-                print("exp--------->", exp)
                 emp_exp = QualificationJobHistoryMaster.objects.get(
                     qualification_job_id=exp["qualification_job_id"]
                 )
@@ -1409,7 +1368,6 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
             else None
         )
 
-        print("information--------->", information)
         if information:
             for info_data in information:
                 info = InformationMaster.objects.get(info_id=info_data["info_id"])
@@ -1421,17 +1379,11 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
             else None
         )
 
-        print("document--------->", document)
         if document:
             for doc in document:
                 docs = NewDocumentMaster.objects.get(doc_id=doc["doc_id"])
                 posi.documents_required.add(docs)
 
-        print("validated_data------>", validated_data)
-        # posi_id = NewPositionMaster.objects.get(
-        #     position_name=validated_data["temp_position_master"]["position_name"]
-        # )
-        # print("posi_id------>", posi_id)
 
         posi = TemporaryPositionMaster.objects.create(
             temp_position_master=posi,
