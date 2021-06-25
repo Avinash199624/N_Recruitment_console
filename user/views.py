@@ -663,14 +663,14 @@ class MobileOTP(APIView):
         # auth = UserAuthentication.objects.filter(reset_token=token).first()
         try:
             is_token_expired = UserAuthentication.objects.filter(mobile_otp=token).first()
-            print("is_token_expired.reset_token----------->", is_token_expired)
+            print("is_token_expired----------->", is_token_expired)
             if not is_token_expired:
                 return JsonResponse(
                     data={"message": "OTP Expired or invalid."},
                 )
-            if datetime.datetime.now() >= is_token_expired.reset_otp_expiry:
-                print("datetime.datetime.now() >= is_token_expired.reset_otp_expiry----->", datetime.datetime.now(),
-                      is_token_expired.reset_otp_expiry)
+            if datetime.datetime.now() >= is_token_expired.mobile_otp_expiry:
+                print("datetime.datetime.now() >= is_token_expired.mobile_otp_expiry----->", datetime.datetime.now(),
+                      is_token_expired.mobile_otp_expiry)
                 # e = UserAuthentication.objects.get(user=is_token_expired)
                 print("is_token_expired.reset_token----------->", is_token_expired.mobile_otp)
                 is_token_expired.mobile_otp = None
@@ -693,13 +693,81 @@ class MobileOTP(APIView):
                             return Response(
                                 data={"message": "Please enter a valid OTP."},
                             )
-                        print("auth.reset_token------------->", is_token_expired.mobile_otp)
+                        print("is_token_expired.mobile_otp------------->", is_token_expired.mobile_otp)
                         if is_token_expired.email_verified:
                             is_token_expired.user.is_active = True
                             is_token_expired.user.save()
                             return JsonResponse(
                                 data={"message": "Your account has been verified."},
                             )
+                        return Response(
+                            data={"message": "Your mobile has been verified."},
+                        )
+                    except Exception as e:
+                        print(e)
+                        return JsonResponse(
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                else:
+                    return Response(
+                        data={"message": "OTP has been expired. Please request again."},
+                    )
+        except Exception as e:
+            print(e)
+            return JsonResponse(
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+class UpdateMobileOTP(APIView):
+    permission_classes = [
+        AllowAny,
+    ]
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        user_otp = data['user_otp']
+        token = str(self.kwargs["id"])
+        # auth = UserAuthentication.objects.filter(reset_token=token).first()
+        try:
+            is_token_expired = UserAuthentication.objects.filter(mobile_otp=token).first()
+            print("is_token_expired----------->", is_token_expired)
+            if not is_token_expired:
+                return JsonResponse(
+                    data={"message": "OTP Expired or invalid."},
+                )
+            if datetime.datetime.now() >= is_token_expired.mobile_otp_expiry:
+                print("datetime.datetime.now() >= is_token_expired.mobile_otp_expiry----->", datetime.datetime.now(),
+                      is_token_expired.mobile_otp_expiry)
+                # e = UserAuthentication.objects.get(user=is_token_expired)
+                print("is_token_expired.reset_token----------->", is_token_expired.mobile_otp)
+                is_token_expired.mobile_otp = None
+                is_token_expired.save()
+                print("is_token_expired.mobile_otp----------->", is_token_expired.mobile_otp)
+
+                return JsonResponse(
+                    data={"message": "OTP Expired, request again"},
+                )
+            else:
+
+                if is_token_expired:
+                    try:
+                        user_obj = User.objects.get(user_id=is_token_expired.user.user_id)
+                        if user_otp == is_token_expired.mobile_otp:
+                            is_token_expired.mobile_verified = True
+                            is_token_expired.mobile_otp = None
+                            is_token_expired.save()
+                            print("request.session['new_mobile_no']----otp---->", request.session['new_mobile_no'])
+                            user_obj.mobile_no = request.session['new_mobile_no']
+                            print("user_obj.mobile_no----otp---->", user_obj.mobile_no)
+                            user_obj.save()
+                        else:
+                            return Response(
+                                data={"message": "Please enter a valid OTP."},
+                            )
+                        print("is_token_expired.mobile_otp------------->", is_token_expired.mobile_otp)
+                        # request.session['user_id'] = None
+                        request.session['new_mobile_no'] = None
+                        print("request.session['new_mobile_no']----------------->", request.session['new_mobile_no'])
+
                         return Response(
                             data={"message": "Your mobile has been verified."},
                         )
@@ -815,6 +883,38 @@ class ChangePassword(APIView):
         return Response(
             data={"message": "User Not Found."}, status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class ChangeMobileNumber(APIView):
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs["id"]
+        data = self.request.data
+        new_mobile_no = data['new_mobile_no']
+        auth = User.objects.filter(user_id=id).first()
+        if auth:
+            request.session['new_mobile_no'] = new_mobile_no # session for new mobile number
+            user_obj = User.objects.get(user_id=auth.user_id)
+            # request.session['user_id'] = user_obj.user_id # session for user_id
+            old_mobile_no = user_obj.mobile_no
+            if old_mobile_no == new_mobile_no:
+                return Response(
+                    data={"message": "Old and New Mobile Number cannot be same."},
+                    status=status.HTTP_200_OK,
+                )
+            user_mobile_otp = random.randint(100000, 999999)
+            user_auth = UserAuthentication.objects.get(user=user_obj)
+            user_auth.mobile_otp=user_mobile_otp
+            user_auth.save()
+            print("user_obj.mobile_no------------>", user_obj.mobile_no)
+            # send_otp(mobile_no, user_mobile_otp)
+            return Response(
+                data={"message": "OTP has been sent to your new mobile number, please verify"}, status=status.HTTP_200_OK,
+            )
+        else:
+
+            return Response(
+                data={"message": "User Not Found."}, status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 # def ForgotPasswordDef(request, token):

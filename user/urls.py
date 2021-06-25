@@ -17,7 +17,7 @@ from user.views import (
     NeeriUserSearchListView,
     ApplicantIsFresherUpdateView,
     UserDocumentView, ApplicantIsAddressUpdateView, verify_email, verify_sms, ChangePassword,
-    ApplicantLockedStatusView, ApplicantSuspendStatusView, MobileOTP,
+    ApplicantLockedStatusView, ApplicantSuspendStatusView, MobileOTP, ChangeMobileNumber, UpdateMobileOTP,
 )
 from user.views import (
     LoginView,
@@ -87,6 +87,7 @@ urlpatterns = [
     path("email_token_verify/<user_email_token>/", verify_email, name="email-token-verification"),
     # path("sms_token_verify/<user_mobile_otp>/", verify_sms, name="sms-token-verification"),
     path("sms_token_verify/<int:id>/", MobileOTP.as_view(), name="sms-token-verification"),
+    path("sms_otp_verify/<int:id>/", UpdateMobileOTP.as_view(), name="sms-otp-verification"),
     path("get-user/<uuid:id>/", RetrieveUserView.as_view(), name="get-user"),
     path("delete-user/<uuid:id>/", DeleteUserView.as_view(), name="delete-user"),
     path("update-user/<uuid:id>/", UpdateUserView.as_view(), name="update-user"),
@@ -103,6 +104,7 @@ urlpatterns = [
     path("forgot_password/", ForgotPassword.as_view(), name="forgot-password"),
     path("reset_password/<uuid:token>/", ResetPassword.as_view(), name="reset-password"),
     path("change_password/<uuid:id>/", ChangePassword.as_view(), name="change-password"),
+    path("change_mobile_number/<uuid:id>/", ChangeMobileNumber.as_view(), name="change-number"),
     #### Public Portal User URL's
     path(
         "public/personal_info/<uuid:id>/",
