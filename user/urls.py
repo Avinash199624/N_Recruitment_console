@@ -18,6 +18,7 @@ from user.views import (
     ApplicantIsFresherUpdateView,
     UserDocumentView, ApplicantIsAddressUpdateView, verify_email, verify_sms, ChangePassword,
     ApplicantLockedStatusView, ApplicantSuspendStatusView, MobileOTP, ChangeMobileNumber, UpdateMobileOTP,
+    ManageApplicantlistView,
 )
 from user.views import (
     LoginView,
@@ -105,21 +106,31 @@ urlpatterns = [
     path("reset_password/<uuid:token>/", ResetPassword.as_view(), name="reset-password"),
     path("change_password/<uuid:id>/", ChangePassword.as_view(), name="change-password"),
     path("change_mobile_number/<uuid:id>/", ChangeMobileNumber.as_view(), name="change-number"),
+    path(
+        "manage_applicants/",
+        ManageApplicantlistView.as_view(),
+        name="manage-applicants-list",
+    ),
+    path(
+        "manage_applicants/<uuid:id>/",
+        ManageApplicantlistView.as_view(),
+        name="manage-applicant",
+    ),
+    path(
+        "applicant_suspend/<uuid:id>/",
+        ApplicantSuspendStatusView.as_view(),
+        name="get-applicant-status-suspend",
+    ),
+    path(
+        "applicant_locked/<uuid:id>/",
+        ApplicantLockedStatusView.as_view(),
+        name="get-applicant-status-locked",
+    ),
     #### Public Portal User URL's
     path(
         "public/personal_info/<uuid:id>/",
         ApplicantPersonalInformationView.as_view(),
         name="get-applicant-personal-info",
-    ),
-    path(
-        "public/applicant_suspend/<uuid:id>/",
-        ApplicantSuspendStatusView.as_view(),
-        name="get-applicant-status-suspend",
-    ),
-    path(
-        "public/applicant_locked/<uuid:id>/",
-        ApplicantLockedStatusView.as_view(),
-        name="get-applicant-status-locked",
     ),
     path(
         "public/personal_info/",

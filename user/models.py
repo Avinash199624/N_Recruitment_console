@@ -6,7 +6,7 @@ from django.contrib import auth
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
-from neeri_recruitment_portal.settings import OTP_EXPIRY_TIME
+from neeri_recruitment_portal.settings import OTP_EXPIRY_TIME, ACCOUNT_LOCKED_TIME
 from neeri_recruitment_portal.validators import EmailValidator
 
 
@@ -712,9 +712,11 @@ class UserAuthentication(models.Model):
     email_otp_expiry = models.DateTimeField(null=True, blank=True)
     mobile_otp_expiry = models.DateTimeField(null=True, blank=True)
     reset_otp_expiry = models.DateTimeField(null=True, blank=True)
+    account_lock_expiry = models.DateTimeField(null=True, blank=True)
     is_first_login = models.BooleanField(blank=True, null=True, default=True)
     is_suspended = models.BooleanField(blank=True, null=True, default=False)#is_active false  and is_suspended true
     is_locked = models.BooleanField(blank=True, null=True, default=False) #is_active false  and is_locked true
+    wrong_login_attempt = models.IntegerField(null=True, default=0, blank=True)
 
     def __str__(self):
         return self.user.email
@@ -723,6 +725,7 @@ class UserAuthentication(models.Model):
         self.email_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=OTP_EXPIRY_TIME)
         self.mobile_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=OTP_EXPIRY_TIME)
         self.reset_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=OTP_EXPIRY_TIME)
+        self.account_lock_expiry = datetime.datetime.now() + datetime.timedelta(minutes=ACCOUNT_LOCKED_TIME)
         super(UserAuthentication, self).save(**kwargs)
 
 

@@ -313,11 +313,24 @@ class UserPermissionSerializer(serializers.ModelSerializer):
 
 
 class UserAuthenticationSerializer(serializers.ModelSerializer):
+    mobile_no = serializers.CharField(source="user.mobile_no")
+    email = serializers.EmailField(source="user.email")
+    user_id = serializers.UUIDField(source="user.user_id")
+    middle_name = serializers.CharField(source="user.middle_name")
+    last_name = serializers.CharField(source="user.last_name")
+    first_name = serializers.CharField(source="user.first_name")
+
     class Meta:
         model = UserAuthentication
         fields = (
+            "user_id",
             "is_suspended",
             "is_locked",
+            "first_name",
+            "middle_name",
+            "last_name",
+            "mobile_no",
+            "email",
         )
 
 
