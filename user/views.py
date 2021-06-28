@@ -995,17 +995,12 @@ class ManageApplicantlistView(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            id = self.kwargs['id']
-            if UserAuthentication.objects.filter(user__user_id=id).exists():
-                user = UserAuthentication.objects.get(user__user_id=id)
-                serializer = UserAuthenticationSerializer(user)
-                return Response(serializer.data)
-            else:
-                return Response(data={"message": "Details Not Found."}, status=401)
-        except:
-            info = UserAuthentication.objects.filter().order_by('user__first_name')
-            serializer = UserAuthenticationSerializer(info, many=True)
+            users = UserRoles.objects.filter(role__role_name="applicant")
+            serializer = UserAuthenticationSerializer(users, many=True)
             return Response(serializer.data, status=200)
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
 
 class ApplicantSuspendStatusView(APIView):
     def get(self, request, *args, **kwargs):

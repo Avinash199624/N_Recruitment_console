@@ -112,11 +112,6 @@ urlpatterns = [
         name="manage-applicants-list",
     ),
     path(
-        "manage_applicants/<uuid:id>/",
-        ManageApplicantlistView.as_view(),
-        name="manage-applicant",
-    ),
-    path(
         "applicant_suspend/<uuid:id>/",
         ApplicantSuspendStatusView.as_view(),
         name="get-applicant-status-suspend",
