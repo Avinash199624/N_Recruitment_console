@@ -101,11 +101,11 @@ class NewPositionMaster(BaseModel):
 # Grade I, Grade II, Grade III, Grade IV, Grade V
 # Level I, Level II, Level III, Level IV
 
-I = "i"
-II = "ii"
-III = "iii"
-IV = "iv"
-V = "v"
+I = "I"
+II = "II"
+III = "III"
+IV = "IV"
+V = "V"
 
 GRADE_CHOICES = [
     (I, "I"),
@@ -382,6 +382,7 @@ class UserJobPositions(BaseModel):
     INTERVIEW = "interview"
     AWAITING_REVIEW = "awaiting review"
     CLOSED = "closed"
+    APPEALED = "appealed"
 
     APPLIED_JOB_STATUS_CHOICES = [
         (RECEIVED, "RECEIVED"),
@@ -393,6 +394,7 @@ class UserJobPositions(BaseModel):
         (INTERVIEW, "INTERVIEW"),
         (AWAITING_REVIEW, "AWAITING_REVIEW"),
         (CLOSED, "CLOSED"),
+        (APPEALED, "APPEALED"),
     ]
 
     user = models.ForeignKey(
@@ -419,7 +421,13 @@ class UserJobPositions(BaseModel):
     applied_job_status = models.CharField(
         max_length=50, choices=APPLIED_JOB_STATUS_CHOICES, blank=True, null=True
     )
-    appealed = models.BooleanField(null=True, blank=True, default=False)
+    appeal = models.ForeignKey(
+        "AppealMaster",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="appeal",
+    )
     reason_to_appeal = models.TextField(blank=True, null=True)
     date_of_application = models.DateField(auto_now_add=True)
     date_of_closing = models.DateField(

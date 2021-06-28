@@ -22,7 +22,6 @@ from job_posting.models import (
     PermanentPositionMaster,
     TemporaryPositionMaster,
     QualificationJobHistoryMaster,
-    SubscriptionFee,
 )
 from job_posting.serializer import (
     DepartmentSerializer,
@@ -637,26 +636,27 @@ class UserAppealForJobPositions(APIView):
     def put(self, request, *args, **kwargs):
         data = self.request.data
         appeal_id = self.kwargs["id"]
-        try:
-            applicants = UserJobPositions.objects.get(id=appeal_id)
-            if (
-                applicants.applied_job_status == "rejected"
-                and applicants.appealed == False
-            ):
-                applicants.appealed = True
-                applicants.save()
-                serializer = UserAppealForJobPositionsSerializer(applicants, data=data)
-                serializer.is_valid(raise_exception=True)
-                serializer.update(applicants, validated_data=data)
-                return Response(serializer.data, status=200)
-            else:
-                return Response(
-                    data={"message": "You've already appealed for this job..."},
-                    status=200,
-                )
-        except:
+        applicants = UserJobPositions.objects.get(id=appeal_id)
+        if (
+            applicants.applied_job_status == "rejected"
+        ):
+            applicants.applied_job_status = "appealed"
+            applicants.save()
+            serializer = UserAppealForJobPositionsSerializer(applicants, data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.update(applicants, validated_data=data)
+            return Response(serializer.data, status=200)
+        if (
+            applicants.applied_job_status == "appealed"
+        ):
             return Response(
-                data={"message": "you are not eligible for the appeal..."}, status=401
+                data={"message": "You've already appealed for this job..."},
+                status=200,
+            )
+        else:
+            return Response(
+                data={"message": "you are not eligible for the appeal..."},
+                status=200,
             )
 
 
@@ -820,35 +820,42 @@ class PermanentPositionMasterViews(APIView):
     def put(self, request, *args, **kwargs):
         data = self.request.data
         id = self.kwargs["id"]
-        info = PermanentPositionMaster.objects.get(
-            perm_position_id=id, is_deleted=False
-        )
-        print("info ------->", info)
+        try:
+            info = PermanentPositionMaster.objects.get(
+                perm_position_id=id, is_deleted=False
+            )
+            print("info ------->", info)
 
-        serializer = PermanentPositionMasterSerializer(info, data=data)
-        serializer.is_valid(raise_exception=True)
-        result = serializer.update(instance=info, validated_data=data)
-        print("result ------->", result)
+            serializer = PermanentPositionMasterSerializer(info, data=data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.update(instance=info, validated_data=data)
+            print("result ------->", result)
 
-        info = PermanentPositionMaster.objects.get(perm_position_id=result)
-        print("info after------->", info)
+            info = PermanentPositionMaster.objects.get(perm_position_id=result)
+            print("info after------->", info)
 
-        serializer = PermanentPositionMasterSerializer(info)
-        print("serializer ------->", serializer.data)
+            serializer = PermanentPositionMasterSerializer(info)
+            print("serializer ------->", serializer.data)
 
-        return Response(serializer.data, status=200)
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response(data={"errors": str(e)})
 
     def post(self, request, *args, **kwargs):
-        data = self.request.data
-        print("data ------->", data)
-        serializer = PermanentPositionMasterSerializer(data=data)
-        print("serializer ----------->", serializer)
-        serializer.is_valid(raise_exception=True)
-        result = serializer.save(validated_data=data)
-        print("result ----------->", result)
-        posi = PermanentPositionMaster.objects.get(perm_position_id=result)
-        serializer = PermanentPositionMasterSerializer(posi)
-        return Response(serializer.data, status=200)
+        try:
+            data = self.request.data
+            print("data ------->", data)
+            serializer = PermanentPositionMasterSerializer(data=data)
+            print("serializer ----------->", serializer)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=data)
+            print("result ----------->", result)
+            posi = PermanentPositionMaster.objects.get(perm_position_id=result)
+            serializer = PermanentPositionMasterSerializer(posi)
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response(data={"errors": str(e)})
+
 
 
 # Temporary Position
@@ -912,62 +919,36 @@ class TemporaryPositionMasterViews(APIView):
     def put(self, request, *args, **kwargs):
         data = self.request.data
         id = self.kwargs["id"]
-        info = TemporaryPositionMaster.objects.get(
-            temp_position_id=id, is_deleted=False
-        )
-        print("info ------->", info)
-        serializer = TemporaryPositionMasterSerializer(info, data=data)
-        serializer.is_valid(raise_exception=True)
-        result = serializer.update(instance=info, validated_data=data)
-        print("result ------->", result)
-        info = TemporaryPositionMaster.objects.get(temp_position_id=result)
-        print("info after------->", info)
-
-        serializer = TemporaryPositionMasterSerializer(info)
-        print("serializer ------->", serializer.data)
-
-        return Response(serializer.data, status=200)
-
-    def post(self, request, *args, **kwargs):
-        data = self.request.data
-        print("data ------->", data)
-        serializer = TemporaryPositionMasterSerializer(data=data)
-        print("serializer ----------->", serializer)
-        serializer.is_valid(raise_exception=True)
-        result = serializer.save(validated_data=data)
-        print("result ----------->", result)
-        posi = TemporaryPositionMaster.objects.get(temp_position_id=result)
-        serializer = TemporaryPositionMasterSerializer(posi)
-        return Response(serializer.data, status=200)
-
-
-class JobApplyCheckoutView(APIView):
-    def post(self, request, *args, **kwargs):
-        data = request.data
-        job_posting = JobPosting.objects.get(job_posting_id=data["job_posting_id"])
-        positions = PositionQualificationMapping.objects.filter(
-            id__in=data["positions"]
-        )
-        user = request.user
-        if job_posting.job_type == JobPosting.Contract_Basis:
-            if user.subscription.filter(user=user, expired=False).exists():
-                for position in positions:
-                    UserJobPositions.objects.create(
-                        user=user,
-                        position=position,
-                        job_posting=job_posting,
-                        applied_job_status=UserJobPositions.RECEIVED,
-                    )
-                return Response(
-                    data={"success": True, "message": "Job application successful"}
-                )
-            subscription_fee = SubscriptionFee.objects.get()
-            return Response(
-                data={
-                    "subscribed": False,
-                    "message": "User subscription expired",
-                    "fee": subscription_fee,
-                }
+        try:
+            info = TemporaryPositionMaster.objects.get(
+                temp_position_id=id, is_deleted=False
             )
-        else:
-            relaxation_rule = user.user_profile.relaxation_rule
+            print("info ------->", info)
+            serializer = TemporaryPositionMasterSerializer(info, data=data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.update(instance=info, validated_data=data)
+            print("result ------->", result)
+            info = TemporaryPositionMaster.objects.get(temp_position_id=result)
+            print("info after------->", info)
+
+            serializer = TemporaryPositionMasterSerializer(info)
+            print("serializer ------->", serializer.data)
+
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response(data={"errors": str(e)})
+
+    def post(self, request, *args, **kwargs):
+        try:
+            data = self.request.data
+            print("data ------->", data)
+            serializer = TemporaryPositionMasterSerializer(data=data)
+            print("serializer ----------->", serializer)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=data)
+            print("result ----------->", result)
+            posi = TemporaryPositionMaster.objects.get(temp_position_id=result)
+            serializer = TemporaryPositionMasterSerializer(posi)
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response(data={"errors": str(e)})

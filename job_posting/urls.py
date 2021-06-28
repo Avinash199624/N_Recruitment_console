@@ -225,7 +225,7 @@ urlpatterns = [
         name="jobwise-applicant-by-job",
     ),
     path(
-        "update_user_appeal_for_job_position/<str:id>/",
+        "update_user_appeal_for_job_position/<int:id>/",
         UserAppealForJobPositions.as_view(),
         name="user-appeal-for-job",
     ),
