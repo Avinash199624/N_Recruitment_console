@@ -43,7 +43,8 @@ from job_posting.views import (
     JobPostingSearchListView,
     JobPostingFilterListView,
     PublicJobPostingFilterListView,
-    PublicJobPostingSearchListView, ApproveRejectApplicantView, ApplicationCountByJobPositions,
+    PublicJobPostingSearchListView, ApproveRejectApplicantView, ApplicationCountByJobPositions, JobApplyCheckoutView,
+    ApplicationDocumentUpdateView,
 )
 
 urlpatterns = [
@@ -280,5 +281,15 @@ urlpatterns = [
         "temporary_positions/<uuid:id>/",
         TemporaryPositionMasterViews.as_view(),
         name="t-positions",
+    ),
+    path(
+        "apply/",
+        JobApplyCheckoutView.as_view(),
+        name="job-apply",
+    ),
+    path(
+        "applications/documents/",
+        ApplicationDocumentUpdateView.as_view(),
+        name="application-doc-update",
     ),
 ]

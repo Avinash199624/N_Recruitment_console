@@ -277,6 +277,19 @@ class UserProfile(BaseModel):
     is_fresher = models.BooleanField(blank=True, null=True, default=False)
 
     @property
+    def age(self):
+        today = datetime.date.today()
+        age = (
+            today.year
+            - self.date_of_birth.year
+            - (
+                (today.month, today.day)
+                < (self.date_of_birth.month, self.date_of_birth.day)
+            )
+        )
+        return age
+
+    @property
     def profile_percentage(self):
 
         percent = {
@@ -714,18 +727,30 @@ class UserAuthentication(models.Model):
     reset_otp_expiry = models.DateTimeField(null=True, blank=True)
     account_lock_expiry = models.DateTimeField(null=True, blank=True)
     is_first_login = models.BooleanField(blank=True, null=True, default=True)
-    is_suspended = models.BooleanField(blank=True, null=True, default=False)#is_active false  and is_suspended true
-    is_locked = models.BooleanField(blank=True, null=True, default=False) #is_active false  and is_locked true
+    is_suspended = models.BooleanField(
+        blank=True, null=True, default=False
+    )  # is_active false  and is_suspended true
+    is_locked = models.BooleanField(
+        blank=True, null=True, default=False
+    )  # is_active false  and is_locked true
     wrong_login_attempt = models.IntegerField(null=True, default=0, blank=True)
 
     def __str__(self):
         return self.user.email
 
     def save(self, **kwargs):
-        self.email_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=OTP_EXPIRY_TIME)
-        self.mobile_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=OTP_EXPIRY_TIME)
-        self.reset_otp_expiry = datetime.datetime.now() + datetime.timedelta(minutes=OTP_EXPIRY_TIME)
-        self.account_lock_expiry = datetime.datetime.now() + datetime.timedelta(minutes=ACCOUNT_LOCKED_TIME)
+        self.email_otp_expiry = datetime.datetime.now() + datetime.timedelta(
+            minutes=OTP_EXPIRY_TIME
+        )
+        self.mobile_otp_expiry = datetime.datetime.now() + datetime.timedelta(
+            minutes=OTP_EXPIRY_TIME
+        )
+        self.reset_otp_expiry = datetime.datetime.now() + datetime.timedelta(
+            minutes=OTP_EXPIRY_TIME
+        )
+        self.account_lock_expiry = datetime.datetime.now() + datetime.timedelta(
+            minutes=ACCOUNT_LOCKED_TIME
+        )
         super(UserAuthentication, self).save(**kwargs)
 
 
@@ -831,12 +856,12 @@ class RelaxationMaster(BaseModel):
 
 
 class Subscription(BaseModel):
-    user = models.ForeignKey("User", related_name="subscription", on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        "User", related_name="subscription", on_delete=models.CASCADE
+    )
     start_date = models.DateField()
     end_date = models.DateField()
     expired = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.email
-
-

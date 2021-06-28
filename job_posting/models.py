@@ -437,6 +437,12 @@ class UserJobPositions(BaseModel):
         max_length=200, null=True, blank=True
     )  # It will be like notifiction_id/job_posting_id/user_id/position_id
 
+    documents = models.ManyToManyField(
+        "user.UserDocuments",
+        on_delete=models.SET_NULL,
+        related_name="application_documents",
+    )
+
     def __str__(self):
         return self.job_posting.notification_title
 
@@ -571,5 +577,6 @@ class ServiceConditions(BaseModel):
         return str(self.pk)
 
 
-class SubscriptionFee(models.Model):
+class FeeMaster(models.Model):
     fee = models.FloatField()
+    category = models.CharField(choices=JobPosting.JOB_TYPE_CHOICES)

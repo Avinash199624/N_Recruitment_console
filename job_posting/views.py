@@ -3,7 +3,6 @@ from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
-from django_filters.rest_framework import DjangoFilterBackend
 
 from job_posting.models import (
     Department,
@@ -12,7 +11,6 @@ from job_posting.models import (
     QualificationMaster,
     PositionQualificationMapping,
     JobPostingRequirement,
-    JobTemplate,
     JobPosting,
     SelectionProcessContent,
     ServiceConditions,
@@ -22,6 +20,7 @@ from job_posting.models import (
     PermanentPositionMaster,
     TemporaryPositionMaster,
     QualificationJobHistoryMaster,
+    FeeMaster,
 )
 from job_posting.serializer import (
     DepartmentSerializer,
@@ -44,12 +43,12 @@ from job_posting.serializer import (
     ProjectRequirementApprovalStatusSerializer,
     QualificationJobHistoryMasterSerializer,
     PublicJobPostSerializer,
-    ApplicationCountForJobPositionSerializer,
 )
 
-from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
+
+from user.models import UserDocuments
 
 
 class QualificationMasterSearchListView(ListAPIView):
@@ -637,18 +636,14 @@ class UserAppealForJobPositions(APIView):
         data = self.request.data
         appeal_id = self.kwargs["id"]
         applicants = UserJobPositions.objects.get(id=appeal_id)
-        if (
-            applicants.applied_job_status == "rejected"
-        ):
+        if applicants.applied_job_status == "rejected":
             applicants.applied_job_status = "appealed"
             applicants.save()
             serializer = UserAppealForJobPositionsSerializer(applicants, data=data)
             serializer.is_valid(raise_exception=True)
             serializer.update(applicants, validated_data=data)
             return Response(serializer.data, status=200)
-        if (
-            applicants.applied_job_status == "appealed"
-        ):
+        if applicants.applied_job_status == "appealed":
             return Response(
                 data={"message": "You've already appealed for this job..."},
                 status=200,
@@ -857,7 +852,6 @@ class PermanentPositionMasterViews(APIView):
             return Response(data={"errors": str(e)})
 
 
-
 # Temporary Position
 class TemporaryPositionMasterFilterListView(ListAPIView):
     queryset = TemporaryPositionMaster.objects.filter(is_deleted=False)
@@ -952,3 +946,86 @@ class TemporaryPositionMasterViews(APIView):
             return Response(serializer.data, status=200)
         except Exception as e:
             return Response(data={"errors": str(e)})
+
+
+class JobApplyCheckoutView(APIView):
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        job_posting = JobPosting.objects.get(job_posting_id=self.kwargs["id"])
+        positions = PositionQualificationMapping.objects.filter(
+            id__in=data["positions"]
+        )
+        applications = []
+        user = request.user
+        if job_posting.job_type == JobPosting.Contract_Basis:
+            if user.subscription.filter(user=user, expired=False).exists():
+                for position in positions:
+                    application = UserJobPositions.objects.create(
+                        user=user,
+                        position=position,
+                        job_posting=job_posting,
+                        applied_job_status=UserJobPositions.RECEIVED,
+                    )
+                    applications.append(application.id)
+                return Response(
+                    data={
+                        "success": True,
+                        "message": "Job application successful",
+                        "applications": applications,
+                    }
+                )
+            subscription_fee = FeeMaster.objects.get(
+                category=JobPosting.Contract_Basis
+            ).fee * len(positions)
+            return Response(
+                data={
+                    "subscribed": False,
+                    "message": "User subscription expired",
+                    "fee": subscription_fee,
+                }
+            )
+        else:
+            user_profile = user.user_profile
+            relaxation_rule = user_profile.relaxation_rule
+            for position in positions:
+                if not (
+                    position["min_age"]
+                    < user_profile.age - (relaxation_rule.age_relaxation or 0)
+                    < position["max_age"]
+                ):
+                    return Response(
+                        data={
+                            "success": False,
+                            "message": f"Age eligibility not fulfilled for {position.position_display_name}",
+                        }
+                    )
+            fee = FeeMaster.objects.get(category=JobPosting.Permanent).fee - (
+                relaxation_rule.fee_relaxation or 0
+            ) * len(positions)
+            return Response(data={"success": True, "fee": fee})
+
+
+class ApplicationDocumentUpdateView(APIView):
+    def get(self, request, *args, **kwargs):
+        applied_positions = []
+        applications = UserJobPositions.objects.select_related("position").filter(
+            status=UserJobPositions.RECEIVED,
+            user=request.user,
+            application_documents__isnull=True,
+        )
+        for application in applications:
+            position = PositionQualificationMappingSerializer(application.position)
+            applied_positions.append(position.data)
+        return Response(data=applied_positions)
+
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        application = UserJobPositions.objects.get(id=self.kwargs["id"])
+        documents = UserDocuments.objects.filter(doc_id__in=data["documents"])
+        if len(data["documents"]) != len(documents):
+            return Response(
+                data={"success": False, "error": "Invalid document ids"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        application.documents.add(*documents)
+        return Response(data={"success": True})

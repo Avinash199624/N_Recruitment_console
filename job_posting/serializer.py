@@ -191,6 +191,7 @@ class PositionQualificationMappingSerializer(serializers.ModelSerializer):
         many=True, read_only=True
     )
     information_required = InformationMasterSerializer(many=True, read_only=True)
+    documents_required = NewDocumentMasterSerializer(many=True, read_only=True)
 
     class Meta:
         model = PositionQualificationMapping
@@ -201,6 +202,7 @@ class PositionQualificationMappingSerializer(serializers.ModelSerializer):
             "qualification",
             "qualification_job_history",
             "information_required",
+            "documents_required",
             "min_age",
             "max_age",
             "number_of_vacancies",
@@ -982,8 +984,7 @@ class UserAppealForJobPositionsSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if instance:
             instance.reason_to_appeal = (
-                validated_data.get("reason_to_appeal")
-                or instance.reason_to_appeal
+                validated_data.get("reason_to_appeal") or instance.reason_to_appeal
             )
             appeal_id = validated_data["appeal"]
             appeal = AppealMaster.objects.filter(appeal_id=appeal_id).first()
@@ -1383,7 +1384,6 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
             for doc in document:
                 docs = NewDocumentMaster.objects.get(doc_id=doc["doc_id"])
                 posi.documents_required.add(docs)
-
 
         posi = TemporaryPositionMaster.objects.create(
             temp_position_master=posi,
