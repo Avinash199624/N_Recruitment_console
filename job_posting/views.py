@@ -820,35 +820,42 @@ class PermanentPositionMasterViews(APIView):
     def put(self, request, *args, **kwargs):
         data = self.request.data
         id = self.kwargs["id"]
-        info = PermanentPositionMaster.objects.get(
-            perm_position_id=id, is_deleted=False
-        )
-        print("info ------->", info)
+        try:
+            info = PermanentPositionMaster.objects.get(
+                perm_position_id=id, is_deleted=False
+            )
+            print("info ------->", info)
 
-        serializer = PermanentPositionMasterSerializer(info, data=data)
-        serializer.is_valid(raise_exception=True)
-        result = serializer.update(instance=info, validated_data=data)
-        print("result ------->", result)
+            serializer = PermanentPositionMasterSerializer(info, data=data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.update(instance=info, validated_data=data)
+            print("result ------->", result)
 
-        info = PermanentPositionMaster.objects.get(perm_position_id=result)
-        print("info after------->", info)
+            info = PermanentPositionMaster.objects.get(perm_position_id=result)
+            print("info after------->", info)
 
-        serializer = PermanentPositionMasterSerializer(info)
-        print("serializer ------->", serializer.data)
+            serializer = PermanentPositionMasterSerializer(info)
+            print("serializer ------->", serializer.data)
 
-        return Response(serializer.data, status=200)
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response(data={"errors": str(e)})
 
     def post(self, request, *args, **kwargs):
-        data = self.request.data
-        print("data ------->", data)
-        serializer = PermanentPositionMasterSerializer(data=data)
-        print("serializer ----------->", serializer)
-        serializer.is_valid(raise_exception=True)
-        result = serializer.save(validated_data=data)
-        print("result ----------->", result)
-        posi = PermanentPositionMaster.objects.get(perm_position_id=result)
-        serializer = PermanentPositionMasterSerializer(posi)
-        return Response(serializer.data, status=200)
+        try:
+            data = self.request.data
+            print("data ------->", data)
+            serializer = PermanentPositionMasterSerializer(data=data)
+            print("serializer ----------->", serializer)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=data)
+            print("result ----------->", result)
+            posi = PermanentPositionMaster.objects.get(perm_position_id=result)
+            serializer = PermanentPositionMasterSerializer(posi)
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response(data={"errors": str(e)})
+
 
 
 # Temporary Position
@@ -912,30 +919,36 @@ class TemporaryPositionMasterViews(APIView):
     def put(self, request, *args, **kwargs):
         data = self.request.data
         id = self.kwargs["id"]
-        info = TemporaryPositionMaster.objects.get(
-            temp_position_id=id, is_deleted=False
-        )
-        print("info ------->", info)
-        serializer = TemporaryPositionMasterSerializer(info, data=data)
-        serializer.is_valid(raise_exception=True)
-        result = serializer.update(instance=info, validated_data=data)
-        print("result ------->", result)
-        info = TemporaryPositionMaster.objects.get(temp_position_id=result)
-        print("info after------->", info)
+        try:
+            info = TemporaryPositionMaster.objects.get(
+                temp_position_id=id, is_deleted=False
+            )
+            print("info ------->", info)
+            serializer = TemporaryPositionMasterSerializer(info, data=data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.update(instance=info, validated_data=data)
+            print("result ------->", result)
+            info = TemporaryPositionMaster.objects.get(temp_position_id=result)
+            print("info after------->", info)
 
-        serializer = TemporaryPositionMasterSerializer(info)
-        print("serializer ------->", serializer.data)
+            serializer = TemporaryPositionMasterSerializer(info)
+            print("serializer ------->", serializer.data)
 
-        return Response(serializer.data, status=200)
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response(data={"errors": str(e)})
 
     def post(self, request, *args, **kwargs):
-        data = self.request.data
-        print("data ------->", data)
-        serializer = TemporaryPositionMasterSerializer(data=data)
-        print("serializer ----------->", serializer)
-        serializer.is_valid(raise_exception=True)
-        result = serializer.save(validated_data=data)
-        print("result ----------->", result)
-        posi = TemporaryPositionMaster.objects.get(temp_position_id=result)
-        serializer = TemporaryPositionMasterSerializer(posi)
-        return Response(serializer.data, status=200)
+        try:
+            data = self.request.data
+            print("data ------->", data)
+            serializer = TemporaryPositionMasterSerializer(data=data)
+            print("serializer ----------->", serializer)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=data)
+            print("result ----------->", result)
+            posi = TemporaryPositionMaster.objects.get(temp_position_id=result)
+            serializer = TemporaryPositionMasterSerializer(posi)
+            return Response(serializer.data, status=200)
+        except Exception as e:
+            return Response(data={"errors": str(e)})

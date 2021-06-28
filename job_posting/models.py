@@ -101,11 +101,11 @@ class NewPositionMaster(BaseModel):
 # Grade I, Grade II, Grade III, Grade IV, Grade V
 # Level I, Level II, Level III, Level IV
 
-I = "i"
-II = "ii"
-III = "iii"
-IV = "iv"
-V = "v"
+I = "I"
+II = "II"
+III = "III"
+IV = "IV"
+V = "V"
 
 GRADE_CHOICES = [
     (I, "I"),
