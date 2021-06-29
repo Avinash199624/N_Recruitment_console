@@ -35,7 +35,7 @@ class CommunicationTemplateFilterListView(ListAPIView):
 
 class CommunicationTemplateListView(APIView):
     def get(self, request, *args, **kwargs):
-        docs = CommunicationMaster.objects.filter(is_deleted=False)
+        docs = CommunicationMaster.objects.filter(is_deleted=False).order_by('communication_name')
         serializer = CommunicationMasterSerializer(docs, many=True)
         return Response(serializer.data, status=200)
 
