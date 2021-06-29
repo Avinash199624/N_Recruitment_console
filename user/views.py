@@ -1218,7 +1218,7 @@ class NeeriPersonalInformation(APIView):
                     },
                 )
         except:
-            neeri_user = NeeriUserProfile.objects.filter(is_deleted=False)
+            neeri_user = NeeriUserProfile.objects.filter(is_deleted=False).order_by('user__first_name')
             serializer = NeeriUsersSerializer(neeri_user, many=True)
             return Response(serializer.data)
 

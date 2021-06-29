@@ -111,7 +111,7 @@ class CreateQualificationMasterView(APIView):
 
 class QualificationMasterListView(APIView):
     def get(self, request, *args, **kwargs):
-        docs = QualificationMaster.objects.filter(is_deleted=False)
+        docs = QualificationMaster.objects.filter(is_deleted=False).order_by('qualification')
         serializer = QualificationMasterSerializer(docs, many=True)
         return Response(serializer.data, status=200)
 
@@ -134,7 +134,7 @@ class QualificationJobHistoryMasterView(APIView):
             else:
                 return Response(data={"message": "Details Not Found."}, status=401)
         except:
-            docs = QualificationJobHistoryMaster.objects.filter(is_deleted=False)
+            docs = QualificationJobHistoryMaster.objects.filter(is_deleted=False).order_by('qualification')
             serializer = QualificationJobHistoryMasterSerializer(docs, many=True)
             return Response(serializer.data, status=200)
 
@@ -191,7 +191,7 @@ class DivisionListView(APIView):
             return Response(serializer.data, status=200)
         except:
             if Division.objects.filter(is_deleted=False).count() > 0:
-                divisions = Division.objects.filter(is_deleted=False)
+                divisions = Division.objects.filter(is_deleted=False).order_by('division_name')
                 serializer = DivisionSerializer(divisions, many=True)
                 return Response(serializer.data, status=200)
             else:
@@ -246,7 +246,7 @@ class ZonalLabListView(APIView):
             return Response(serializer.data, status=200)
         except:
             if ZonalLab.objects.filter(is_deleted=False).count() > 0:
-                labs = ZonalLab.objects.filter(is_deleted=False)
+                labs = ZonalLab.objects.filter(is_deleted=False).order_by('zonal_lab_name')
                 serializer = ZonalLabSerializer(labs, many=True)
                 return Response(serializer.data, status=200)
             else:
@@ -798,7 +798,7 @@ class PermanentPositionMasterViews(APIView):
             else:
                 return Response(data={"message": "Details Not Found."}, status=401)
         except:
-            positions = PermanentPositionMaster.objects.filter(is_deleted=False)
+            positions = PermanentPositionMaster.objects.filter(is_deleted=False).order_by('perm_position_master__position_name')
             serializer = PermanentPositionMasterSerializer(positions, many=True)
             return Response(serializer.data, status=200)
 
@@ -897,7 +897,7 @@ class TemporaryPositionMasterViews(APIView):
             else:
                 return Response(data={"message": "Details Not Found."}, status=401)
         except:
-            positions = TemporaryPositionMaster.objects.filter(is_deleted=False)
+            positions = TemporaryPositionMaster.objects.filter(is_deleted=False).order_by('temp_position_master__position_name')
             serializer = TemporaryPositionMasterSerializer(positions, many=True)
             return Response(serializer.data, status=200)
 
