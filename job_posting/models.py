@@ -373,6 +373,7 @@ class JobPosting(BaseModel):
 
 
 class UserJobPositions(BaseModel):
+    DOCUMENT_PENDING = "document pending"
     RECEIVED = "received"
     ACCEPTED = "accepted"
     REJECTED = "rejected"
@@ -385,6 +386,7 @@ class UserJobPositions(BaseModel):
     APPEALED = "appealed"
 
     APPLIED_JOB_STATUS_CHOICES = [
+        (DOCUMENT_PENDING, "DOCUMENT_PENDING"),
         (RECEIVED, "RECEIVED"),
         (ACCEPTED, "ACCEPTED"),
         (REJECTED, "REJECTED"),
@@ -439,7 +441,7 @@ class UserJobPositions(BaseModel):
 
     documents = models.ManyToManyField(
         "user.UserDocuments",
-        on_delete=models.SET_NULL,
+        blank=True,
         related_name="application_documents",
     )
 
@@ -579,4 +581,4 @@ class ServiceConditions(BaseModel):
 
 class FeeMaster(models.Model):
     fee = models.FloatField()
-    category = models.CharField(choices=JobPosting.JOB_TYPE_CHOICES)
+    category = models.CharField(choices=JobPosting.JOB_TYPE_CHOICES, max_length=30)

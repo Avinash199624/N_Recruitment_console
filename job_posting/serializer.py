@@ -28,28 +28,9 @@ from user.serializer import UserProfilePreviewSerializer
 
 
 class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
-    notification_id = serializers.SerializerMethodField(
-        method_name="get_notification_id", read_only=True
-    )
-
+    notification_id = serializers.CharField(source="job_posting.notification_id")
     description = serializers.SerializerMethodField(
         method_name="get_description", read_only=True
-    )
-
-    date_of_application = serializers.SerializerMethodField(
-        method_name="get_date_of_application", read_only=True
-    )
-
-    date_of_closing = serializers.SerializerMethodField(
-        method_name="get_date_of_closing", read_only=True
-    )
-
-    hiring_status = serializers.SerializerMethodField(
-        method_name="get_hiring_status", read_only=True
-    )
-
-    user_job_position_id = serializers.SerializerMethodField(
-        method_name="get_user_job_position_id", read_only=True
     )
 
     class Meta:
@@ -64,29 +45,11 @@ class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
             "user_job_position_id",
         )
 
-    def get_notification_id(self, obj):
-        notification_id = obj.job_posting.notification_id
-        return notification_id
-
     def get_description(self, obj):
-        description = obj.position.position.position_name
+        description = (
+            obj.position.position.position_name or obj.position.position_display_name
+        )
         return description
-
-    def get_date_of_application(self, obj):
-        date_of_application = obj.date_of_application
-        return date_of_application
-
-    def get_date_of_closing(self, obj):
-        date_of_closing = obj.date_of_closing
-        return date_of_closing
-
-    def get_hiring_status(self, obj):
-        hiring_status = obj.applied_job_status
-        return hiring_status
-
-    def get_user_job_position_id(self, obj):
-        user_job_position_id = obj.user_job_position_id
-        return user_job_position_id
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
