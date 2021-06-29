@@ -225,7 +225,7 @@ class PositionQualificationMapping(BaseModel):
     extra_note = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return self.position.position_name
+        return self.position.position_display_name
 
 
 class JobTemplate(BaseModel):
