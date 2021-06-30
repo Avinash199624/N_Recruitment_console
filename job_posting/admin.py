@@ -20,6 +20,7 @@ from job_posting.models import (
     PermanentPositionMaster,
     NewPositionMaster,
     QualificationJobHistoryMaster,
+    FeeMaster,
 )
 
 
@@ -163,3 +164,8 @@ class PermanentPositionMasterAdmin(admin.ModelAdmin):
 @register(TemporaryPositionMaster)
 class TemporaryPositionMasterAdmin(admin.ModelAdmin):
     list_display = ["temp_position_id", "allowance", "salary", "is_deleted"]
+
+
+@register(FeeMaster)
+class FeeAdmin(admin.ModelAdmin):
+    pass

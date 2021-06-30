@@ -3,7 +3,6 @@ from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
-from django_filters.rest_framework import DjangoFilterBackend
 
 from job_posting.models import (
     Department,
@@ -12,7 +11,6 @@ from job_posting.models import (
     QualificationMaster,
     PositionQualificationMapping,
     JobPostingRequirement,
-    JobTemplate,
     JobPosting,
     SelectionProcessContent,
     ServiceConditions,
@@ -22,6 +20,7 @@ from job_posting.models import (
     PermanentPositionMaster,
     TemporaryPositionMaster,
     QualificationJobHistoryMaster,
+    FeeMaster,
 )
 from job_posting.serializer import (
     DepartmentSerializer,
@@ -44,12 +43,12 @@ from job_posting.serializer import (
     ProjectRequirementApprovalStatusSerializer,
     QualificationJobHistoryMasterSerializer,
     PublicJobPostSerializer,
-    ApplicationCountForJobPositionSerializer,
 )
 
-from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.response import Response
+
+from user.models import UserDocuments
 
 
 class QualificationMasterSearchListView(ListAPIView):
@@ -637,18 +636,14 @@ class UserAppealForJobPositions(APIView):
         data = self.request.data
         appeal_id = self.kwargs["id"]
         applicants = UserJobPositions.objects.get(id=appeal_id)
-        if (
-            applicants.applied_job_status == "rejected"
-        ):
+        if applicants.applied_job_status == "rejected":
             applicants.applied_job_status = "appealed"
             applicants.save()
             serializer = UserAppealForJobPositionsSerializer(applicants, data=data)
             serializer.is_valid(raise_exception=True)
             serializer.update(applicants, validated_data=data)
             return Response(serializer.data, status=200)
-        if (
-            applicants.applied_job_status == "appealed"
-        ):
+        if applicants.applied_job_status == "appealed":
             return Response(
                 data={"message": "You've already appealed for this job..."},
                 status=200,
@@ -857,7 +852,6 @@ class PermanentPositionMasterViews(APIView):
             return Response(data={"errors": str(e)})
 
 
-
 # Temporary Position
 class TemporaryPositionMasterFilterListView(ListAPIView):
     queryset = TemporaryPositionMaster.objects.filter(is_deleted=False)
@@ -952,3 +946,5 @@ class TemporaryPositionMasterViews(APIView):
             return Response(serializer.data, status=200)
         except Exception as e:
             return Response(data={"errors": str(e)})
+
+

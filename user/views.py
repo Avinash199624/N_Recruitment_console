@@ -11,8 +11,12 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
 
-from neeri_recruitment_portal.helpers import send_otp, send_verification_mail, send_forget_password_mail, \
-    send_password_mail
+from neeri_recruitment_portal.helpers import (
+    send_otp,
+    send_verification_mail,
+    send_forget_password_mail,
+    send_password_mail,
+)
 from neeri_recruitment_portal.settings import BASE_URL, ACCOUNT_LOCKED_TIME
 from user.models import (
     User,
@@ -35,12 +39,15 @@ from user.models import (
     MentorMaster,
     Trainee,
     RelaxationMaster,
-    RelaxationCategoryMaster, UserAuthentication,
+    RelaxationCategoryMaster,
+    UserAuthentication,
 )
 from job_posting.models import (
     UserJobPositions,
     JobDocuments,
     JobPosting,
+    FeeMaster,
+    PositionQualificationMapping,
 )
 from user.serializer import (
     UserSerializer,
@@ -66,14 +73,26 @@ from user.serializer import (
     RelaxationMasterSerializer,
     RelaxationCategoryMasterSerializer,
     ApplicantIsFresherSerializer,
-    UserDocumentsSerializer, ApplicantIsAddressSameSerializer, UserAuthenticationSerializer,
+    UserDocumentsSerializer,
+    ApplicantIsAddressSameSerializer,
+    UserAuthenticationSerializer,
 )
-from job_posting.serializer import ApplicantJobPositionsSerializer
+from job_posting.serializer import (
+    ApplicantJobPositionsSerializer,
+    PositionQualificationMappingSerializer,
+)
 from knox.views import LoginView as KnoxLoginView
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
-from neeri_recruitment_portal.messeges import INACTIVE_ACCOUNT_ERROR, INACTIVE_EMAIL_ERROR, INACTIVE_MOBILE_ERROR, \
-    INACTIVE_EMAIL_MOBILE_ERROR, INACTIVE_LOCKED_ERROR, INACTIVE_SUSPENDED_ERROR, INVALID_PASSWORD_ERROR
+from neeri_recruitment_portal.messeges import (
+    INACTIVE_ACCOUNT_ERROR,
+    INACTIVE_EMAIL_ERROR,
+    INACTIVE_MOBILE_ERROR,
+    INACTIVE_EMAIL_MOBILE_ERROR,
+    INACTIVE_LOCKED_ERROR,
+    INACTIVE_SUSPENDED_ERROR,
+    INVALID_PASSWORD_ERROR,
+)
 from django.contrib.auth import login, logout
 from rest_framework.response import Response
 from django.views.decorators.csrf import csrf_exempt
@@ -123,14 +142,16 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
         password = data["password"]
         check_pwd = check_password(password, user.password)
         attempts = UserAuthentication.objects.get(user=user)
-        print("datetime.datetime.now()",datetime.datetime.now())
-        print("attempts.account_lock_expiry",attempts.account_lock_expiry)
+        print("datetime.datetime.now()", datetime.datetime.now())
+        print("attempts.account_lock_expiry", attempts.account_lock_expiry)
 
         if datetime.datetime.now() >= attempts.account_lock_expiry:
             attempts.is_locked = False
             attempts.save()
         if not check_pwd:
-            print("attempts.wrong_login_attempt---------->", attempts.wrong_login_attempt)
+            print(
+                "attempts.wrong_login_attempt---------->", attempts.wrong_login_attempt
+            )
             attempts.wrong_login_attempt = attempts.wrong_login_attempt + 1
             attempts.save()
             print("attempts.login_attempt---------->", attempts.wrong_login_attempt)
@@ -145,7 +166,9 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
                 #     minutes=ACCOUNT_LOCKED_TIME)
 
                 return Response(
-                    data={"message": "Account has been locked for multiple wrong Attempts. Try after sometime"},
+                    data={
+                        "message": "Account has been locked for multiple wrong Attempts. Try after sometime"
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -182,17 +205,24 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
             )
         authentication = UserAuthentication.objects.get(user=user)
 
-        if not getattr(user, "is_active", None) and not authentication.mobile_verified and not authentication.email_verified:
-            raise AuthenticationFailed(INACTIVE_EMAIL_MOBILE_ERROR, code="account_disabled")
+        if (
+            not getattr(user, "is_active", None)
+            and not authentication.mobile_verified
+            and not authentication.email_verified
+        ):
+            raise AuthenticationFailed(
+                INACTIVE_EMAIL_MOBILE_ERROR, code="account_disabled"
+            )
         if not getattr(user, "is_active", None) and not authentication.mobile_verified:
             raise AuthenticationFailed(INACTIVE_MOBILE_ERROR, code="account_disabled")
         if not getattr(user, "is_active", None) and not authentication.email_verified:
             raise AuthenticationFailed(INACTIVE_EMAIL_ERROR, code="account_disabled")
         if authentication.is_suspended:
-            raise AuthenticationFailed(INACTIVE_SUSPENDED_ERROR, code="account_disabled")
+            raise AuthenticationFailed(
+                INACTIVE_SUSPENDED_ERROR, code="account_disabled"
+            )
         if authentication.is_locked:
             raise AuthenticationFailed(INACTIVE_LOCKED_ERROR, code="account_disabled")
-
 
         res = login(request, user)
         print("res", res)
@@ -376,7 +406,9 @@ class UserRegistrationView(APIView):
             user_mobile_otp = random.randint(100000, 999999)
             user_email_token = str(uuid.uuid4())
             # user_sms_token = str(uuid.uuid4())
-            UserAuthentication.objects.create(user=user, email_token=user_email_token, mobile_otp=user_mobile_otp)
+            UserAuthentication.objects.create(
+                user=user, email_token=user_email_token, mobile_otp=user_mobile_otp
+            )
             print("user.is_active---------->", user.is_active)
             UserRoles.objects.create(role=role, user=user)
             roles = [
@@ -400,7 +432,9 @@ class UserRegistrationView(APIView):
 
 def verify_sms(request, user_mobile_otp):
     try:
-        is_token_expired = UserAuthentication.objects.filter(mobile_otp=user_mobile_otp).first()
+        is_token_expired = UserAuthentication.objects.filter(
+            mobile_otp=user_mobile_otp
+        ).first()
         if not is_token_expired:
             return JsonResponse(
                 data={"message": "Link Expired, request again."},
@@ -416,7 +450,9 @@ def verify_sms(request, user_mobile_otp):
             if is_token_expired:
 
                 try:
-                    user_sms_auth = UserAuthentication.objects.filter(mobile_otp=user_mobile_otp).first()
+                    user_sms_auth = UserAuthentication.objects.filter(
+                        mobile_otp=user_mobile_otp
+                    ).first()
                     if user_sms_auth:
                         if user_sms_auth.mobile_verified:
                             return JsonResponse(
@@ -462,9 +498,10 @@ def verify_sms(request, user_mobile_otp):
 
 def verify_email(request, user_email_token):
 
-
     try:
-        is_token_expired = UserAuthentication.objects.filter(email_token=user_email_token).first()
+        is_token_expired = UserAuthentication.objects.filter(
+            email_token=user_email_token
+        ).first()
         if not is_token_expired:
             return JsonResponse(
                 data={"message": "Link Expired, request again."},
@@ -479,7 +516,9 @@ def verify_email(request, user_email_token):
 
             if is_token_expired:
                 try:
-                    user_email_auth = UserAuthentication.objects.filter(email_token=user_email_token).first()
+                    user_email_auth = UserAuthentication.objects.filter(
+                        email_token=user_email_token
+                    ).first()
                     if user_email_auth:
                         if user_email_auth.email_verified:
                             return JsonResponse(
@@ -597,7 +636,9 @@ class CreateNeeriUserView(APIView):
             password = User.objects.make_random_password()
             result = serializer.save(validated_data=data, password=password)
             neeri_user_profile = NeeriUserProfile.objects.get(user=result)
-            authuser = User.objects.filter(user_id=neeri_user_profile.user.user_id).first()
+            authuser = User.objects.filter(
+                user_id=neeri_user_profile.user.user_id
+            ).first()
             UserAuthentication.objects.create(user=authuser)
             send_password_mail(neeri_user_profile.user.email, password)
             result_serializer = NeeriUsersSerializer(neeri_user_profile)
@@ -681,7 +722,10 @@ class ForgotPassword(APIView):
                 send_forget_password_mail(user.email, user_reset_token)
 
                 return Response(
-                    data={"message": "Link sent to your registered Email.", "email": user.email},
+                    data={
+                        "message": "Link sent to your registered Email.",
+                        "email": user.email,
+                    },
                 )
         except:
             return Response(
@@ -689,30 +733,43 @@ class ForgotPassword(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+
 class MobileOTP(APIView):
     permission_classes = [
         AllowAny,
     ]
+
     def post(self, request, *args, **kwargs):
         data = self.request.data
-        user_otp = data['user_otp']
+        user_otp = data["user_otp"]
         token = str(self.kwargs["id"])
         # auth = UserAuthentication.objects.filter(reset_token=token).first()
         try:
-            is_token_expired = UserAuthentication.objects.filter(mobile_otp=token).first()
+            is_token_expired = UserAuthentication.objects.filter(
+                mobile_otp=token
+            ).first()
             print("is_token_expired----------->", is_token_expired)
             if not is_token_expired:
                 return JsonResponse(
                     data={"message": "OTP Expired or invalid."},
                 )
             if datetime.datetime.now() >= is_token_expired.mobile_otp_expiry:
-                print("datetime.datetime.now() >= is_token_expired.mobile_otp_expiry----->", datetime.datetime.now(),
-                      is_token_expired.mobile_otp_expiry)
+                print(
+                    "datetime.datetime.now() >= is_token_expired.mobile_otp_expiry----->",
+                    datetime.datetime.now(),
+                    is_token_expired.mobile_otp_expiry,
+                )
                 # e = UserAuthentication.objects.get(user=is_token_expired)
-                print("is_token_expired.reset_token----------->", is_token_expired.mobile_otp)
+                print(
+                    "is_token_expired.reset_token----------->",
+                    is_token_expired.mobile_otp,
+                )
                 is_token_expired.mobile_otp = None
                 is_token_expired.save()
-                print("is_token_expired.mobile_otp----------->", is_token_expired.mobile_otp)
+                print(
+                    "is_token_expired.mobile_otp----------->",
+                    is_token_expired.mobile_otp,
+                )
 
                 return JsonResponse(
                     data={"message": "OTP Expired, request again"},
@@ -730,7 +787,10 @@ class MobileOTP(APIView):
                             return Response(
                                 data={"message": "Please enter a valid OTP."},
                             )
-                        print("is_token_expired.mobile_otp------------->", is_token_expired.mobile_otp)
+                        print(
+                            "is_token_expired.mobile_otp------------->",
+                            is_token_expired.mobile_otp,
+                        )
                         if is_token_expired.email_verified:
                             is_token_expired.user.is_active = True
                             is_token_expired.user.save()
@@ -755,30 +815,43 @@ class MobileOTP(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+
 class UpdateMobileOTP(APIView):
     permission_classes = [
         AllowAny,
     ]
+
     def post(self, request, *args, **kwargs):
         data = self.request.data
-        user_otp = data['user_otp']
+        user_otp = data["user_otp"]
         token = str(self.kwargs["id"])
         # auth = UserAuthentication.objects.filter(reset_token=token).first()
         try:
-            is_token_expired = UserAuthentication.objects.filter(mobile_otp=token).first()
+            is_token_expired = UserAuthentication.objects.filter(
+                mobile_otp=token
+            ).first()
             print("is_token_expired----------->", is_token_expired)
             if not is_token_expired:
                 return JsonResponse(
                     data={"message": "OTP Expired or invalid."},
                 )
             if datetime.datetime.now() >= is_token_expired.mobile_otp_expiry:
-                print("datetime.datetime.now() >= is_token_expired.mobile_otp_expiry----->", datetime.datetime.now(),
-                      is_token_expired.mobile_otp_expiry)
+                print(
+                    "datetime.datetime.now() >= is_token_expired.mobile_otp_expiry----->",
+                    datetime.datetime.now(),
+                    is_token_expired.mobile_otp_expiry,
+                )
                 # e = UserAuthentication.objects.get(user=is_token_expired)
-                print("is_token_expired.reset_token----------->", is_token_expired.mobile_otp)
+                print(
+                    "is_token_expired.reset_token----------->",
+                    is_token_expired.mobile_otp,
+                )
                 is_token_expired.mobile_otp = None
                 is_token_expired.save()
-                print("is_token_expired.mobile_otp----------->", is_token_expired.mobile_otp)
+                print(
+                    "is_token_expired.mobile_otp----------->",
+                    is_token_expired.mobile_otp,
+                )
 
                 return JsonResponse(
                     data={"message": "OTP Expired, request again"},
@@ -787,23 +860,34 @@ class UpdateMobileOTP(APIView):
 
                 if is_token_expired:
                     try:
-                        user_obj = User.objects.get(user_id=is_token_expired.user.user_id)
+                        user_obj = User.objects.get(
+                            user_id=is_token_expired.user.user_id
+                        )
                         if user_otp == is_token_expired.mobile_otp:
                             is_token_expired.mobile_verified = True
                             is_token_expired.mobile_otp = None
                             is_token_expired.save()
-                            print("request.session['new_mobile_no']----otp---->", request.session['new_mobile_no'])
-                            user_obj.mobile_no = request.session['new_mobile_no']
+                            print(
+                                "request.session['new_mobile_no']----otp---->",
+                                request.session["new_mobile_no"],
+                            )
+                            user_obj.mobile_no = request.session["new_mobile_no"]
                             print("user_obj.mobile_no----otp---->", user_obj.mobile_no)
                             user_obj.save()
                         else:
                             return Response(
                                 data={"message": "Please enter a valid OTP."},
                             )
-                        print("is_token_expired.mobile_otp------------->", is_token_expired.mobile_otp)
+                        print(
+                            "is_token_expired.mobile_otp------------->",
+                            is_token_expired.mobile_otp,
+                        )
                         # request.session['user_id'] = None
-                        request.session['new_mobile_no'] = None
-                        print("request.session['new_mobile_no']----------------->", request.session['new_mobile_no'])
+                        request.session["new_mobile_no"] = None
+                        print(
+                            "request.session['new_mobile_no']----------------->",
+                            request.session["new_mobile_no"],
+                        )
 
                         return Response(
                             data={"message": "Your mobile has been verified."},
@@ -828,27 +912,39 @@ class ResetPassword(APIView):
     permission_classes = [
         AllowAny,
     ]
+
     def post(self, request, *args, **kwargs):
         data = self.request.data
-        password = data['password']
-        confirm_password = data['confirm_password']
+        password = data["password"]
+        confirm_password = data["confirm_password"]
         token = str(self.kwargs["token"])
         # auth = UserAuthentication.objects.filter(reset_token=token).first()
         try:
-            is_token_expired = UserAuthentication.objects.filter(reset_token=token).first()
+            is_token_expired = UserAuthentication.objects.filter(
+                reset_token=token
+            ).first()
             print("is_token_expired.reset_token----------->", is_token_expired)
             if not is_token_expired:
                 return JsonResponse(
                     data={"message": "Link Expired, request again"},
                 )
             if datetime.datetime.now() >= is_token_expired.reset_otp_expiry:
-                print("datetime.datetime.now() >= is_token_expired.reset_otp_expiry----->", datetime.datetime.now(),
-                      is_token_expired.reset_otp_expiry)
+                print(
+                    "datetime.datetime.now() >= is_token_expired.reset_otp_expiry----->",
+                    datetime.datetime.now(),
+                    is_token_expired.reset_otp_expiry,
+                )
                 # e = UserAuthentication.objects.get(user=is_token_expired)
-                print("is_token_expired.reset_token----------->", is_token_expired.reset_token)
+                print(
+                    "is_token_expired.reset_token----------->",
+                    is_token_expired.reset_token,
+                )
                 is_token_expired.reset_token = None
                 is_token_expired.save()
-                print("is_token_expired.reset_token----------->", is_token_expired.reset_token)
+                print(
+                    "is_token_expired.reset_token----------->",
+                    is_token_expired.reset_token,
+                )
 
                 return JsonResponse(
                     data={"message": "Link Expired, request again"},
@@ -857,7 +953,9 @@ class ResetPassword(APIView):
 
                 if is_token_expired:
                     try:
-                        user_obj = User.objects.get(user_id=is_token_expired.user.user_id)
+                        user_obj = User.objects.get(
+                            user_id=is_token_expired.user.user_id
+                        )
                         if password == confirm_password:
                             user_obj.set_password(password)
                             user_obj.save()
@@ -865,9 +963,14 @@ class ResetPassword(APIView):
                             is_token_expired.save()
                         else:
                             return Response(
-                                data={"message": "Password and Confirm password are different."},
+                                data={
+                                    "message": "Password and Confirm password are different."
+                                },
                             )
-                        print("auth.reset_token------------->", is_token_expired.reset_token)
+                        print(
+                            "auth.reset_token------------->",
+                            is_token_expired.reset_token,
+                        )
                         return Response(
                             data={"message": "Password reset Successfully."},
                         )
@@ -878,7 +981,9 @@ class ResetPassword(APIView):
                         )
                 else:
                     return Response(
-                        data={"message": "Token has been expired. Please request again."},
+                        data={
+                            "message": "Token has been expired. Please request again."
+                        },
                     )
         except Exception as e:
             print(e)
@@ -886,18 +991,22 @@ class ResetPassword(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+
 class ChangePassword(APIView):
     def put(self, request, *args, **kwargs):
         id = self.kwargs["id"]
         data = self.request.data
-        old_password = data['old_password']
-        new_password = data['new_password']
-        confirm_password = data['confirm_password']
+        old_password = data["old_password"]
+        new_password = data["new_password"]
+        confirm_password = data["confirm_password"]
         auth = User.objects.filter(user_id=id).first()
         if auth:
             user_obj = User.objects.get(user_id=auth.user_id)
             print("user_obj.password------------>", user_obj.password)
-            print("check_password---------->", check_password(old_password, user_obj.password))
+            print(
+                "check_password---------->",
+                check_password(old_password, user_obj.password),
+            )
             checked_pwd = check_password(old_password, user_obj.password)
             if checked_pwd:
                 if new_password == confirm_password:
@@ -905,20 +1014,25 @@ class ChangePassword(APIView):
                     user_obj.save()
                 else:
                     return Response(
-                        data={"message": "Password and Confirm Password are different."},
+                        data={
+                            "message": "Password and Confirm Password are different."
+                        },
                     )
                 first_login = UserAuthentication.objects.get(user=user_obj)
                 first_login.is_first_login = False
                 first_login.save()
                 return Response(
-                    data={"message": "Password has been Successfully changed."}, status=status.HTTP_200_OK,
+                    data={"message": "Password has been Successfully changed."},
+                    status=status.HTTP_200_OK,
                 )
 
             return Response(
-                data={"message": "Please enter the current password correctly"}, status=status.HTTP_401_UNAUTHORIZED,
+                data={"message": "Please enter the current password correctly"},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
         return Response(
-            data={"message": "User Not Found."}, status=status.HTTP_400_BAD_REQUEST,
+            data={"message": "User Not Found."},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
 
@@ -926,10 +1040,12 @@ class ChangeMobileNumber(APIView):
     def put(self, request, *args, **kwargs):
         id = self.kwargs["id"]
         data = self.request.data
-        new_mobile_no = data['new_mobile_no']
+        new_mobile_no = data["new_mobile_no"]
         auth = User.objects.filter(user_id=id).first()
         if auth:
-            request.session['new_mobile_no'] = new_mobile_no # session for new mobile number
+            request.session[
+                "new_mobile_no"
+            ] = new_mobile_no  # session for new mobile number
             user_obj = User.objects.get(user_id=auth.user_id)
             # request.session['user_id'] = user_obj.user_id # session for user_id
             old_mobile_no = user_obj.mobile_no
@@ -940,17 +1056,21 @@ class ChangeMobileNumber(APIView):
                 )
             user_mobile_otp = random.randint(100000, 999999)
             user_auth = UserAuthentication.objects.get(user=user_obj)
-            user_auth.mobile_otp=user_mobile_otp
+            user_auth.mobile_otp = user_mobile_otp
             user_auth.save()
             print("user_obj.mobile_no------------>", user_obj.mobile_no)
             # send_otp(mobile_no, user_mobile_otp)
             return Response(
-                data={"message": "OTP has been sent to your new mobile number, please verify"}, status=status.HTTP_200_OK,
+                data={
+                    "message": "OTP has been sent to your new mobile number, please verify"
+                },
+                status=status.HTTP_200_OK,
             )
         else:
 
             return Response(
-                data={"message": "User Not Found."}, status=status.HTTP_400_BAD_REQUEST,
+                data={"message": "User Not Found."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
 
@@ -984,6 +1104,7 @@ class ChangeMobileNumber(APIView):
 #         print(e)
 #     return render(request, 'change-password.html', context)
 
+
 class RoleMasterView(APIView):
     def get(self, request, *args, **kwargs):
         roles = RoleMaster.objects.filter(is_deleted=False)
@@ -992,25 +1113,32 @@ class RoleMasterView(APIView):
 
 
 class ManageApplicantlistView(APIView):
-
     def get(self, request, *args, **kwargs):
         try:
-            roles = UserRoles.objects.select_related('user__user_auth').filter(role__role_name='applicant')
+            roles = UserRoles.objects.select_related("user__user_auth").filter(
+                role__role_name="applicant"
+            )
             user_auth_instances = [role.user.user_auth for role in roles]
             serializer = UserAuthenticationSerializer(user_auth_instances, many=True)
             return Response(serializer.data, status=200)
         except Exception as e:
-            return Response(data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED
+            )
 
     def delete(self, request, *args, **kwargs):
         try:
-            id = self.kwargs['id']
+            id = self.kwargs["id"]
             user = User.objects.get(user_id=id)
             user.is_deleted = True
             user.save()
-            return Response(data={"message": "User Deleted Successfully."}, )
+            return Response(
+                data={"message": "User Deleted Successfully."},
+            )
         except Exception as e:
-            return Response(data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED
+            )
 
 
 class ApplicantSuspendStatusView(APIView):
@@ -1021,14 +1149,17 @@ class ApplicantSuspendStatusView(APIView):
             serializer = UserAuthenticationSerializer(user)
             return Response(serializer.data)
         except Exception as e:
-            return Response(data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
-
+            return Response(
+                data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED
+            )
 
     def put(self, request, *args, **kwargs):
         status_data = self.request.data
         applicant_id = self.kwargs["id"]
         try:
-            status = UserAuthentication.objects.filter(user__user_id=applicant_id).first()
+            status = UserAuthentication.objects.filter(
+                user__user_id=applicant_id
+            ).first()
             if status_data["is_suspended"]:
                 status.is_suspended = status_data["is_suspended"]
                 status.save()
@@ -1040,7 +1171,9 @@ class ApplicantSuspendStatusView(APIView):
             else:
                 return Response(data={"message": "Detail not found."}, status=401)
         except Exception as e:
-            return Response(data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED
+            )
 
 
 class ApplicantLockedStatusView(APIView):
@@ -1064,10 +1197,13 @@ class ApplicantLockedStatusView(APIView):
                 status.save()
                 return Response(status.is_locked, status=200)
             else:
-                return Response(data={"message": "Detail not found inside."}, status=401)
+                return Response(
+                    data={"message": "Detail not found inside."}, status=401
+                )
         except Exception as e:
-            return Response(data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
-
+            return Response(
+                data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED
+            )
 
 
 class ApplicantPersonalInformationView(APIView):
@@ -1076,7 +1212,9 @@ class ApplicantPersonalInformationView(APIView):
             user = User.objects.get(user_id=self.kwargs["id"])
             try:
                 if user.user_profile:
-                    serializer = ApplicantUserPersonalInformationSerializer(user.user_profile)
+                    serializer = ApplicantUserPersonalInformationSerializer(
+                        user.user_profile
+                    )
                     return Response(serializer.data)
                 else:
                     return Response(
@@ -1100,7 +1238,9 @@ class ApplicantPersonalInformationView(APIView):
                 )
         except:
             applicant_user = UserProfile.objects.filter(is_deleted=False)
-            serializer = ApplicantUserPersonalInformationSerializer(applicant_user, many=True)
+            serializer = ApplicantUserPersonalInformationSerializer(
+                applicant_user, many=True
+            )
             return Response(serializer.data)
 
 
@@ -1233,7 +1373,9 @@ class NeeriPersonalInformation(APIView):
                     },
                 )
         except:
-            neeri_user = NeeriUserProfile.objects.filter(is_deleted=False).order_by('user__first_name')
+            neeri_user = NeeriUserProfile.objects.filter(is_deleted=False).order_by(
+                "user__first_name"
+            )
             serializer = NeeriUsersSerializer(neeri_user, many=True)
             return Response(serializer.data)
 
@@ -2042,6 +2184,124 @@ class ApplicantAppliedJobListView(APIView):
             )
 
 
+class ApplicantAppliedJobDetailView(APIView):
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        application = UserJobPositions.objects.get(id=self.kwargs["id"])
+        if application.user != user:
+            return Response(
+                data={"success": False, "error": "Permission denied"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        position = PositionQualificationMappingSerializer(application.position)
+        return Response(data=position.data)
+
+
+class JobApplyCheckoutView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            data = request.data
+            job_posting = JobPosting.objects.get(job_posting_id=self.kwargs["id"])
+            positions = PositionQualificationMapping.objects.filter(
+                id__in=data["positions"]
+            )
+            applications = []
+            user = request.user
+            if job_posting.job_type == JobPosting.Contract_Basis:
+                if user.subscription.filter(user=user, expired=False).exists():
+                    for position in positions:
+                        application = UserJobPositions.objects.create(
+                            user=user,
+                            position=position,
+                            job_posting=job_posting,
+                            applied_job_status=UserJobPositions.DOCUMENT_PENDING,
+                        )
+                        applications.append(application.id)
+                    return Response(
+                        data={
+                            "success": True,
+                            "message": "Job application successful",
+                            "applications": applications,
+                        }
+                    )
+                subscription_fee = FeeMaster.objects.get(
+                    category=JobPosting.Contract_Basis
+                ).fee * len(positions)
+                return Response(
+                    data={
+                        "success": False,
+                        "message": "User subscription expired",
+                        "fee": subscription_fee,
+                    }
+                )
+            else:
+                user_profile = user.user_profile
+                relaxation_rule = user_profile.relaxation_rule
+                for position in positions:
+                    if not (
+                        position.min_age
+                        < user_profile.age
+                        - ((relaxation_rule and relaxation_rule.age_relaxation) or 0)
+                        < position.max_age
+                    ):
+                        return Response(
+                            data={
+                                "success": False,
+                                "message": f"Age eligibility not fulfilled for {position.position_display_name}",
+                            }
+                        )
+                fee = FeeMaster.objects.get(category=JobPosting.Permanent).fee - (
+                    (relaxation_rule and relaxation_rule.fee_relaxation) or 0
+                ) * len(positions)
+                if fee == 0:
+                    for position in positions:
+                        application = UserJobPositions.objects.create(
+                            user=user,
+                            position=position,
+                            job_posting=job_posting,
+                            applied_job_status=UserJobPositions.DOCUMENT_PENDING,
+                        )
+                        applications.append(application.id)
+                    return Response(
+                        data={
+                            "success": True,
+                            "message": "Job application successful",
+                            "applications": applications,
+                        }
+                    )
+                return Response(data={"success": True, "fee": fee})
+        except Exception as e:
+            return Response(data={"success": False, "message": str(e)})
+
+
+class ApplicationDocumentUpdateView(APIView):
+    def get(self, request, *args, **kwargs):
+        applied_positions = []
+        applications = UserJobPositions.objects.select_related("position").filter(
+            status=UserJobPositions.DOCUMENT_PENDING,
+            user=request.user,
+            application_documents__isnull=True,
+        )
+        for application in applications:
+            position = PositionQualificationMappingSerializer(application.position)
+            applied_positions.append(position.data)
+        return Response(data=applied_positions)
+
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        application = UserJobPositions.objects.get(id=data["application_id"])
+        documents = UserDocuments.objects.filter(doc_id__in=data["documents"])
+        if len(data["documents"]) != len(documents):
+            return Response(
+                data={"success": False, "error": "Invalid document ids"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        application.documents.add(*documents)
+        application.status = UserJobPositions.RECEIVED
+        application.save()
+        return Response(data={"success": True})
+
+
 # While creating new entry of UserJobPositions set closing_date to a closing_date og JobPosting
 
 
@@ -2349,9 +2609,7 @@ class ProfileDetailView(RetrieveAPIView):
 
 class ApplicantListView(APIView):
     def get(self, request, *args, **kwargs):
-        applicants = User.objects.filter(
-            is_deleted=False
-        )
+        applicants = User.objects.filter(is_deleted=False)
         UserRoles.objects.filter(user=applicants)
         serializer = CustomUserSerializer(applicants, many=True)
         return Response(serializer.data)

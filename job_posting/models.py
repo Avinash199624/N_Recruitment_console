@@ -373,6 +373,7 @@ class JobPosting(BaseModel):
 
 
 class UserJobPositions(BaseModel):
+    DOCUMENT_PENDING = "document pending"
     RECEIVED = "received"
     ACCEPTED = "accepted"
     REJECTED = "rejected"
@@ -385,6 +386,7 @@ class UserJobPositions(BaseModel):
     APPEALED = "appealed"
 
     APPLIED_JOB_STATUS_CHOICES = [
+        (DOCUMENT_PENDING, "DOCUMENT_PENDING"),
         (RECEIVED, "RECEIVED"),
         (ACCEPTED, "ACCEPTED"),
         (REJECTED, "REJECTED"),
@@ -436,6 +438,12 @@ class UserJobPositions(BaseModel):
     user_job_position_id = models.CharField(
         max_length=200, null=True, blank=True
     )  # It will be like notifiction_id/job_posting_id/user_id/position_id
+
+    documents = models.ManyToManyField(
+        "user.UserDocuments",
+        blank=True,
+        related_name="application_documents",
+    )
 
     def __str__(self):
         return self.job_posting.notification_title
@@ -569,3 +577,11 @@ class ServiceConditions(BaseModel):
 
     def __str__(self):
         return str(self.pk)
+
+
+class FeeMaster(models.Model):
+    fee = models.FloatField()
+    category = models.CharField(choices=JobPosting.JOB_TYPE_CHOICES, max_length=30)
+
+    def __str__(self):
+        return self.category
