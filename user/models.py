@@ -495,14 +495,14 @@ class UserRoles(BaseModel):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name="create_userrole",
+        related_name="role_master",
     )
     user = models.ForeignKey(
         "User",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name="create_userrole",
+        related_name="user_role",
     )
 
     def __str__(self):
@@ -699,7 +699,7 @@ class OtherInformation(BaseModel):
 
 class UserAuthentication(models.Model):
     user = models.OneToOneField(
-        "User", on_delete=models.CASCADE, related_name="applicant_user"
+        "User", on_delete=models.CASCADE, related_name="user_auth"
     )
     email_verified = models.BooleanField(default=False)
     mobile_verified = models.BooleanField(default=False)

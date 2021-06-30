@@ -995,19 +995,34 @@ class ManageApplicantlistView(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            users = UserRoles.objects.filter(role__role_name="applicant")
-            serializer = UserAuthenticationSerializer(users, many=True)
+            roles = UserRoles.objects.select_related('user__user_auth').filter(role__role_name='applicant')
+            user_auth_instances = [role.user.user_auth for role in roles]
+            serializer = UserAuthenticationSerializer(user_auth_instances, many=True)
             return Response(serializer.data, status=200)
-        except:
-            return Response(data={"message": "Details Not Found."}, status=401)
+        except Exception as e:
+            return Response(data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs['id']
+            user = User.objects.get(user_id=id)
+            user.is_deleted = True
+            user.save()
+            return Response(data={"message": "User Deleted Successfully."}, )
+        except Exception as e:
+            return Response(data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class ApplicantSuspendStatusView(APIView):
     def get(self, request, *args, **kwargs):
-        id = self.kwargs["id"]
-        user = UserAuthentication.objects.filter(user__user_id=id).first()
-        serializer = UserAuthenticationSerializer(user)
-        return Response(serializer.data)
+        try:
+            id = self.kwargs["id"]
+            user = UserAuthentication.objects.filter(user__user_id=id).first()
+            serializer = UserAuthenticationSerializer(user)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
 
     def put(self, request, *args, **kwargs):
         status_data = self.request.data
@@ -1023,9 +1038,9 @@ class ApplicantSuspendStatusView(APIView):
                 status.save()
                 return Response(status.is_suspended, status=200)
             else:
-                return Response(data={"message": "Detail not found inside."}, status=401)
-        except:
-            return Response(data={"message": "Detail not found"}, status=401)
+                return Response(data={"message": "Detail not found."}, status=401)
+        except Exception as e:
+            return Response(data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class ApplicantLockedStatusView(APIView):
@@ -1050,8 +1065,8 @@ class ApplicantLockedStatusView(APIView):
                 return Response(status.is_locked, status=200)
             else:
                 return Response(data={"message": "Detail not found inside."}, status=401)
-        except:
-            return Response(data={"message": "Detail not found"}, status=401)
+        except Exception as e:
+            return Response(data={"message": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 
