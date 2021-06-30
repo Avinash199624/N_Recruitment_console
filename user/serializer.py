@@ -319,6 +319,7 @@ class UserAuthenticationSerializer(serializers.ModelSerializer):
     middle_name = serializers.CharField(source="user.middle_name")
     last_name = serializers.CharField(source="user.last_name")
     first_name = serializers.CharField(source="user.first_name")
+    is_deleted = serializers.CharField(source="user.is_deleted")
 
     class Meta:
         model = UserAuthentication
@@ -331,6 +332,7 @@ class UserAuthenticationSerializer(serializers.ModelSerializer):
             "last_name",
             "mobile_no",
             "email",
+            "is_deleted",
         )
 
 

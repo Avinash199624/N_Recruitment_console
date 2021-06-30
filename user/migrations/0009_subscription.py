@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0007_auto_20210625_1630'),
+        ('user', '0008_auto_20210630_2133'),
     ]
 
     operations = [

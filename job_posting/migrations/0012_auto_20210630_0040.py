@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0008_subscription'),
+        ('user', '0009_subscription'),
         ('job_posting', '0011_auto_20210628_1840'),
     ]
 
