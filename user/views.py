@@ -1347,7 +1347,9 @@ class NeeriPersonalInformation(APIView):
                     },
                 )
         except:
-            neeri_user = NeeriUserProfile.objects.filter(is_deleted=False).order_by('user__first_name')
+            neeri_user = NeeriUserProfile.objects.filter(is_deleted=False).order_by(
+                "user__first_name"
+            )
             serializer = NeeriUsersSerializer(neeri_user, many=True)
             return Response(serializer.data)
 
@@ -2171,75 +2173,79 @@ class ApplicantAppliedJobDetailView(APIView):
 
 class JobApplyCheckoutView(APIView):
     def post(self, request, *args, **kwargs):
-        data = request.data
-        job_posting = JobPosting.objects.get(job_posting_id=self.kwargs["id"])
-        positions = PositionQualificationMapping.objects.filter(
-            id__in=data["positions"]
-        )
-        applications = []
-        user = request.user
-        if job_posting.job_type == JobPosting.Contract_Basis:
-            if user.subscription.filter(user=user, expired=False).exists():
-                for position in positions:
-                    application = UserJobPositions.objects.create(
-                        user=user,
-                        position=position,
-                        job_posting=job_posting,
-                        applied_job_status=UserJobPositions.DOCUMENT_PENDING,
-                    )
-                    applications.append(application.id)
-                return Response(
-                    data={
-                        "success": True,
-                        "message": "Job application successful",
-                        "applications": applications,
-                    }
-                )
-            subscription_fee = FeeMaster.objects.get(
-                category=JobPosting.Contract_Basis
-            ).fee * len(positions)
-            return Response(
-                data={
-                    "success": False,
-                    "message": "User subscription expired",
-                    "fee": subscription_fee,
-                }
+        try:
+            data = request.data
+            job_posting = JobPosting.objects.get(job_posting_id=self.kwargs["id"])
+            positions = PositionQualificationMapping.objects.filter(
+                id__in=data["positions"]
             )
-        else:
-            user_profile = user.user_profile
-            relaxation_rule = user_profile.relaxation_rule
-            for position in positions:
-                if not (
-                    position["min_age"]
-                    < user_profile.age - (relaxation_rule.age_relaxation or 0)
-                    < position["max_age"]
-                ):
+            applications = []
+            user = request.user
+            if job_posting.job_type == JobPosting.Contract_Basis:
+                if user.subscription.filter(user=user, expired=False).exists():
+                    for position in positions:
+                        application = UserJobPositions.objects.create(
+                            user=user,
+                            position=position,
+                            job_posting=job_posting,
+                            applied_job_status=UserJobPositions.DOCUMENT_PENDING,
+                        )
+                        applications.append(application.id)
                     return Response(
                         data={
-                            "success": False,
-                            "message": f"Age eligibility not fulfilled for {position.position_display_name}",
+                            "success": True,
+                            "message": "Job application successful",
+                            "applications": applications,
                         }
                     )
-            fee = FeeMaster.objects.get(category=JobPosting.Permanent).fee - (
-                relaxation_rule.fee_relaxation or 0
-            ) * len(positions)
-            if fee == 0:
-                for position in positions:
-                    application = UserJobPositions.objects.create(
-                        user=user,
-                        position=position,
-                        job_posting=job_posting,
-                        applied_job_status=UserJobPositions.DOCUMENT_PENDING,
-                    )
-                    applications.append(application.id)
+                subscription_fee = FeeMaster.objects.get(
+                    category=JobPosting.Contract_Basis
+                ).fee * len(positions)
                 return Response(
                     data={
-                        "success": True,
-                        "message": "Job application successful",
-                        "applications": applications,
+                        "success": False,
+                        "message": "User subscription expired",
+                        "fee": subscription_fee,
                     }
                 )
-            return Response(data={"success": True, "fee": fee})
+            else:
+                user_profile = user.user_profile
+                relaxation_rule = user_profile.relaxation_rule
+                for position in positions:
+                    if not (
+                        position.min_age
+                        < user_profile.age
+                        - ((relaxation_rule and relaxation_rule.age_relaxation) or 0)
+                        < position.max_age
+                    ):
+                        return Response(
+                            data={
+                                "success": False,
+                                "message": f"Age eligibility not fulfilled for {position.position_display_name}",
+                            }
+                        )
+                fee = FeeMaster.objects.get(category=JobPosting.Permanent).fee - (
+                    (relaxation_rule and relaxation_rule.fee_relaxation) or 0
+                ) * len(positions)
+                if fee == 0:
+                    for position in positions:
+                        application = UserJobPositions.objects.create(
+                            user=user,
+                            position=position,
+                            job_posting=job_posting,
+                            applied_job_status=UserJobPositions.DOCUMENT_PENDING,
+                        )
+                        applications.append(application.id)
+                    return Response(
+                        data={
+                            "success": True,
+                            "message": "Job application successful",
+                            "applications": applications,
+                        }
+                    )
+                return Response(data={"success": True, "fee": fee})
+        except Exception as e:
+            return Response(data={"success": False, "message": str(e)})
 
 
 class ApplicationDocumentUpdateView(APIView):

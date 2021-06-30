@@ -582,3 +582,6 @@ class ServiceConditions(BaseModel):
 class FeeMaster(models.Model):
     fee = models.FloatField()
     category = models.CharField(choices=JobPosting.JOB_TYPE_CHOICES, max_length=30)
+
+    def __str__(self):
+        return self.category

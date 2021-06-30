@@ -357,7 +357,7 @@ urlpatterns = [
         name="applicant-applied-job-detail",
     ),
     path(
-        "apply/<uuid:id>",
+        "apply/<uuid:id>/",
         JobApplyCheckoutView.as_view(),
         name="job-apply",
     ),
