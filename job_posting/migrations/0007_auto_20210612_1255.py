@@ -6,7 +6,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('document', '0002_delete_documentmaster'),
         ('job_posting', '0006_remove_jobposting_department'),
     ]
 
