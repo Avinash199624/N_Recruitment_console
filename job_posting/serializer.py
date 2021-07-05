@@ -397,6 +397,16 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                 instance.division = zonal
 
             instance.save()
+            posi = instance.manpower_position.filter()
+            # print(
+            #     "validated_data['perm_position_master']['qualification']---------->",
+            #     validated_data["perm_position_master"]["qualification"],
+            # )
+            if not validated_data["manpower_position"]:  # working for empty role.
+                for oposi in posi:
+                    instance.manpower_position.remove(oposi)
+                    print("posi deleted")
+
             for position_data in validated_data["manpower_position"]:
                 manpower_position = TemporaryPositionMaster.objects.get(
                     temp_position_id=position_data["position"]
