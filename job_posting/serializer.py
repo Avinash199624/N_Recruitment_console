@@ -178,6 +178,10 @@ class PositionQualificationMappingSerializer(serializers.ModelSerializer):
 
 
 class JobPostingRequirementPositionsSerializer(serializers.ModelSerializer):
+    salary = serializers.SerializerMethodField(
+        method_name="get_salary", read_only=True
+    )
+
     class Meta:
         model = JobPostingRequirementPositions
 
@@ -185,10 +189,13 @@ class JobPostingRequirementPositionsSerializer(serializers.ModelSerializer):
             "id",
             "position",
             "job_posting_requirement",
+            "salary",
             "count",
             "total_cost",
         )
 
+    def get_salary(self, obj):
+        return obj.position.salary
 
 class ProjectApprovalListSerializer(serializers.ModelSerializer):
     project_number = serializers.SerializerMethodField(
