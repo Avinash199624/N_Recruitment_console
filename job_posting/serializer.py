@@ -384,8 +384,8 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
 
             division_name = validated_data["division_name"]["division_name"]
             zonal_lab = validated_data["zonal_lab"]["zonal_lab_name"]
-            division = Division.objects.get(division_name__exact=division_name)
-            zonal = ZonalLab.objects.get(zonal_lab_name__exact=zonal_lab)
+            division = Division.objects.filter(division_name__exact=division_name).first()
+            zonal = ZonalLab.objects.filter(zonal_lab_name__exact=zonal_lab).first()
             if instance.division_name == division:
                 pass
             else:
