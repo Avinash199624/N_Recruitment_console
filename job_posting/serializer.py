@@ -178,7 +178,7 @@ class PositionQualificationMappingSerializer(serializers.ModelSerializer):
 
 
 class JobPostingRequirementPositionsSerializer(serializers.ModelSerializer):
-    salary = serializers.FloatField(source="position.salary")
+    salary = serializers.FloatField(source="position.salary", read_only=True)
 
     class Meta:
         model = JobPostingRequirementPositions
