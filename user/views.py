@@ -2280,7 +2280,7 @@ class ApplicationDocumentUpdateView(APIView):
         applications = UserJobPositions.objects.select_related("position").filter(
             status=UserJobPositions.DOCUMENT_PENDING,
             user=request.user,
-            application_documents__isnull=True,
+            documents__isnull=True,
         )
         for application in applications:
             position = PositionQualificationMappingSerializer(application.position)
