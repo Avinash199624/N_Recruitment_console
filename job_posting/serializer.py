@@ -406,7 +406,12 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                 for oposi in posi:
                     instance.manpower_position.remove(oposi)
                     print("posi deleted")
-
+            for oposi in posi:
+                for posi_data in validated_data["manpower_position"]:
+                    if str(oposi.id) != str(
+                            posi_data["id"]
+                    ):
+                        instance.manpower_position.remove(oposi)
             for position_data in validated_data["manpower_position"]:
                 manpower_position = TemporaryPositionMaster.objects.get(
                     temp_position_id=position_data["position"]
