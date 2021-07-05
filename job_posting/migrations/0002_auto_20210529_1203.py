@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='newpositionmaster',
             name='documents_required',
-            field=models.ManyToManyField(blank=True, related_name='required_documents', to='document.NewDocumentMaster'),
+            field=models.ManyToManyField(blank=True, related_name='position_master_required_documents', to='document.NewDocumentMaster'),
         ),
         migrations.AddField(
             model_name='newpositionmaster',
