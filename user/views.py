@@ -2278,7 +2278,7 @@ class ApplicationDocumentUpdateView(APIView):
     def get(self, request, *args, **kwargs):
         applied_positions = []
         applications = UserJobPositions.objects.select_related("position").filter(
-            status=UserJobPositions.DOCUMENT_PENDING,
+            applied_job_status=UserJobPositions.DOCUMENT_PENDING,
             user=request.user,
             documents__isnull=True,
         )
@@ -2297,7 +2297,7 @@ class ApplicationDocumentUpdateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         application.documents.add(*documents)
-        application.status = UserJobPositions.RECEIVED
+        application.applied_job_status = UserJobPositions.RECEIVED
         application.save()
         return Response(data={"success": True})
 
