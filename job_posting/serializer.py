@@ -402,12 +402,12 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
             #     "validated_data['perm_position_master']['qualification']---------->",
             #     validated_data["perm_position_master"]["qualification"],
             # )
-            if not validated_data["manpower_position"]:  # working for empty role.
+            if not validated_data["manpower_position"]:  # working for empty position.
                 for oposi in posi:
                     instance.manpower_position.remove(oposi)
                     print("posi deleted")
             for oposi in posi:
-                for posi_data in validated_data["manpower_position"]:
+                for posi_data in validated_data["manpower_position"]: # working for single position deletion.
                     if str(oposi.id) != str(
                             posi_data["id"]
                     ):
@@ -422,9 +422,11 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                     )
                     inst.count = position_data["count"]
                     inst.position = manpower_position
+                    manpower_position.salary = position_data["salary"]
                     inst.job_posting_requirement = instance
                     inst.total_cost = position_data["total_cost"]
                     inst.save()
+                    manpower_position.save()
                 except:
                     JobPostingRequirementPositions.objects.create(
                         position=manpower_position,
