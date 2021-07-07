@@ -319,6 +319,10 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                 count=count,
                 total_cost=total_cost,
             )
+            manpower_position.salary = (
+                    position_data["salary"] or manpower_position.salary
+            )
+            manpower_position.save()
             requi.manpower_positions.add(manpower_position)
         return requi.id
 
@@ -434,6 +438,10 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                         count=position_data["count"],
                         total_cost=position_data["total_cost"],
                     )
+                    manpower_position.salary=(
+                        position_data["salary"] or manpower_position.salary
+                    )
+                    manpower_position.save()
                     instance.manpower_positions.add(manpower_position)
         return instance.id
 
