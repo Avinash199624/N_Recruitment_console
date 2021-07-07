@@ -410,7 +410,8 @@ class UserRegistrationView(APIView):
                 user=user, email_token=user_email_token, mobile_otp=user_mobile_otp
             )
             print("user.is_active---------->", user.is_active)
-            UserRoles.objects.create(role=role, user=user)
+            if user:
+                UserRoles.objects.create(role=role, user=user)
             roles = [
                 role.role.role_name for role in UserRoles.objects.filter(user=user)
             ]
@@ -1115,6 +1116,8 @@ class RoleMasterView(APIView):
 class ManageApplicantlistView(APIView):
     def get(self, request, *args, **kwargs):
         try:
+            if UserRoles.objects.filter(user__email=None).exists():
+                UserRoles.objects.filter(user__email=None).delete()
             roles = UserRoles.objects.select_related("user__user_auth").filter(
                 role__role_name="applicant"
             )
