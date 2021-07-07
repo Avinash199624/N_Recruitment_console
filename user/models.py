@@ -436,6 +436,8 @@ class NeeriUserProfile(BaseModel):
     user = models.OneToOneField(
         "User", on_delete=models.CASCADE, related_name="neeri_user_profile"
     )
+    division = models.ManyToManyField('job_posting.Division', blank=True, related_name="neeri_user_division")
+    zonal = models.ManyToManyField('job_posting.ZonalLab', blank=True, related_name="neeri_user_zonal")
     gender = models.CharField(
         null=True, blank=True, choices=GENDER_CHOICES, max_length=20
     )
