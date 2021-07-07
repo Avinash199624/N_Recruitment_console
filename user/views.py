@@ -2210,11 +2210,11 @@ class JobApplyCheckoutView(APIView):
             if job_posting.job_type == JobPosting.Contract_Basis:
                 if user.subscription.filter(user=user, expired=False).exists():
                     for position in positions:
-                        application = UserJobPositions.objects.create(
+                        application, _ = UserJobPositions.objects.get_or_create(
                             user=user,
                             position=position,
                             job_posting=job_posting,
-                            applied_job_status=UserJobPositions.DOCUMENT_PENDING,
+                            defaults={"applied_job_status": UserJobPositions.DOCUMENT_PENDING}
                         )
                         applications.append(application.id)
                     return Response(
@@ -2255,11 +2255,11 @@ class JobApplyCheckoutView(APIView):
                 ) * len(positions)
                 if fee == 0:
                     for position in positions:
-                        application = UserJobPositions.objects.create(
+                        application, _ = UserJobPositions.objects.get_or_create(
                             user=user,
                             position=position,
                             job_posting=job_posting,
-                            applied_job_status=UserJobPositions.DOCUMENT_PENDING,
+                            defaults={"applied_job_status": UserJobPositions.DOCUMENT_PENDING}
                         )
                         applications.append(application.id)
                     return Response(
@@ -2284,7 +2284,9 @@ class ApplicationDocumentUpdateView(APIView):
         )
         for application in applications:
             position = PositionQualificationMappingSerializer(application.position)
-            applied_positions.append(position.data)
+            data = position.data
+            data["id"] = application.id
+            applied_positions.append(data)
         return Response(data=applied_positions)
 
     def post(self, request, *args, **kwargs):
