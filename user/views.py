@@ -1119,7 +1119,7 @@ class ManageApplicantlistView(APIView):
             if UserRoles.objects.filter(user__email=None).exists():
                 UserRoles.objects.filter(user__email=None).delete()
             roles = UserRoles.objects.select_related("user__user_auth").filter(
-                role__role_name="applicant"
+                role__role_name="applicant", user__is_deleted=False
             )
             user_auth_instances = [role.user.user_auth for role in roles]
             serializer = UserAuthenticationSerializer(user_auth_instances, many=True)
