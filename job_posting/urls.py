@@ -20,7 +20,6 @@ from job_posting.views import (
     ProjectRequirementListView,
     GetSelectionContent,
     GetServiceConditions,
-    GetServiceConditions,
     ApplicantListByJobPositions,
     JobPostingListView,
     UserAppealForJobPositions,
@@ -43,7 +42,9 @@ from job_posting.views import (
     JobPostingSearchListView,
     JobPostingFilterListView,
     PublicJobPostingFilterListView,
-    PublicJobPostingSearchListView, ApproveRejectApplicantView, ApplicationCountByJobPositions,
+    PublicJobPostingSearchListView,
+    ApproveRejectApplicantView,
+    ApplicationCountByJobPositions,
 )
 
 urlpatterns = [
@@ -169,7 +170,6 @@ urlpatterns = [
     path(
         "job_posting_create/", JobPostingCreateView.as_view(), name="job-posting-create"
     ),
-
     path(
         "detail/<uuid:id>/",
         JobPostingDetailView.as_view(),
@@ -207,7 +207,9 @@ urlpatterns = [
         name="applicant-job-posting-positions",
     ),
     path(
-        "applicant_status/<int:id>/", ApproveRejectApplicantView.as_view(), name="approve-reject-applicant-for-job"
+        "applicant_status/<int:id>/",
+        ApproveRejectApplicantView.as_view(),
+        name="approve-reject-applicant-for-job",
     ),
     path(
         "applicant_list_by_job/",

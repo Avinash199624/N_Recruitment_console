@@ -192,23 +192,6 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='PositionMaster',
-            fields=[
-                ('created_by', models.CharField(blank=True, help_text='username', max_length=50, null=True)),
-                ('updated_by', models.CharField(blank=True, help_text='username', max_length=25, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True, null=True)),
-                ('updated_at', models.DateTimeField(blank=True, null=True)),
-                ('is_deleted', models.BooleanField(default=False, help_text='Used for Soft Delete')),
-                ('position_id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('position_name', models.CharField(blank=True, max_length=300, null=True)),
-                ('position_desc', models.CharField(blank=True, max_length=300, null=True)),
-                ('salary', models.FloatField(blank=True, null=True)),
-            ],
-            options={
-                'abstract': False,
-            },
-        ),
-        migrations.CreateModel(
             name='PositionQualificationMapping',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

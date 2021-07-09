@@ -28,28 +28,9 @@ from user.serializer import UserProfilePreviewSerializer
 
 
 class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
-    notification_id = serializers.SerializerMethodField(
-        method_name="get_notification_id", read_only=True
-    )
-
+    notification_id = serializers.CharField(source="job_posting.notification_id")
     description = serializers.SerializerMethodField(
         method_name="get_description", read_only=True
-    )
-
-    date_of_application = serializers.SerializerMethodField(
-        method_name="get_date_of_application", read_only=True
-    )
-
-    date_of_closing = serializers.SerializerMethodField(
-        method_name="get_date_of_closing", read_only=True
-    )
-
-    hiring_status = serializers.SerializerMethodField(
-        method_name="get_hiring_status", read_only=True
-    )
-
-    user_job_position_id = serializers.SerializerMethodField(
-        method_name="get_user_job_position_id", read_only=True
     )
 
     class Meta:
@@ -64,29 +45,11 @@ class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
             "user_job_position_id",
         )
 
-    def get_notification_id(self, obj):
-        notification_id = obj.job_posting.notification_id
-        return notification_id
-
     def get_description(self, obj):
-        description = obj.position.position.position_name
+        description = (
+            obj.position.position.position_name or obj.position.position_display_name
+        )
         return description
-
-    def get_date_of_application(self, obj):
-        date_of_application = obj.date_of_application
-        return date_of_application
-
-    def get_date_of_closing(self, obj):
-        date_of_closing = obj.date_of_closing
-        return date_of_closing
-
-    def get_hiring_status(self, obj):
-        hiring_status = obj.applied_job_status
-        return hiring_status
-
-    def get_user_job_position_id(self, obj):
-        user_job_position_id = obj.user_job_position_id
-        return user_job_position_id
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -191,6 +154,7 @@ class PositionQualificationMappingSerializer(serializers.ModelSerializer):
         many=True, read_only=True
     )
     information_required = InformationMasterSerializer(many=True, read_only=True)
+    documents_required = NewDocumentMasterSerializer(many=True, read_only=True)
 
     class Meta:
         model = PositionQualificationMapping
@@ -201,6 +165,7 @@ class PositionQualificationMappingSerializer(serializers.ModelSerializer):
             "qualification",
             "qualification_job_history",
             "information_required",
+            "documents_required",
             "min_age",
             "max_age",
             "number_of_vacancies",
@@ -213,6 +178,8 @@ class PositionQualificationMappingSerializer(serializers.ModelSerializer):
 
 
 class JobPostingRequirementPositionsSerializer(serializers.ModelSerializer):
+    salary = serializers.FloatField(source="position.salary", read_only=True)
+
     class Meta:
         model = JobPostingRequirementPositions
 
@@ -220,10 +187,10 @@ class JobPostingRequirementPositionsSerializer(serializers.ModelSerializer):
             "id",
             "position",
             "job_posting_requirement",
+            "salary",
             "count",
             "total_cost",
         )
-
 
 class ProjectApprovalListSerializer(serializers.ModelSerializer):
     project_number = serializers.SerializerMethodField(
@@ -352,6 +319,10 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                 count=count,
                 total_cost=total_cost,
             )
+            manpower_position.salary = (
+                    position_data["salary"] or manpower_position.salary
+            )
+            manpower_position.save()
             requi.manpower_positions.add(manpower_position)
         return requi.id
 
@@ -417,8 +388,8 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
 
             division_name = validated_data["division_name"]["division_name"]
             zonal_lab = validated_data["zonal_lab"]["zonal_lab_name"]
-            division = Division.objects.get(division_name__exact=division_name)
-            zonal = ZonalLab.objects.get(zonal_lab_name__exact=zonal_lab)
+            division = Division.objects.filter(division_name__exact=division_name).first()
+            zonal = ZonalLab.objects.filter(zonal_lab_name__exact=zonal_lab).first()
             if instance.division_name == division:
                 pass
             else:
@@ -430,6 +401,21 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                 instance.division = zonal
 
             instance.save()
+            posi = instance.manpower_position.filter()
+            # print(
+            #     "validated_data['perm_position_master']['qualification']---------->",
+            #     validated_data["perm_position_master"]["qualification"],
+            # )
+            if not validated_data["manpower_position"]:  # working for empty position.
+                for oposi in posi:
+                    instance.manpower_position.remove(oposi)
+                    print("posi deleted")
+            for oposi in posi:
+                for posi_data in validated_data["manpower_position"]: # working for single position deletion.
+                    if str(oposi.id) != str(
+                            posi_data["id"]
+                    ):
+                        instance.manpower_position.remove(oposi)
             for position_data in validated_data["manpower_position"]:
                 manpower_position = TemporaryPositionMaster.objects.get(
                     temp_position_id=position_data["position"]
@@ -440,9 +426,11 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                     )
                     inst.count = position_data["count"]
                     inst.position = manpower_position
+                    manpower_position.salary = position_data["salary"]
                     inst.job_posting_requirement = instance
                     inst.total_cost = position_data["total_cost"]
                     inst.save()
+                    manpower_position.save()
                 except:
                     JobPostingRequirementPositions.objects.create(
                         position=manpower_position,
@@ -450,6 +438,10 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                         count=position_data["count"],
                         total_cost=position_data["total_cost"],
                     )
+                    manpower_position.salary=(
+                        position_data["salary"] or manpower_position.salary
+                    )
+                    manpower_position.save()
                     instance.manpower_positions.add(manpower_position)
         return instance.id
 
@@ -982,8 +974,7 @@ class UserAppealForJobPositionsSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if instance:
             instance.reason_to_appeal = (
-                validated_data.get("reason_to_appeal")
-                or instance.reason_to_appeal
+                validated_data.get("reason_to_appeal") or instance.reason_to_appeal
             )
             appeal_id = validated_data["appeal"]
             appeal = AppealMaster.objects.filter(appeal_id=appeal_id).first()
@@ -1383,7 +1374,6 @@ class TemporaryPositionMasterSerializer(serializers.ModelSerializer):
             for doc in document:
                 docs = NewDocumentMaster.objects.get(doc_id=doc["doc_id"])
                 posi.documents_required.add(docs)
-
 
         posi = TemporaryPositionMaster.objects.create(
             temp_position_master=posi,

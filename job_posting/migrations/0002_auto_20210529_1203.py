@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='positionqualificationmapping',
             name='position',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='postion', to='job_posting.positionmaster'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='postion', to='job_posting.newpositionmaster'),
         ),
         migrations.AddField(
             model_name='positionqualificationmapping',
@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='newpositionmaster',
             name='documents_required',
-            field=models.ManyToManyField(blank=True, related_name='required_documents', to='document.NewDocumentMaster'),
+            field=models.ManyToManyField(blank=True, related_name='position_master_required_documents', to='document.NewDocumentMaster'),
         ),
         migrations.AddField(
             model_name='newpositionmaster',
@@ -69,7 +69,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='jobtemplate',
             name='position',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='job_postion', to='job_posting.positionmaster'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='job_postion', to='job_posting.newpositionmaster'),
         ),
         migrations.AddField(
             model_name='jobtemplate',
@@ -114,7 +114,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='jobposting',
             name='documents_required',
-            field=models.ManyToManyField(blank=True, related_name='required_documents', to='document.DocumentMaster'),
+            field=models.ManyToManyField(blank=True, related_name='required_documents', to='document.NewDocumentMaster'),
         ),
         migrations.AddField(
             model_name='jobposting',

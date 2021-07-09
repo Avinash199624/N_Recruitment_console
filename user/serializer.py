@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+import job_posting
 from job_posting.models import JobPosting, Division
 from user.models import (
     User,
@@ -319,6 +320,7 @@ class UserAuthenticationSerializer(serializers.ModelSerializer):
     middle_name = serializers.CharField(source="user.middle_name")
     last_name = serializers.CharField(source="user.last_name")
     first_name = serializers.CharField(source="user.first_name")
+    is_deleted = serializers.CharField(source="user.is_deleted")
 
     class Meta:
         model = UserAuthentication
@@ -331,6 +333,7 @@ class UserAuthenticationSerializer(serializers.ModelSerializer):
             "last_name",
             "mobile_no",
             "email",
+            "is_deleted",
         )
 
 
@@ -1495,6 +1498,8 @@ class NeeriUsersSerializer(serializers.ModelSerializer):
         method_name="get_first_name", read_only=True
     )
     roles = serializers.SerializerMethodField(method_name="get_roles", required=False)
+    zonal = serializers.SerializerMethodField(method_name="get_zonal", required=False)
+    division = serializers.SerializerMethodField(method_name="get_division", required=False)
     user_address = serializers.SerializerMethodField(
         method_name="get_address", required=False
     )
@@ -1508,6 +1513,8 @@ class NeeriUsersSerializer(serializers.ModelSerializer):
             "last_name",
             "gender",
             "mobile_no",
+            "division",
+            "zonal",
             "email",
             "date_of_birth",
             "user_address",
@@ -1606,6 +1613,16 @@ class NeeriUsersSerializer(serializers.ModelSerializer):
         serializer = RoleMasterSerializer(role, many=True)
         return serializer.data
 
+    def get_division(self, obj):
+        division = obj.division.filter()
+        serializer = job_posting.serializer.DivisionSerializer(division, many=True)
+        return serializer.data
+
+    def get_zonal(self, obj):
+        zonal = obj.zonal.filter()
+        serializer = job_posting.serializer.ZonalLabSerializer(zonal, many=True)
+        return serializer.data
+
     def save(self, validated_data, password):
         print("random password----------------->", password)
         # user.set_password(password)
@@ -1656,6 +1673,13 @@ class NeeriUsersSerializer(serializers.ModelSerializer):
             print("neeri_user-------->", neeri_user)
 
             UserRoles.objects.create(role=role, user=neeri_user)
+
+        for zonal_data in validated_data["zonal"]:
+            neeri_user_profile.zonal.add(zonal_data["zonal_lab_id"])
+
+        for division_data in validated_data["division"]:
+            neeri_user_profile.division.add(division_data["division_id"])
+
         neeri_user_profile.save()
 
         return neeri_user_profile.user_id
@@ -1743,6 +1767,42 @@ class NeeriUsersSerializer(serializers.ModelSerializer):
                 UserRoles.objects.create(role=role, user=user.user)
             else:
                 print("already present")
+
+        #for Division
+        olddivision = user.division.filter()
+        if not validated_data["division"]:  # working for empty role.
+            for odivision in olddivision:
+                instance.division.remove(odivision)
+
+        for odivision in olddivision:
+            for division_data in validated_data["division"]:
+                print("division_data.division_id-------------->", division_data["division_id"])
+                if str(odivision.division_id) != str(
+                        division_data["division_id"]
+                ):  # working deletion now
+                    print(str(division_data["division_id"]) + " != " + str(odivision.division_id))
+                    instance.division.remove(odivision)
+
+        for division_data in validated_data["division"]:  # working for addition too.
+            instance.division.add(division_data["division_id"])
+
+        # for Zonal
+        oldzonal = user.zonal.filter()
+        if not validated_data["zonal"]:  # working for empty role.
+            for ozonal in oldzonal:
+                instance.zonal.remove(ozonal)
+
+        for ozonal in oldzonal:
+            for zonal_data in validated_data["zonal"]:
+                print("zonal_data.zonal_lab_id-------------->", zonal_data["zonal_lab_id"])
+                if str(ozonal.zonal_lab_id) != str(
+                        zonal_data["zonal_lab_id"]
+                ):  # working deletion now
+                    print(str(zonal_data["zonal_lab_id"]) + " != " + str(ozonal.zonal_lab_id))
+                    instance.zonal.remove(ozonal)
+
+        for zonal_data in validated_data["zonal"]:  # working for addition too.
+            instance.zonal.add(zonal_data["zonal_lab_id"])
         instance.save()
 
 

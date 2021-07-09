@@ -107,6 +107,11 @@ III = "III"
 IV = "IV"
 V = "V"
 
+ONE = "1"
+TWO = "2"
+THREE = "3"
+FOUR = "4"
+
 GRADE_CHOICES = [
     (I, "I"),
     (II, "II"),
@@ -114,11 +119,12 @@ GRADE_CHOICES = [
     (IV, "IV"),
     (V, "V"),
 ]
+
 LEVEL_CHOICES = [
-    (I, "I"),
-    (II, "II"),
-    (III, "III"),
-    (IV, "IV"),
+    (ONE, "1"),
+    (TWO, "2"),
+    (THREE, "3"),
+    (FOUR, "4"),
 ]
 
 
@@ -373,6 +379,7 @@ class JobPosting(BaseModel):
 
 
 class UserJobPositions(BaseModel):
+    DOCUMENT_PENDING = "document pending"
     RECEIVED = "received"
     ACCEPTED = "accepted"
     REJECTED = "rejected"
@@ -385,6 +392,7 @@ class UserJobPositions(BaseModel):
     APPEALED = "appealed"
 
     APPLIED_JOB_STATUS_CHOICES = [
+        (DOCUMENT_PENDING, "DOCUMENT_PENDING"),
         (RECEIVED, "RECEIVED"),
         (ACCEPTED, "ACCEPTED"),
         (REJECTED, "REJECTED"),
@@ -437,6 +445,12 @@ class UserJobPositions(BaseModel):
         max_length=200, null=True, blank=True
     )  # It will be like notifiction_id/job_posting_id/user_id/position_id
 
+    documents = models.ManyToManyField(
+        "user.UserDocuments",
+        blank=True,
+        related_name="application_documents",
+    )
+
     def __str__(self):
         return self.job_posting.notification_title
 
@@ -479,27 +493,28 @@ class JobPostingRequirementPositions(BaseModel):
         return self.position.temp_position_master.position_name
 
 
-# Draft, Submit, Lock, Approve, Reject, Cancel
-
-DRAFT = "draft"
-SUBMIT = "submit"
-LOCK = "lock"
-SUSPENDED = "suspended"
-APPROVE = "approve"
-REJECT = "reject"
-CANCEL = "cancel"
-
-STATUS_CHOICES = [
-    (DRAFT, "DRAFT"),
-    (SUBMIT, "SUBMIT"),
-    (LOCK, "LOCK"),
-    (SUSPENDED, "SUSPENDED"),
-    (REJECT, "REJECT"),
-    (CANCEL, "CANCEL"),
-]
-
 
 class JobPostingRequirement(BaseModel):
+    # Draft, Submitted, Approved, On Hold, Cancelled, Rejected, Closed
+
+    DRAFT = "draft"
+    SUBMITTED = "submitted"
+    APPROVED = "approved"
+    ON_HOLD = "on hold"
+    CANCELLED = "cancelled"
+    REJECTED = "rejected"
+    CLOSED = "closed"
+
+    STATUS_CHOICES = [
+        (DRAFT, "DRAFT"),
+        (SUBMITTED, "SUBMITTED"),
+        (ON_HOLD, "ON_HOLD"),
+        (APPROVED, "APPROVED"),
+        (REJECTED, "REJECTED"),
+        (CANCELLED, "CANCELLED"),
+        (CLOSED, "CLOSED"),
+    ]
+
     division_name = models.ForeignKey(
         "Division",
         on_delete=models.SET_NULL,
@@ -569,3 +584,11 @@ class ServiceConditions(BaseModel):
 
     def __str__(self):
         return str(self.pk)
+
+
+class FeeMaster(models.Model):
+    fee = models.FloatField()
+    category = models.CharField(choices=JobPosting.JOB_TYPE_CHOICES, max_length=30)
+
+    def __str__(self):
+        return self.category
