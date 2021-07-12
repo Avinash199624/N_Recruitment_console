@@ -41,7 +41,7 @@ class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
             "description",
             "date_of_application",
             "date_of_closing",
-            "hiring_status",
+            "applied_job_status",
             "user_job_position_id",
         )
 

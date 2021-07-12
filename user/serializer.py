@@ -373,7 +373,7 @@ class UserSerializer(serializers.ModelSerializer):
         ) + profile_names
 
     def get_username(self, obj):
-        return obj.email or obj.get_full_name()
+        return obj.get_full_name()
 
     def get_first_login(self, obj):
         auth = UserAuthentication.objects.get(user=obj)
