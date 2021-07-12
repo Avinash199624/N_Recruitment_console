@@ -1727,9 +1727,7 @@ class NeeriUsersSerializer(serializers.ModelSerializer):
         )
 
         instance.user.middle_name = (
-            validated_data["middle_name"]
-            if validated_data["middle_name"]
-            else instance.user.middle_name
+            validated_data.get("middle_name") or instance.user.middle_name
         )
         instance.user.save()
         user = NeeriUserProfile.objects.get(user_id=validated_data["user_id"])
