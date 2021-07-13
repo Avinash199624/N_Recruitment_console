@@ -495,7 +495,7 @@ class JobPostingListView(ListAPIView):
 class PublicJobPostingView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = PublicJobPostSerializer
-    queryset = JobPosting.objects.filter(is_deleted=False)
+    queryset = JobPosting.objects.filter(is_deleted=False).order_by('notification_title')
 
 
 class PublicJobPostingFilterListView(ListAPIView):
