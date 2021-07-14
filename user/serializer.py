@@ -161,6 +161,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "gender",
             # "mobile_no",
             "date_of_birth",
+            "profile_photo",
             "status",
             "created_by",
             "updated_by",
