@@ -127,9 +127,14 @@ class User(AbstractUser, BaseModel):
         return setattr(self, email_field_name, new_mail)
 
     def get_full_name(self):
-        return " ".join(
-            name for name in [self.first_name, self.middle_name, self.last_name] if name
-        )
+        if self.middle_name:
+            return " ".join(
+                name for name in [self.first_name, self.middle_name, self.last_name] if name
+            )
+        else:
+            return " ".join(
+                name for name in [self.first_name, self.last_name] if name
+            )
 
 
 class UserProfile(BaseModel):

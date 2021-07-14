@@ -2617,7 +2617,7 @@ class UserDocumentView(APIView):
 
 
 class ProfileDetailView(RetrieveAPIView):
-    queryset = UserProfile.objects.select_related("user")
+    queryset = UserProfile.objects.filter(is_deleted=False)
     serializer_class = UserProfilePreviewSerializer
     lookup_field = "user__user_id"
     lookup_url_kwarg = "id"

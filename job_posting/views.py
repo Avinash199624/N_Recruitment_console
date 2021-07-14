@@ -505,7 +505,7 @@ class JobPostingListView(ListAPIView):
     ]
     queryset = JobPosting.objects.prefetch_related("job_posting_applicants").filter(
         is_deleted=False
-    )
+    ).order_by('notification_title')
     serializer_class = JobPostingSerializer
     filterset_fields = ["job_type", "status"]
 
@@ -513,7 +513,7 @@ class JobPostingListView(ListAPIView):
 class PublicJobPostingView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = PublicJobPostSerializer
-    queryset = JobPosting.objects.filter(is_deleted=False)
+    queryset = JobPosting.objects.filter(is_deleted=False).order_by('notification_title')
 
 
 class PublicJobPostingFilterListView(ListAPIView):

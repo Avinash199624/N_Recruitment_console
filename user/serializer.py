@@ -161,6 +161,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "gender",
             # "mobile_no",
             "date_of_birth",
+            "profile_photo",
             "status",
             "created_by",
             "updated_by",
@@ -373,7 +374,7 @@ class UserSerializer(serializers.ModelSerializer):
         ) + profile_names
 
     def get_username(self, obj):
-        return obj.email or obj.get_full_name()
+        return obj.get_full_name()
 
     def get_first_login(self, obj):
         auth = UserAuthentication.objects.get(user=obj)
@@ -780,7 +781,7 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
     mobile_no = serializers.CharField(source="user.mobile_no")
     email = serializers.EmailField(source="user.email")
     user_id = serializers.UUIDField(source="user.user_id")
-    middle_name = serializers.CharField(source="user.middle_name")
+    middle_name = serializers.CharField(source="user.middle_name", required=False, allow_blank=True)
     last_name = serializers.CharField(source="user.last_name")
     first_name = serializers.CharField(source="user.first_name")
     relaxation_rule = RelaxationMasterSerializer()
@@ -895,8 +896,9 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
 
         instance.user.last_name = validated_data.get("last_name") or instance.user.last_name
 
-
-        instance.user.middle_name = validated_data.get("middle_name") or instance.user.middle_name
+        instance.user.middle_name = (
+            validated_data.get("middle_name") if "middle_name" in validated_data else instance.user.middle_name
+        )
 
         instance.is_fresher = validated_data["is_fresher"]
         instance.is_indian_citizen = validated_data["is_indian_citizen"]
@@ -1041,8 +1043,6 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         #     )
         #
         #     father_address_instance.save()
-
-        instance.save()
 
     def save(self, validated_data):
         # if 'local_address' in validated_data:
@@ -1727,9 +1727,7 @@ class NeeriUsersSerializer(serializers.ModelSerializer):
         )
 
         instance.user.middle_name = (
-            validated_data["middle_name"]
-            if validated_data["middle_name"]
-            else instance.user.middle_name
+            validated_data.get("middle_name") or instance.user.middle_name
         )
         instance.user.save()
         user = NeeriUserProfile.objects.get(user_id=validated_data["user_id"])
