@@ -192,6 +192,7 @@ class JobPostingRequirementPositionsSerializer(serializers.ModelSerializer):
             "total_cost",
         )
 
+
 class ProjectApprovalListSerializer(serializers.ModelSerializer):
     project_number = serializers.SerializerMethodField(
         method_name="get_project_number", read_only=True
@@ -320,7 +321,7 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                 total_cost=total_cost,
             )
             manpower_position.salary = (
-                    position_data["salary"] or manpower_position.salary
+                position_data["salary"] or manpower_position.salary
             )
             manpower_position.save()
             requi.manpower_positions.add(manpower_position)
@@ -388,7 +389,9 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
 
             division_name = validated_data["division_name"]["division_name"]
             zonal_lab = validated_data["zonal_lab"]["zonal_lab_name"]
-            division = Division.objects.filter(division_name__exact=division_name).first()
+            division = Division.objects.filter(
+                division_name__exact=division_name
+            ).first()
             zonal = ZonalLab.objects.filter(zonal_lab_name__exact=zonal_lab).first()
             if instance.division_name == division:
                 pass
@@ -411,10 +414,10 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                     instance.manpower_position.remove(oposi)
                     print("posi deleted")
             for oposi in posi:
-                for posi_data in validated_data["manpower_position"]: # working for single position deletion.
-                    if str(oposi.id) != str(
-                            posi_data["id"]
-                    ):
+                for posi_data in validated_data[
+                    "manpower_position"
+                ]:  # working for single position deletion.
+                    if str(oposi.id) != str(posi_data["id"]):
                         instance.manpower_position.remove(oposi)
             for position_data in validated_data["manpower_position"]:
                 manpower_position = TemporaryPositionMaster.objects.get(
@@ -438,7 +441,7 @@ class ProjectRequirementSerializer(serializers.ModelSerializer):
                         count=position_data["count"],
                         total_cost=position_data["total_cost"],
                     )
-                    manpower_position.salary=(
+                    manpower_position.salary = (
                         position_data["salary"] or manpower_position.salary
                     )
                     manpower_position.save()
@@ -609,6 +612,38 @@ class JobPostingSerializer(serializers.ModelSerializer):
             "manpower_positions",
             "is_deleted",
         )
+
+    def validate(self, attrs):
+        request = self.context["request"]
+        if request.method in ["POST", "PUT"] and not (
+            (
+                attrs["job_type"] == JobPosting.Permanent
+                and request.user.groups.filter(name="job posting (permanent)").exists()
+            )
+            or (
+                attrs["job_type"] == JobPosting.Contract_Basis
+                and request.user.groups.filter(name="job posting (temporary)").exists()
+            )
+        ):
+            raise serializers.ValidationError("User not authorized")
+
+        elif not (
+            (
+                attrs["job_type"] == JobPosting.Permanent
+                and request.user.groups.filter(
+                    name__in=["job posting (permanent)", "applicant scrutiny"]
+                ).exists()
+            )
+            or (
+                attrs["job_type"] == JobPosting.Contract_Basis
+                and request.user.groups.filter(
+                    name__in=["job posting (temporary)", "applicant scrutiny"]
+                ).exists()
+            )
+        ):
+            raise serializers.ValidationError("User not authorized")
+
+        return attrs
 
     def get_applied_applicants(self, obj):
         return len(obj.job_posting_applicants.all())

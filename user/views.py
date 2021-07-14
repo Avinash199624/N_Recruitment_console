@@ -3,6 +3,7 @@ import random
 import uuid
 
 from django.contrib.auth.hashers import check_password
+from django.contrib.auth.models import Group
 from django.db.transaction import atomic
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView, RetrieveUpdateAPIView
@@ -49,6 +50,7 @@ from job_posting.models import (
     FeeMaster,
     PositionQualificationMapping,
 )
+from user.permissions import ApplicantPermission, TraineePermission
 from user.serializer import (
     UserSerializer,
     AuthTokenCustomSerializer,
@@ -412,6 +414,7 @@ class UserRegistrationView(APIView):
             print("user.is_active---------->", user.is_active)
             if user:
                 UserRoles.objects.create(role=role, user=user)
+                user.groups.add(Group.objects.get(name="applicant"))
             roles = [
                 role.role.role_name for role in UserRoles.objects.filter(user=user)
             ]
@@ -2201,6 +2204,8 @@ class ApplicantAppliedJobDetailView(APIView):
 
 
 class JobApplyCheckoutView(APIView):
+    permission_classes = [ApplicantPermission]
+
     def post(self, request, *args, **kwargs):
         try:
             data = request.data
@@ -2217,7 +2222,9 @@ class JobApplyCheckoutView(APIView):
                             user=user,
                             position=position,
                             job_posting=job_posting,
-                            defaults={"applied_job_status": UserJobPositions.DOCUMENT_PENDING}
+                            defaults={
+                                "applied_job_status": UserJobPositions.DOCUMENT_PENDING
+                            },
                         )
                         applications.append(application.id)
                     return Response(
@@ -2262,7 +2269,9 @@ class JobApplyCheckoutView(APIView):
                             user=user,
                             position=position,
                             job_posting=job_posting,
-                            defaults={"applied_job_status": UserJobPositions.DOCUMENT_PENDING}
+                            defaults={
+                                "applied_job_status": UserJobPositions.DOCUMENT_PENDING
+                            },
                         )
                         applications.append(application.id)
                     return Response(
@@ -2278,6 +2287,8 @@ class JobApplyCheckoutView(APIView):
 
 
 class ApplicationDocumentUpdateView(APIView):
+    permission_classes = [ApplicantPermission]
+
     def get(self, request, *args, **kwargs):
         applied_positions = []
         applications = UserJobPositions.objects.select_related("position").filter(
@@ -2706,6 +2717,8 @@ class TraineeSearchListView(ListAPIView):
 
 
 class TraineeListView(APIView):
+    permission_classes = [TraineePermission]
+
     def get(self, request, *args, **kwargs):
         try:
             trainee_id = self.kwargs["id"]
