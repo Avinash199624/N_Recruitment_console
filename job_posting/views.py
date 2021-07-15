@@ -424,11 +424,9 @@ class JobPostingCreateView(APIView):
     def post(self, request, *args, **kwargs):
         try:
             data = self.request.data
-            serializer = JobPostingSerializer(data=data)
+            serializer = JobPostingSerializer(data=data, context={"request": request})
             if serializer.is_valid():
-                result = serializer.save(validated_data=data)
-                job_posting = JobPosting.objects.get(job_posting_id=result)
-                serializer = JobPostingSerializer(job_posting)
+                serializer.save(validated_data=data)
                 return Response(serializer.data, status=200)
             else:
                 return Response(data={"errors": serializer.errors})
@@ -448,7 +446,7 @@ class JobPostingDetailView(RetrieveUpdateAPIView):
         data = self.request.data
         job_posting_id = self.kwargs["id"]
         job_posting = JobPosting.objects.get(job_posting_id=job_posting_id)
-        serializer = JobPostingSerializer(job_posting, data=data)
+        serializer = JobPostingSerializer(job_posting, data=data, context={"request": request})
         if serializer.is_valid():
             return Response(
                 data=serializer.update(job_posting, validated_data=data), status=200
