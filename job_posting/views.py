@@ -1,4 +1,5 @@
 from django.db.transaction import atomic
+from rest_framework import status
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny
@@ -20,7 +21,13 @@ from job_posting.models import (
     PermanentPositionMaster,
     TemporaryPositionMaster,
     QualificationJobHistoryMaster,
-    FeeMaster,
+)
+from user.permissions import (
+    PermanentJobPostingPermission,
+    TemporaryJobPostingPermission,
+    ApplicantScrutiny,
+    ApplicantPermission,
+    MasterDataPermission,
 )
 from job_posting.serializer import (
     DepartmentSerializer,
@@ -45,10 +52,7 @@ from job_posting.serializer import (
     PublicJobPostSerializer,
 )
 
-from rest_framework import status
 from rest_framework.response import Response
-
-from user.models import UserDocuments
 
 
 class QualificationMasterSearchListView(ListAPIView):
@@ -110,7 +114,9 @@ class CreateQualificationMasterView(APIView):
 
 class QualificationMasterListView(APIView):
     def get(self, request, *args, **kwargs):
-        docs = QualificationMaster.objects.filter(is_deleted=False).order_by('qualification')
+        docs = QualificationMaster.objects.filter(is_deleted=False).order_by(
+            "qualification"
+        )
         serializer = QualificationMasterSerializer(docs, many=True)
         return Response(serializer.data, status=200)
 
@@ -133,7 +139,9 @@ class QualificationJobHistoryMasterView(APIView):
             else:
                 return Response(data={"message": "Details Not Found."}, status=401)
         except:
-            docs = QualificationJobHistoryMaster.objects.filter(is_deleted=False).order_by('qualification')
+            docs = QualificationJobHistoryMaster.objects.filter(
+                is_deleted=False
+            ).order_by("qualification")
             serializer = QualificationJobHistoryMasterSerializer(docs, many=True)
             return Response(serializer.data, status=200)
 
@@ -190,7 +198,9 @@ class DivisionListView(APIView):
             return Response(serializer.data, status=200)
         except:
             if Division.objects.filter(is_deleted=False).count() > 0:
-                divisions = Division.objects.filter(is_deleted=False).order_by('division_name')
+                divisions = Division.objects.filter(is_deleted=False).order_by(
+                    "division_name"
+                )
                 serializer = DivisionSerializer(divisions, many=True)
                 return Response(serializer.data, status=200)
             else:
@@ -245,7 +255,9 @@ class ZonalLabListView(APIView):
             return Response(serializer.data, status=200)
         except:
             if ZonalLab.objects.filter(is_deleted=False).count() > 0:
-                labs = ZonalLab.objects.filter(is_deleted=False).order_by('zonal_lab_name')
+                labs = ZonalLab.objects.filter(is_deleted=False).order_by(
+                    "zonal_lab_name"
+                )
                 serializer = ZonalLabSerializer(labs, many=True)
                 return Response(serializer.data, status=200)
             else:
@@ -425,6 +437,7 @@ class JobPostingCreateView(APIView):
 
 
 class JobPostingDetailView(RetrieveUpdateAPIView):
+    permission_classes = [PermanentJobPostingPermission | TemporaryJobPostingPermission]
     queryset = JobPosting.objects.filter(is_deleted=False)
     serializer_class = JobPostingSerializer
     lookup_field = "job_posting_id"
@@ -485,6 +498,11 @@ class JobPostingFilterListView(ListAPIView):
 
 
 class JobPostingListView(ListAPIView):
+    permission_classes = [
+        PermanentJobPostingPermission
+        | TemporaryJobPostingPermission
+        | ApplicantScrutiny
+    ]
     queryset = JobPosting.objects.prefetch_related("job_posting_applicants").filter(
         is_deleted=False
     ).order_by('notification_title')
@@ -549,6 +567,8 @@ class ApplicationCountByJobPositions(APIView):
 
 
 class ApplicantListByJobPositions(APIView):
+    permission_classes = [ApplicantScrutiny]
+
     def get(self, request, *args, **kwargs):
         try:
             job_posting_id = self.kwargs["id"]
@@ -564,6 +584,7 @@ class ApplicantListByJobPositions(APIView):
 
 
 class ApproveRejectApplicantView(RetrieveUpdateAPIView):
+    permission_classes = [ApplicantScrutiny]
     queryset = UserJobPositions.objects.all()
     serializer_class = UserJobPositionsSerializer
     lookup_url_kwarg = "id"
@@ -607,31 +628,9 @@ class ApproveRejectApplicantView(RetrieveUpdateAPIView):
             return Response(data={"message": "Detail not found"}, status=401)
 
 
-class ApproveRejectApplicantForJobPositions(APIView):
-    def put(self, request, *args, **kwargs):
-        data = self.request.data
-        appeal_id = self.kwargs["id"]
-        try:
-            applicants = UserJobPositions.objects.get(id=appeal_id)
-            if applicants.applied_job_status == "rejected":
-                applicants.appealed = True
-                applicants.save()
-                serializer = UserAppealForJobPositionsSerializer(applicants, data=data)
-                serializer.is_valid(raise_exception=True)
-                serializer.update(applicants, validated_data=data)
-                return Response(serializer.data, status=200)
-            else:
-                return Response(
-                    data={"message": "You've already appealed for this job..."},
-                    status=200,
-                )
-        except:
-            return Response(
-                data={"message": "you are not eligible for the appeal..."}, status=401
-            )
-
-
 class UserAppealForJobPositions(APIView):
+    permission_classes = [ApplicantPermission]
+
     def put(self, request, *args, **kwargs):
         data = self.request.data
         appeal_id = self.kwargs["id"]
@@ -697,18 +696,14 @@ class AppealReasonMasterViews(APIView):
         return Response(serializer.data, status=200)
 
 
-# NewPositionMaster
 class NewPositionMasterViews(APIView):
+    permission_classes = [MasterDataPermission]
+
     def post(self, request, *args, **kwargs):
         data = self.request.data
-        print("data ------->", data)
         serializer = NewPositionMasterSerializer(data=data)
-        print("serializer ----------->", serializer)
         serializer.is_valid(raise_exception=True)
-        result = serializer.save(validated_data=data)
-        print("result ----------->", result)
-        posi = NewPositionMaster.objects.get(position_id=result)
-        serializer = NewPositionMasterSerializer(posi)
+        serializer.save(validated_data=data)
         return Response(serializer.data, status=200)
 
     def get(self, request, *args, **kwargs):
@@ -779,6 +774,8 @@ class PermanentPositionMasterSearchListView(ListAPIView):
 
 
 class PermanentPositionMasterViews(APIView):
+    permission_classes = [MasterDataPermission]
+
     def get(self, request, *args, **kwargs):
         try:
             position_id = self.kwargs["id"]
@@ -793,7 +790,9 @@ class PermanentPositionMasterViews(APIView):
             else:
                 return Response(data={"message": "Details Not Found."}, status=401)
         except:
-            positions = PermanentPositionMaster.objects.filter(is_deleted=False).order_by('perm_position_master__position_name')
+            positions = PermanentPositionMaster.objects.filter(
+                is_deleted=False
+            ).order_by("perm_position_master__position_name")
             serializer = PermanentPositionMasterSerializer(positions, many=True)
             return Response(serializer.data, status=200)
 
@@ -891,7 +890,9 @@ class TemporaryPositionMasterViews(APIView):
             else:
                 return Response(data={"message": "Details Not Found."}, status=401)
         except:
-            positions = TemporaryPositionMaster.objects.filter(is_deleted=False).order_by('temp_position_master__position_name')
+            positions = TemporaryPositionMaster.objects.filter(
+                is_deleted=False
+            ).order_by("temp_position_master__position_name")
             serializer = TemporaryPositionMasterSerializer(positions, many=True)
             return Response(serializer.data, status=200)
 
@@ -946,5 +947,3 @@ class TemporaryPositionMasterViews(APIView):
             return Response(serializer.data, status=200)
         except Exception as e:
             return Response(data={"errors": str(e)})
-
-
