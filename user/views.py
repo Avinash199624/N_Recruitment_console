@@ -106,7 +106,6 @@ from django.core.mail import send_mail
 
 class LoginResponseViewMixin:
     def get_post_response_data(self, request, token, instance):
-
         print("INSIDE LoginResponseViewMixin")
 
         serializer = self.response_serializer_class(
@@ -140,10 +139,16 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
         data = request.data
         user = User.objects.filter(email__exact=data["email"]).first()
         password = data["password"]
-        check_pwd = check_password(password, user.password)
-        attempts = UserAuthentication.objects.get(user=user)
-        print("datetime.datetime.now()", datetime.datetime.now())
-        print("attempts.account_lock_expiry", attempts.account_lock_expiry)
+        if user:
+            check_pwd = check_password(password, user.password)
+            attempts = UserAuthentication.objects.get(user=user)
+            print("datetime.datetime.now()", datetime.datetime.now())
+            print("attempts.account_lock_expiry", attempts.account_lock_expiry)
+        else:
+            return Response(
+                data={"message": "Invalid Email or Password."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if datetime.datetime.now() >= attempts.account_lock_expiry:
             attempts.is_locked = False
@@ -206,9 +211,9 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
         authentication = UserAuthentication.objects.get(user=user)
 
         if (
-            not getattr(user, "is_active", None)
-            and not authentication.mobile_verified
-            and not authentication.email_verified
+                not getattr(user, "is_active", None)
+                and not authentication.mobile_verified
+                and not authentication.email_verified
         ):
             raise AuthenticationFailed(
                 INACTIVE_EMAIL_MOBILE_ERROR, code="account_disabled"
@@ -292,7 +297,20 @@ class NeeriLoginView(KnoxLoginView, LoginResponseViewMixin):
     @csrf_exempt
     def post(self, request, *args, **kwargs):
         data = request.data
-        user = User.objects.get(email__exact=data["email"])
+        try:
+            user = User.objects.get(email__exact=data["email"])
+            password = data["password"]
+            check_pwd = check_password(password, user.password)
+            if not check_pwd:
+                return Response(
+                    data={"message": "Incorrect Password.."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except:
+            return Response(
+                data={"message": "Invalid Email.."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         roles = [role.role.role_name for role in UserRoles.objects.filter(user=user)]
         permissions = [
             permission.permission.permission_name
@@ -498,7 +516,6 @@ def verify_sms(request, user_mobile_otp):
 
 
 def verify_email(request, user_email_token):
-
     try:
         is_token_expired = UserAuthentication.objects.filter(
             email_token=user_email_token
@@ -701,7 +718,6 @@ class DeleteUserView(APIView):
 
 
 class ForgotPassword(APIView):
-
     permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
@@ -1436,8 +1452,8 @@ class ApplicantAddressView(APIView):
             if address_type == "local_address" and user.user_profile.local_address:
                 location = user.user_profile.local_address
             elif (
-                address_type == "permanent_address"
-                and user.user_profile.permanent_address
+                    address_type == "permanent_address"
+                    and user.user_profile.permanent_address
             ):
                 location = user.user_profile.permanent_address
             elif address_type == "father_address" and user.user_profile.father_address:
@@ -1474,8 +1490,8 @@ class ApplicantAddressUpdateView(APIView):
                     "is_permenant_address_same_as_local"
                 ]
                 if (
-                    is_permenant_address_same_as_local is True
-                    or is_permenant_address_same_as_local == "true"
+                        is_permenant_address_same_as_local is True
+                        or is_permenant_address_same_as_local == "true"
                 ):
                     user.user_profile.permanent_address = (
                         user.user_profile.local_address
@@ -1502,8 +1518,8 @@ class ApplicantAddressUpdateView(APIView):
                     "is_father_address_same_as_local"
                 ]
                 if (
-                    is_father_address_same_as_local is True
-                    or is_father_address_same_as_local == "true"
+                        is_father_address_same_as_local is True
+                        or is_father_address_same_as_local == "true"
                 ):
                     user.user_profile.father_address = user.user_profile.local_address
                     user.user_profile.is_father_address_same_as_local = True
@@ -1550,9 +1566,9 @@ class ApplicantAddressCreateView(APIView):
                 "is_permenant_address_same_as_local"
             ]
             if (
-                address_type == "permanent_address"
-                and is_permenant_address_same_as_local is True
-                or is_permenant_address_same_as_local == "true"
+                    address_type == "permanent_address"
+                    and is_permenant_address_same_as_local is True
+                    or is_permenant_address_same_as_local == "true"
             ):
                 permanent_address = user.user_profile.local_address
                 user.user_profile.permanent_address = permanent_address
@@ -1574,9 +1590,9 @@ class ApplicantAddressCreateView(APIView):
                 "is_father_address_same_as_local"
             ]
             if (
-                address_type == "father_address"
-                and is_father_address_same_as_local is True
-                or is_father_address_same_as_local == "true"
+                    address_type == "father_address"
+                    and is_father_address_same_as_local is True
+                    or is_father_address_same_as_local == "true"
             ):
                 father_address = user.user_profile.local_address
                 user.user_profile.father_address = father_address
@@ -2242,10 +2258,10 @@ class JobApplyCheckoutView(APIView):
                 relaxation_rule = user_profile.relaxation_rule
                 for position in positions:
                     if not (
-                        position.min_age
-                        < user_profile.age
-                        - ((relaxation_rule and relaxation_rule.age_relaxation) or 0)
-                        < position.max_age
+                            position.min_age
+                            < user_profile.age
+                            - ((relaxation_rule and relaxation_rule.age_relaxation) or 0)
+                            < position.max_age
                     ):
                         return Response(
                             data={
@@ -2254,7 +2270,7 @@ class JobApplyCheckoutView(APIView):
                             }
                         )
                 fee = FeeMaster.objects.get(category=JobPosting.Permanent).fee - (
-                    (relaxation_rule and relaxation_rule.fee_relaxation) or 0
+                        (relaxation_rule and relaxation_rule.fee_relaxation) or 0
                 ) * len(positions)
                 if fee == 0:
                     for position in positions:
@@ -2329,10 +2345,10 @@ class ProfessionalTrainingListView(APIView):
         user = User.objects.get(user_id=id)
         try:
             if (
-                user.user_profile.professional_trainings.filter(
-                    is_deleted=False
-                ).count()
-                > 0
+                    user.user_profile.professional_trainings.filter(
+                        is_deleted=False
+                    ).count()
+                    > 0
             ):
                 professional_trainings = (
                     user.user_profile.professional_trainings.filter(is_deleted=False)
@@ -2646,7 +2662,7 @@ class MentorMasterListView(APIView):
         try:
             mentor_id = self.kwargs["id"]
             if MentorMaster.objects.filter(
-                mentor_id=mentor_id, is_deleted=False
+                    mentor_id=mentor_id, is_deleted=False
             ).exists():
                 mentor = MentorMaster.objects.get(mentor_id=mentor_id, is_deleted=False)
                 serializer = MentorMasterSerializer(mentor)
@@ -2780,7 +2796,7 @@ class RelaxationMasterListView(APIView):
         try:
             relaxation_rule_id = self.kwargs["id"]
             if RelaxationMaster.objects.filter(
-                relaxation_rule_id=relaxation_rule_id, is_deleted=False
+                    relaxation_rule_id=relaxation_rule_id, is_deleted=False
             ).exists():
                 relax = RelaxationMaster.objects.get(
                     relaxation_rule_id=relaxation_rule_id, is_deleted=False
@@ -2818,7 +2834,7 @@ class RelaxationCategoryMasterListView(APIView):
         try:
             mentor_id = self.kwargs["id"]
             if RelaxationCategoryMaster.objects.filter(
-                relaxation_cat_id=mentor_id, is_deleted=False
+                    relaxation_cat_id=mentor_id, is_deleted=False
             ).exists():
                 relax = RelaxationCategoryMaster.objects.get(
                     relaxation_cat_id=mentor_id, is_deleted=False
