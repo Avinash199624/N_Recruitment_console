@@ -511,7 +511,7 @@ class JobPostingListView(ListAPIView):
 class PublicJobPostingView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = PublicJobPostSerializer
-    queryset = JobPosting.objects.filter(is_deleted=False).order_by('notification_title')
+    queryset = JobPosting.objects.filter(is_deleted=False, status='published').order_by('publication_date')
 
 
 class PublicJobPostingFilterListView(ListAPIView):
@@ -622,8 +622,8 @@ class ApproveRejectApplicantView(RetrieveUpdateAPIView):
                     data={"message": "Please select a valid job status."},
                     status=200,
                 )
-        except:
-            return Response(data={"message": "Detail not found"}, status=401)
+        except Exception as e:
+            return Response(data={"errors": str(e)})
 
 
 class UserAppealForJobPositions(APIView):
