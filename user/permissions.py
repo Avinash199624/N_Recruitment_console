@@ -24,7 +24,7 @@ class TemporaryJobPostingPermission(BasePermission):
 class ApplicantScrutiny(BasePermission):
     def has_permission(self, request, view):
         return (
-            request.method in request.user.is_authenticated
+            request.user.is_authenticated
             and request.user.groups.filter(name__iexact="applicant scrutiny").exists()
         )
 
