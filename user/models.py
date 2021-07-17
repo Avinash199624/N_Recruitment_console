@@ -127,14 +127,7 @@ class User(AbstractUser, BaseModel):
         return setattr(self, email_field_name, new_mail)
 
     def get_full_name(self):
-        if self.middle_name:
-            return " ".join(
-                name for name in [self.first_name, self.middle_name, self.last_name] if name
-            )
-        else:
-            return " ".join(
-                name for name in [self.first_name, self.last_name] if name
-            )
+        return " ".join(name for name in [self.first_name, self.middle_name, self.last_name] if name)
 
 
 class UserProfile(BaseModel):
@@ -234,10 +227,6 @@ class UserProfile(BaseModel):
         null=True,
         blank=True,
         related_name="m_relaxation_rules",
-    )
-
-    roles = models.ManyToManyField(
-        "user.RoleMaster", blank=True, null=True, related_name="user_roles"
     )
     neeri_relation = models.ManyToManyField(
         "NeeriRelation", blank=True, related_name="neeri_relations"
@@ -441,8 +430,12 @@ class NeeriUserProfile(BaseModel):
     user = models.OneToOneField(
         "User", on_delete=models.CASCADE, related_name="neeri_user_profile"
     )
-    division = models.ManyToManyField('job_posting.Division', blank=True, related_name="neeri_user_division")
-    zonal = models.ManyToManyField('job_posting.ZonalLab', blank=True, related_name="neeri_user_zonal")
+    division = models.ManyToManyField(
+        "job_posting.Division", blank=True, related_name="neeri_user_division"
+    )
+    zonal = models.ManyToManyField(
+        "job_posting.ZonalLab", blank=True, related_name="neeri_user_zonal"
+    )
     gender = models.CharField(
         null=True, blank=True, choices=GENDER_CHOICES, max_length=20
     )
@@ -460,9 +453,6 @@ class NeeriUserProfile(BaseModel):
         max_length=30, choices=CASTE_CHOICES, null=True, blank=True
     )
     profile_photo = models.CharField(max_length=100, null=True, blank=True)
-    roles = models.ManyToManyField(
-        "user.RoleMaster", blank=True, null=True, related_name="neeri_user_roles"
-    )
 
     def __str__(self):
         return self.user.email
@@ -489,64 +479,6 @@ class Location(BaseModel):
                 self.country,
             ]
         )
-
-
-class RoleMaster(BaseModel):
-    role_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    role_name = models.CharField(max_length=30, null=True, blank=True)
-
-    def __str__(self):
-        return self.role_name
-
-
-class PermissionMaster(BaseModel):
-    permission_id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False
-    )
-    permission_name = models.CharField(max_length=30, null=True, blank=True)
-
-    def __str__(self):
-        return self.permission_name
-
-
-class UserRoles(BaseModel):
-    role = models.ForeignKey(
-        "RoleMaster",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="role_master",
-    )
-    user = models.ForeignKey(
-        "User",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="user_role",
-    )
-
-    def __str__(self):
-        return " ".join([self.user.email, self.role.role_name])
-
-
-class UserPermissions(BaseModel):
-    permission = models.ForeignKey(
-        "PermissionMaster",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="permission",
-    )
-    role = models.ForeignKey(
-        "RoleMaster",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="user",
-    )
-
-    def __str__(self):
-        return " ".join([self.role.role_name, self.permission.permission_name])
 
 
 class UserDocuments(BaseModel):

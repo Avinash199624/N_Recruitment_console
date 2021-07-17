@@ -1,11 +1,9 @@
-from django.contrib import admin
 from django.urls import path
 from user.views import (
     UserRegistrationView,
     NeeriPersonalInformation,
     CompareApplicantListView,
     NeeriLoginView,
-    TempLoginView,
     RoleMasterView,
     CreateNeeriUserView,
     MentorMasterListView,
@@ -26,7 +24,7 @@ from user.views import (
     MobileOTP,
     ChangeMobileNumber,
     UpdateMobileOTP,
-    ManageApplicantlistView,
+    ManageApplicantListView,
     ApplicantAppliedJobDetailView,
     JobApplyCheckoutView,
     ApplicationDocumentUpdateView,
@@ -92,7 +90,6 @@ from user.views import (
 
 urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
-    path("temp_login/", TempLoginView.as_view(), name="login"),
     path("neeri_login/", NeeriLoginView.as_view(), name="neeri-login"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("signup/", UserRegistrationView.as_view(), name="signup"),
@@ -137,12 +134,12 @@ urlpatterns = [
     ),
     path(
         "manage_applicants/",
-        ManageApplicantlistView.as_view(),
+        ManageApplicantListView.as_view(),
         name="manage-applicants-list",
     ),
     path(
         "manage_applicants/<uuid:id>/",
-        ManageApplicantlistView.as_view(),
+        ManageApplicantListView.as_view(),
         name="delete-manage-applicants",
     ),
     path(

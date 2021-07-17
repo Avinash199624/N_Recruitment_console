@@ -3,11 +3,7 @@ from django.contrib.admin import register
 from user.models import (
     User,
     UserProfile,
-    RoleMaster,
-    UserRoles,
     Location,
-    PermissionMaster,
-    UserPermissions,
     NeeriUserProfile,
     NeeriRelation,
     UserEducationDetails,
@@ -111,16 +107,6 @@ class UserAdmin(admin.ModelAdmin):
     list_display = ["user_id", "first_name", "last_name", "email", "mobile_no"]
 
 
-@register(PermissionMaster)
-class PermissionMasterAdmin(admin.ModelAdmin):
-    list_display = ["permission_id", "permission_name"]
-
-
-@register(UserPermissions)
-class UserPermissionsAdmin(admin.ModelAdmin):
-    list_display = ["permission", "role"]
-
-
 @register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ["user", "gender", "status"]
@@ -129,21 +115,6 @@ class UserProfileAdmin(admin.ModelAdmin):
 @register(NeeriUserProfile)
 class NeeriUserProfileAdmin(admin.ModelAdmin):
     list_display = ["user", "gender", "is_deleted"]
-
-
-@register(RoleMaster)
-class RoleMasterAdmin(admin.ModelAdmin):
-    list_display = [
-        "role_name",
-    ]
-
-
-@register(UserRoles)
-class UserRolesAdmin(admin.ModelAdmin):
-    list_display = ["user", "role"]
-    list_filter = [
-        "role",
-    ]
 
 
 @register(Location)

@@ -835,7 +835,7 @@ class JobPostingSerializer(serializers.ModelSerializer):
         posting.division_id = validated_data["division_id"]
         posting.zonal_lab_id = validated_data["zonal_lab_id"]
         posting.save()
-        return posting.job_posting_id
+        return posting
 
 
 class SelectionCommitteeSerializer(serializers.ModelSerializer):

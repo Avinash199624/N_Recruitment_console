@@ -1,7 +1,12 @@
 from django.db.transaction import atomic
 from rest_framework import status
 from rest_framework.filters import SearchFilter
-from rest_framework.generics import ListAPIView, RetrieveAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import (
+    ListAPIView,
+    RetrieveAPIView,
+    RetrieveUpdateAPIView,
+    CreateAPIView,
+)
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
@@ -419,24 +424,28 @@ class JobTemplateCreateView(APIView):
     #     return Response(serializer.data, status=200)
 
 
-class JobPostingCreateView(APIView):
-    @atomic
+class JobPostingCreateView(CreateAPIView):
     def post(self, request, *args, **kwargs):
         try:
-            data = self.request.data
-            serializer = JobPostingSerializer(data=data, context={"request": request})
-            if serializer.is_valid():
-                serializer.save(validated_data=data)
-                return Response(serializer.data, status=200)
-            else:
-                return Response(data={"errors": serializer.errors})
+            with atomic():
+                data = self.request.data
+                serializer = JobPostingSerializer(
+                    data=data, context={"request": request}
+                )
+                if serializer.is_valid():
+                    instance = serializer.save(validated_data=data)
+                    return Response(JobPostingSerializer(instance).data, status=200)
+                else:
+                    return Response(data={"errors": serializer.errors})
         except Exception as e:
             return Response(data={"errors": str(e)})
 
 
 class JobPostingDetailView(RetrieveUpdateAPIView):
     permission_classes = [PermanentJobPostingPermission | TemporaryJobPostingPermission]
-    queryset = JobPosting.objects.filter(is_deleted=False)
+    queryset = JobPosting.objects.prefetch_related("job_posting_applicants").filter(
+        is_deleted=False
+    )
     serializer_class = JobPostingSerializer
     lookup_field = "job_posting_id"
     lookup_url_kwarg = "id"
@@ -446,7 +455,9 @@ class JobPostingDetailView(RetrieveUpdateAPIView):
         data = self.request.data
         job_posting_id = self.kwargs["id"]
         job_posting = JobPosting.objects.get(job_posting_id=job_posting_id)
-        serializer = JobPostingSerializer(job_posting, data=data, context={"request": request})
+        serializer = JobPostingSerializer(
+            job_posting, data=data, context={"request": request}
+        )
         if serializer.is_valid():
             return Response(
                 data=serializer.update(job_posting, validated_data=data), status=200
@@ -501,9 +512,11 @@ class JobPostingListView(ListAPIView):
         | TemporaryJobPostingPermission
         | ApplicantScrutiny
     ]
-    queryset = JobPosting.objects.prefetch_related("job_posting_applicants").filter(
-        is_deleted=False
-    ).order_by('notification_title')
+    queryset = (
+        JobPosting.objects.prefetch_related("job_posting_applicants")
+        .filter(is_deleted=False)
+        .order_by("notification_title")
+    )
     serializer_class = JobPostingSerializer
     filterset_fields = ["job_type", "status"]
 
@@ -511,7 +524,9 @@ class JobPostingListView(ListAPIView):
 class PublicJobPostingView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = PublicJobPostSerializer
-    queryset = JobPosting.objects.filter(is_deleted=False, status='published').order_by('publication_date')
+    queryset = JobPosting.objects.filter(is_deleted=False, status="published").order_by(
+        "publication_date"
+    )
 
 
 class PublicJobPostingFilterListView(ListAPIView):
