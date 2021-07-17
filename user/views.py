@@ -21,8 +21,6 @@ from neeri_recruitment_portal.helpers import (
 from neeri_recruitment_portal.settings import BASE_URL, ACCOUNT_LOCKED_TIME
 from user.models import (
     User,
-    RoleMaster,
-    UserRoles,
     UserProfile,
     Location,
     UserEducationDetails,
@@ -35,7 +33,6 @@ from user.models import (
     ProfessionalTraining,
     UserDocuments,
     OtherInformation,
-    UserPermissions,
     NeeriUserProfile,
     MentorMaster,
     Trainee,
@@ -188,14 +185,8 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
             #     attempts.is_locked = False
             #     attempts.save()
             attempts.save()
-        roles = [role.role.role_name for role in UserRoles.objects.filter(user=user)]
-        permissions = [
-            permission.permission.permission_name
-            for permission in UserPermissions.objects.filter(
-                role__role_name__in=roles
-            ).distinct("permission")
-        ]
-        if "applicant" in roles:
+        groups = user.groups.all().values_list("name", flat=True)
+        if "applicant" in groups:
             serializer = AuthTokenCustomSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data["user"]
@@ -232,51 +223,8 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
         result = super(LoginView, self).post(request, format=None)
         serializer = UserSerializer(user)
         result.data["user"] = serializer.data
-        result.data["roles"] = roles
-        result.data["permissions"] = permissions
-        return Response(result.data)
-
-
-class TempLoginView(KnoxLoginView, LoginResponseViewMixin):
-    """
-    Login view adapted for our needs. Since by default all user operations
-    need to be authenticated, we need to explicitly set it to AllowAny.
-    """
-
-    permission_classes = [
-        AllowAny,
-    ]
-
-    @csrf_exempt
-    def post(self, request, *args, **kwargs):
-        data = request.data
-        user = User.objects.get(email__exact=data["email"])
-        roles = [role.role.role_name for role in UserRoles.objects.filter(user=user)]
-        permissions = [
-            permission.permission.permission_name
-            for permission in UserPermissions.objects.filter(
-                role__role_name__in=roles
-            ).distinct("permission")
-        ]
-        # if 'applicant' in roles:
-        serializer = AuthTokenCustomSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
-        # return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
-        # else:
-        #     return Response(data={"message": "You're not authorized to login.."}, status=status.HTTP_400_BAD_REQUEST)
-
-        if not getattr(user, "is_active", None):
-            raise AuthenticationFailed(INACTIVE_ACCOUNT_ERROR, code="account_disabled")
-        res = login(request, user)
-        result = super(TempLoginView, self).post(request, format=None)
-        serializer = UserSerializer(user)
-        # authentication = UserAuthentication.objects.get(user=user)
-        result.data["user"] = serializer.data
-        result.data["roles"] = roles
-        result.data["permissions"] = permissions
-        # result.data['email_verified'] = authentication.email_verified
-        # result.data['mobile_verified'] = authentication.mobile_verified
+        result.data["roles"] = groups
+        result.data["permissions"] = []
         return Response(result.data)
 
 
@@ -295,15 +243,8 @@ class NeeriLoginView(KnoxLoginView, LoginResponseViewMixin):
     def post(self, request, *args, **kwargs):
         data = request.data
         user = User.objects.get(email__exact=data["email"])
-        roles = [role.role.role_name for role in UserRoles.objects.filter(user=user)]
-        permissions = [
-            permission.permission.permission_name
-            for permission in UserPermissions.objects.filter(
-                role__role_name__in=roles
-            ).distinct("permission")
-        ]
-
-        if not "applicant" in roles:
+        groups = user.groups.all().values_list("name", flat=True)
+        if "applicant" not in groups:
             serializer = AuthTokenCustomSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data["user"]
@@ -323,54 +264,13 @@ class NeeriLoginView(KnoxLoginView, LoginResponseViewMixin):
         serializer = UserSerializer(user)
         # authentication = UserAuthentication.objects.get(user=user)
         result.data["user"] = serializer.data
-        result.data["roles"] = roles
-        result.data["permissions"] = permissions
+        result.data["roles"] = groups
+        result.data["permissions"] = []
         # result.data['email_verified'] = authentication.email_verified
         # result.data['mobile_verified'] = authentication.mobile_verified
         return Response(
             result.data,
         )
-
-
-# class NeeriLoginView(KnoxLoginView, LoginResponseViewMixin):
-#     """
-#     For NEERI User
-#     Login view adapted for our needs. Since by default all user operations
-#     need to be authenticated, we need to explicitly set it to AllowAny.
-#     """
-#     permission_classes = [AllowAny, ]
-#
-#     @csrf_exempt
-#     def post(self, request, *args, **kwargs):
-#         data = request.data
-#         user = User.objects.get(email__exact=data['email'])
-#         roles = [role.role.role_name for role in UserRoles.objects.filter(user=user)]
-#         permissions = [permission.permission.permission_name for permission in
-#                        UserPermissions.objects.filter(role__role_name__in=roles).distinct('permission')]
-#
-#         if not 'applicant' in roles:
-#             serializer = AuthTokenCustomSerializer(data=request.data)
-#             serializer.is_valid(raise_exception=True)
-#             user = serializer.validated_data["user"]
-#             print('welcome neeri user', serializer.data)
-#             # return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
-#         else:
-#             return Response(data={"message": "You're not authorized to login.."}, status=status.HTTP_400_BAD_REQUEST)
-#
-#         if not getattr(user, "is_active", None):
-#             raise AuthenticationFailed(INACTIVE_ACCOUNT_ERROR, code="account_disabled")
-#         res = login(request, user)
-#         print('res', res)
-#
-#         result = super(NeeriLoginView, self).post(request, format=None)
-#         serializer = UserSerializer(user)
-#         # authentication = UserAuthentication.objects.get(user=user)
-#         result.data['user'] = serializer.data
-#         result.data['roles'] = roles
-#         result.data['permissions'] = permissions
-#         # result.data['email_verified'] = authentication.email_verified
-#         # result.data['mobile_verified'] = authentication.mobile_verified
-#         return Response(result.data, )
 
 
 class LogoutView(KnoxLogoutView):
@@ -392,7 +292,6 @@ class UserRegistrationView(APIView):
         mobile_no = self.request.data["mobile_no"]
         email = self.request.data["email"]
         password = self.request.data["password"]
-        role = RoleMaster.objects.get(role_name__exact="applicant")
         if User.objects.filter(email=email).exists():
             return JsonResponse(
                 data={"messege": "User Already Exist"},
@@ -413,22 +312,14 @@ class UserRegistrationView(APIView):
             )
             print("user.is_active---------->", user.is_active)
             if user:
-                UserRoles.objects.create(role=role, user=user)
                 user.groups.add(Group.objects.get(name="applicant"))
-            roles = [
-                role.role.role_name for role in UserRoles.objects.filter(user=user)
-            ]
-            permissions = [
-                permission.permission.permission_name
-                for permission in UserPermissions.objects.filter(
-                    role__role_name__in=roles
-                ).distinct("permission")
-            ]
+
             serializer = UserSerializer(user)
-            result = {}
-            result["user"] = serializer.data
-            result["roles"] = roles
-            result["permissions"] = permissions
+            result = {
+                "user": serializer.data,
+                "roles": ["applicant"],
+                "permissions": ["applicant"],
+            }
             # send_otp(mobile_no, user_mobile_otp)
             send_verification_mail(email, user_email_token)
             return JsonResponse(data=result, safe=False)
@@ -572,7 +463,7 @@ class UserListView(ListAPIView):
 
 
 class RetrieveUserView(RetrieveAPIView):
-    queryset = User.objects.filter(is_deleted=False)
+    queryset = User.objects.prefetch_related("user_profile").filter(is_deleted=False)
     serializer_class = CustomUserSerializer
     lookup_field = "user_id"
     lookup_url_kwarg = "id"
@@ -1111,20 +1002,17 @@ class ChangeMobileNumber(APIView):
 
 class RoleMasterView(APIView):
     def get(self, request, *args, **kwargs):
-        roles = RoleMaster.objects.filter(is_deleted=False)
+        roles = Group.objects.all()
         serializer = RoleMasterSerializer(roles, many=True)
         return Response(serializer.data)
 
 
-class ManageApplicantlistView(APIView):
+class ManageApplicantListView(APIView):
     def get(self, request, *args, **kwargs):
         try:
-            if UserRoles.objects.filter(user__email=None).exists():
-                UserRoles.objects.filter(user__email=None).delete()
-            roles = UserRoles.objects.select_related("user__user_auth").filter(
-                role__role_name="applicant", user__is_deleted=False
-            )
-            user_auth_instances = [role.user.user_auth for role in roles]
+            user_auth_instances = UserAuthentication.objects.select_related(
+                "user"
+            ).filter(user__groups__name="applicant")
             serializer = UserAuthenticationSerializer(user_auth_instances, many=True)
             return Response(serializer.data, status=200)
         except Exception as e:
@@ -1271,14 +1159,12 @@ class ApplicantPersonalInformationUpdateView(APIView):
 
 class ApplicantIsFresherUpdateView(APIView):
     def get(self, request, *args, **kwargs):
-        id = self.kwargs["id"]
-        user = User.objects.get(user_id=id)
-        try:
-            if user.user_profile:
-                user_profile = user.user_profile
-                serializer = ApplicantIsFresherSerializer(user_profile)
-                return Response(serializer.data)
-        except:
+        user = User.objects.get(user_id=self.kwargs["id"])
+        if hasattr(user, "user_profile"):
+            user_profile = user.user_profile
+            serializer = ApplicantIsFresherSerializer(user_profile)
+            return Response(serializer.data)
+        else:
             return Response(
                 data={
                     "message": "UserProfile does not exist",
@@ -1289,15 +1175,13 @@ class ApplicantIsFresherUpdateView(APIView):
             )
 
     def put(self, request, *args, **kwargs):
-        id = self.kwargs["id"]
-        user = User.objects.get(user_id=id)
+        user = User.objects.get(user_id=self.kwargs["id"])
         data = self.request.data
-        try:
-            user_profile = user.user_profile
-        except:
+        if not hasattr(user, "user_profile"):
             return Response(
                 data={"message": "UserProfile does not exist"},
             )
+        user_profile = user.user_profile
         serializer = ApplicantIsFresherSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=user_profile, validated_data=data)
@@ -1306,14 +1190,12 @@ class ApplicantIsFresherUpdateView(APIView):
 
 class ApplicantIsAddressUpdateView(APIView):
     def get(self, request, *args, **kwargs):
-        id = self.kwargs["id"]
-        user = User.objects.get(user_id=id)
-        try:
-            if user.user_profile:
-                user_profile = user.user_profile
-                serializer = ApplicantIsAddressSameSerializer(user_profile)
-                return Response(serializer.data)
-        except:
+        user = User.objects.get(user_id=self.kwargs["id"])
+        if hasattr(user, "user_profile"):
+            user_profile = user.user_profile
+            serializer = ApplicantIsAddressSameSerializer(user_profile)
+            return Response(serializer.data)
+        else:
             return Response(
                 data={
                     "message": "UserProfile does not exist",
@@ -1324,15 +1206,13 @@ class ApplicantIsAddressUpdateView(APIView):
             )
 
     def put(self, request, *args, **kwargs):
-        id = self.kwargs["id"]
-        user = User.objects.get(user_id=id)
+        user = User.objects.get(user_id=self.kwargs["id"])
         data = self.request.data
-        try:
-            user_profile = user.user_profile
-        except:
+        if not hasattr(user, "user_profile"):
             return Response(
                 data={"message": "UserProfile does not exist"},
             )
+        user_profile = user.user_profile
         serializer = ApplicantIsAddressSameSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=user_profile, validated_data=data)
@@ -1341,14 +1221,12 @@ class ApplicantIsAddressUpdateView(APIView):
 
 class ApplicantPersonalInformationCreateView(APIView):
     def post(self, request, *args, **kwargs):
-        id = self.kwargs["id"]
-        user = User.objects.get(user_id=id)
-        try:
-            if user.user_profile:
-                return Response(
-                    data={"messege": "UserProfile for Given User Already Exist"}
-                )
-        except:
+        user = User.objects.get(user_id=self.kwargs["id"])
+        if hasattr(user, "user_profile"):
+            return Response(
+                data={"messege": "UserProfile for Given User Already Exist"}
+            )
+        else:
             data = self.request.data
             serializer = ApplicantUserPersonalInformationSerializer(data=data)
             serializer.is_valid(raise_exception=True)
@@ -1373,7 +1251,7 @@ class NeeriPersonalInformation(APIView):
                 return Response(
                     data={
                         "message": "Neeri User Profile not created.",
-                        "name": user.first_name + " " + user.last_name,
+                        "name": user.get_full_name(),
                         "isEmpty": "true",
                         "email": user.email,
                     },
@@ -2625,8 +2503,7 @@ class ProfileDetailView(RetrieveAPIView):
 
 class ApplicantListView(APIView):
     def get(self, request, *args, **kwargs):
-        applicants = User.objects.filter(is_deleted=False)
-        UserRoles.objects.filter(user=applicants)
+        applicants = User.objects.filter(groups__name="applicant", is_deleted=False)
         serializer = CustomUserSerializer(applicants, many=True)
         return Response(serializer.data)
 
