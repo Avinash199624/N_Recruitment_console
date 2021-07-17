@@ -425,21 +425,18 @@ class JobTemplateCreateView(APIView):
 
 
 class JobPostingCreateView(CreateAPIView):
-    queryset = JobPosting.objects.prefetch_related("job_posting_applicants").filter(
-        is_deleted=False
-    )
-    serializer_class = JobPostingSerializer
-
-    @atomic
     def post(self, request, *args, **kwargs):
         try:
-            data = self.request.data
-            serializer = JobPostingSerializer(data=data, context={"request": request})
-            if serializer.is_valid():
-                serializer.save(validated_data=data)
-                return Response(serializer.data, status=200)
-            else:
-                return Response(data={"errors": serializer.errors})
+            with atomic():
+                data = self.request.data
+                serializer = JobPostingSerializer(
+                    data=data, context={"request": request}
+                )
+                if serializer.is_valid():
+                    instance = serializer.save(validated_data=data)
+                    return Response(JobPostingSerializer(instance).data, status=200)
+                else:
+                    return Response(data={"errors": serializer.errors})
         except Exception as e:
             return Response(data={"errors": str(e)})
 
@@ -527,7 +524,9 @@ class JobPostingListView(ListAPIView):
 class PublicJobPostingView(ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = PublicJobPostSerializer
-    queryset = JobPosting.objects.filter(is_deleted=False, status='published').order_by('publication_date')
+    queryset = JobPosting.objects.filter(is_deleted=False, status="published").order_by(
+        "publication_date"
+    )
 
 
 class PublicJobPostingFilterListView(ListAPIView):
