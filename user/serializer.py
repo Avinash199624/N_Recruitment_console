@@ -480,16 +480,16 @@ class CustomUserSerializer(serializers.ModelSerializer):
         )
 
     def get_phone_no(self, obj):
-        return obj.user_profile and obj.user_profile.phone_no
+        return hasattr(obj, "user_profile") and obj.user_profile.phone_no
 
     def get_gender(self, obj):
-        return obj.user_profile and obj.user_profile.gender
+        return hasattr(obj, "user_profile") and obj.user_profile.gender
 
     def get_date_of_birth(self, obj):
-        return obj.user_profile and obj.user_profile.date_of_birth
+        return hasattr(obj, "user_profile") and obj.user_profile.date_of_birth
 
     def get_status(self, obj):
-        return obj.user_profile and obj.user_profile.status
+        return hasattr(obj, "user_profile") and obj.user_profile.status
 
     def get_local_address(self, obj):
         try:
