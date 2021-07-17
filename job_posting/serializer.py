@@ -29,7 +29,9 @@ from user.serializer import UserProfilePreviewSerializer
 
 class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
     notification_id = serializers.CharField(source="job_posting.notification_id")
-    date_of_closing = serializers.CharField(source="job_posting.end_date")
+    date_of_closing = serializers.SerializerMethodField(
+        method_name="get_date_of_closing", read_only=True
+    )
     description = serializers.SerializerMethodField(
         method_name="get_description", read_only=True
     )
@@ -51,6 +53,12 @@ class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
             obj.position.position.position_name or obj.position.position_display_name
         )
         return description
+
+    def get_date_of_closing(self, obj):
+        date_of_closing = (
+            obj.job_posting.end_date.date()
+        )
+        return date_of_closing
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
