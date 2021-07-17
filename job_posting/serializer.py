@@ -29,6 +29,7 @@ from user.serializer import UserProfilePreviewSerializer
 
 class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
     notification_id = serializers.CharField(source="job_posting.notification_id")
+    date_of_closing = serializers.CharField(source="job_posting.end_date")
     description = serializers.SerializerMethodField(
         method_name="get_description", read_only=True
     )
@@ -958,11 +959,11 @@ class ApplicationCountForJobPositionSerializer(serializers.ModelSerializer):
 
 
 class UserJobPositionsSerializer(serializers.ModelSerializer):
-    user_id = serializers.UUIDField(source="user.user_id")
-    user_profile = UserProfilePreviewSerializer(source="user.user_profile")
-    division = serializers.CharField(source="job_posting.division.division_name")
-    position = serializers.CharField(source="position.position_display_name")
-    job_posting_id = serializers.UUIDField(source="job_posting.job_posting_id")
+    user_id = serializers.UUIDField(source="user.user_id", required=False)
+    user_profile = UserProfilePreviewSerializer(source="user.user_profile", required=False)
+    division = serializers.CharField(source="job_posting.division.division_name", required=False)
+    position = serializers.CharField(source="position.position_display_name", required=False)
+    job_posting_id = serializers.UUIDField(source="job_posting.job_posting_id", required=False)
     application_id = serializers.IntegerField(source="id")
 
     class Meta:
