@@ -105,7 +105,6 @@ from django.core.mail import send_mail
 
 class LoginResponseViewMixin:
     def get_post_response_data(self, request, token, instance):
-
         print("INSIDE LoginResponseViewMixin")
 
         serializer = self.response_serializer_class(
@@ -139,10 +138,16 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
         data = request.data
         user = User.objects.filter(email__exact=data["email"]).first()
         password = data["password"]
-        check_pwd = check_password(password, user.password)
-        attempts = UserAuthentication.objects.get(user=user)
-        print("datetime.datetime.now()", datetime.datetime.now())
-        print("attempts.account_lock_expiry", attempts.account_lock_expiry)
+        if user:
+            check_pwd = check_password(password, user.password)
+            attempts = UserAuthentication.objects.get(user=user)
+            print("datetime.datetime.now()", datetime.datetime.now())
+            print("attempts.account_lock_expiry", attempts.account_lock_expiry)
+        else:
+            return Response(
+                data={"message": "Invalid Email or Password."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if datetime.datetime.now() >= attempts.account_lock_expiry:
             attempts.is_locked = False
@@ -242,7 +247,19 @@ class NeeriLoginView(KnoxLoginView, LoginResponseViewMixin):
     @csrf_exempt
     def post(self, request, *args, **kwargs):
         data = request.data
-        user = User.objects.get(email__exact=data["email"])
+        try:
+            user = User.objects.get(email__exact=data["email"])
+            password = data["password"]
+            if not check_password(password, user.password):
+                return Response(
+                    data={"message": "Incorrect Password.."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except:
+            return Response(
+                data={"message": "Invalid Email.."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         groups = user.groups.all().values_list("name", flat=True)
         if "applicant" not in groups:
             serializer = AuthTokenCustomSerializer(data=request.data)
@@ -392,7 +409,6 @@ def verify_sms(request, user_mobile_otp):
 
 
 def verify_email(request, user_email_token):
-
     try:
         is_token_expired = UserAuthentication.objects.filter(
             email_token=user_email_token
@@ -463,7 +479,7 @@ class UserListView(ListAPIView):
 
 
 class RetrieveUserView(RetrieveAPIView):
-    queryset = User.objects.prefetch_related("user_profile").filter(is_deleted=False)
+    queryset = User.objects.filter(is_deleted=False)
     serializer_class = CustomUserSerializer
     lookup_field = "user_id"
     lookup_url_kwarg = "id"
@@ -595,7 +611,6 @@ class DeleteUserView(APIView):
 
 
 class ForgotPassword(APIView):
-
     permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
