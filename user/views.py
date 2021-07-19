@@ -2226,10 +2226,10 @@ class ApplicantProfilePercentageView(APIView):
         user = User.objects.get(user_id=id)
         try:
             percentage = user.user_profile.profile_percentage
-            return Response(data={"percentage": percentage})
+            return Response(data={"percentage": percentage + "%"})
         except:
             return Response(
-                data={"messsege": "User-Profile not found", "percentage": "0"},
+                data={"message": "User-Profile not found", "percentage": "0%"},
             )
 
 
