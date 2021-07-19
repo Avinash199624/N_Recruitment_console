@@ -29,6 +29,7 @@ from user.serializer import UserProfilePreviewSerializer
 
 class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
     notification_id = serializers.CharField(source="job_posting.notification_id")
+    date_of_closing = serializers.DateTimeField(format="%Y-%m-%d", input_formats=['%Y-%m-%d'], source="job_posting.end_date")
     description = serializers.SerializerMethodField(
         method_name="get_description", read_only=True
     )
@@ -50,6 +51,12 @@ class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
             obj.position.position.position_name or obj.position.position_display_name
         )
         return description
+
+    # def get_date_of_closing(self, obj):
+    #     date_of_closing = (
+    #         obj.job_posting.end_date.date()
+    #     )
+    #     return date_of_closing
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
@@ -835,7 +842,7 @@ class JobPostingSerializer(serializers.ModelSerializer):
         posting.division_id = validated_data["division_id"]
         posting.zonal_lab_id = validated_data["zonal_lab_id"]
         posting.save()
-        return posting.job_posting_id
+        return posting
 
 
 class SelectionCommitteeSerializer(serializers.ModelSerializer):
@@ -958,11 +965,11 @@ class ApplicationCountForJobPositionSerializer(serializers.ModelSerializer):
 
 
 class UserJobPositionsSerializer(serializers.ModelSerializer):
-    user_id = serializers.UUIDField(source="user.user_id")
-    user_profile = UserProfilePreviewSerializer(source="user.user_profile")
-    division = serializers.CharField(source="job_posting.division.division_name")
-    position = serializers.CharField(source="position.position_display_name")
-    job_posting_id = serializers.UUIDField(source="job_posting.job_posting_id")
+    user_id = serializers.UUIDField(source="user.user_id", required=False)
+    user_profile = UserProfilePreviewSerializer(source="user.user_profile", required=False)
+    division = serializers.CharField(source="job_posting.division.division_name", required=False)
+    position = serializers.CharField(source="position.position_display_name", required=False)
+    job_posting_id = serializers.UUIDField(source="job_posting.job_posting_id", required=False)
     application_id = serializers.IntegerField(source="id")
 
     class Meta:
