@@ -1231,6 +1231,12 @@ class ApplicantIsAddressUpdateView(APIView):
         serializer = ApplicantIsAddressSameSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=user_profile, validated_data=data)
+        if user_profile.is_permenant_address_same_as_local:
+            user_profile.permanent_address = None
+            user_profile.save()
+        if user_profile.is_father_address_same_as_local:
+            user_profile.father_address = None
+            user_profile.save()
         return Response(serializer.data)
 
 
