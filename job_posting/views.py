@@ -638,7 +638,7 @@ class ApproveRejectApplicantView(RetrieveUpdateAPIView):
                     status=200,
                 )
         except Exception as e:
-            return Response(data={"errors": str(e)})
+            return Response(data={"errors": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserAppealForJobPositions(APIView):
