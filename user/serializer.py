@@ -1614,7 +1614,7 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
     local_address = LocationSerializer()
     permanent_address = LocationSerializer()
     father_address = LocationSerializer()
-    education_details = UserEducationDetailsSerializer(many=True, read_only=True)
+    education_details = serializers.SerializerMethodField()
     professional_trainings = ProfessionalTrainingSerializer(many=True, read_only=True)
     published_papers = PublishedPapersSerializer(many=True, read_only=True)
     experiences = UserExperienceDetailsSerializer(many=True, read_only=True)
@@ -1656,6 +1656,12 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
             "languages",
             "references",
         )
+
+
+    def get_education_details(self, obj):
+        edu = obj.education_details.filter(is_deleted=False)
+        serializer = UserEducationDetailsSerializer(edu, many=True)
+        return serializer.data
 
 
 class MentorMasterSerializer(serializers.ModelSerializer):
