@@ -1220,8 +1220,8 @@ class ReferencesSerializer(serializers.ModelSerializer):
     def save(self, validated_data):
         address = Location.objects.create(
             address1=validated_data["address"]["address1"],
-            address2=validated_data["address"]["address2"],
-            address3=validated_data["address"]["address3"],
+            address2=validated_data["address"]["address2"] if "address2" in validated_data["address"] else None,
+            address3=validated_data["address"]["address3"] if "address3" in validated_data["address"] else None,
             city=validated_data["address"]["city"],
             state=validated_data["address"]["state"],
             country=validated_data["address"]["country"],
@@ -1268,15 +1268,11 @@ class ReferencesSerializer(serializers.ModelSerializer):
             )
 
             address_data.address2 = (
-                validated_address_data["address2"]
-                if validated_address_data["address2"]
-                else address_data.address2
+                validated_address_data.get("address2") or address_data.address2
             )
 
             address_data.address3 = (
-                validated_address_data["address3"]
-                if validated_address_data["address3"]
-                else address_data.address3
+                validated_address_data.get("address3") or address_data.address3
             )
 
             address_data.city = (
