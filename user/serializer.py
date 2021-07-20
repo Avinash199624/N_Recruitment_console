@@ -1615,14 +1615,14 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
     permanent_address = LocationSerializer()
     father_address = LocationSerializer()
     education_details = serializers.SerializerMethodField()
-    professional_trainings = ProfessionalTrainingSerializer(many=True, read_only=True)
-    published_papers = PublishedPapersSerializer(many=True, read_only=True)
-    experiences = UserExperienceDetailsSerializer(many=True, read_only=True)
+    professional_trainings = serializers.SerializerMethodField()
+    published_papers = serializers.SerializerMethodField()
+    experiences = serializers.SerializerMethodField()
     other_info = OtherInformationSerializer()
-    neeri_relation = NeeriRelationSerializer(many=True, read_only=True)
-    overseas_visits = OverseasVisitsSerializer(many=True, read_only=True)
-    languages = LanguagesSerializer(many=True)
-    references = ReferencesSerializer(many=True)
+    neeri_relation = serializers.SerializerMethodField()
+    overseas_visits = serializers.SerializerMethodField()
+    languages = serializers.SerializerMethodField()
+    references = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -1661,6 +1661,41 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
     def get_education_details(self, obj):
         edu = obj.education_details.filter(is_deleted=False)
         serializer = UserEducationDetailsSerializer(edu, many=True)
+        return serializer.data
+
+    def get_professional_trainings(self, obj):
+        edu = obj.professional_trainings.filter(is_deleted=False)
+        serializer = ProfessionalTrainingSerializer(edu, many=True)
+        return serializer.data
+
+    def get_published_papers(self, obj):
+        edu = obj.published_papers.filter(is_deleted=False)
+        serializer = PublishedPapersSerializer(edu, many=True)
+        return serializer.data
+
+    def get_experiences(self, obj):
+        edu = obj.experiences.filter(is_deleted=False)
+        serializer = UserExperienceDetailsSerializer(edu, many=True)
+        return serializer.data
+
+    def get_neeri_relation(self, obj):
+        edu = obj.neeri_relation.filter(is_deleted=False)
+        serializer = NeeriRelationSerializer(edu, many=True)
+        return serializer.data
+
+    def get_overseas_visits(self, obj):
+        edu = obj.overseas_visits.filter(is_deleted=False)
+        serializer = OverseasVisitsSerializer(edu, many=True)
+        return serializer.data
+
+    def get_languages(self, obj):
+        edu = obj.languages.filter(is_deleted=False)
+        serializer = LanguagesSerializer(edu, many=True)
+        return serializer.data
+
+    def get_references(self, obj):
+        edu = obj.references.filter(is_deleted=False)
+        serializer = ReferencesSerializer(edu, many=True)
         return serializer.data
 
 
