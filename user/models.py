@@ -310,6 +310,7 @@ class UserProfile(BaseModel):
             "published_papers": 5,
             #experience
             "experiences": 10,
+            "is_fresher": 10,
             # qualification
             "neeri_relation": 5,
             "references": 5,
@@ -381,8 +382,14 @@ class UserProfile(BaseModel):
         if self.published_papers.filter(is_deleted=False):
             total += percent.get("published_papers", 0)
 
-        if self.experiences.filter(is_deleted=False):
+        if self.experiences.filter(is_deleted=False) and not self.is_fresher:
             total += percent.get("experiences", 0)
+
+        if self.experiences.filter(is_deleted=False) and self.is_fresher:
+            total += percent.get("experiences", 0)
+
+        if not self.experiences.filter(is_deleted=False) and self.is_fresher:
+            total += percent.get("is_fresher", 0)
 
         if self.neeri_relation.filter(is_deleted=False):
             total += percent.get("neeri_relation", 0)

@@ -1200,6 +1200,11 @@ class ApplicantIsFresherUpdateView(APIView):
         serializer = ApplicantIsFresherSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=user_profile, validated_data=data)
+        if user_profile.is_fresher:
+            exp = user_profile.experiences.filter()
+            for oexp in exp:
+                user_profile.experiences.remove(oexp)
+            user_profile.save()
         return Response(serializer.data)
 
 
