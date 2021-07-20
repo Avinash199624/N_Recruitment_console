@@ -372,34 +372,34 @@ class UserProfile(BaseModel):
         if not self.father_address and self.is_father_address_same_as_local:
             total += percent.get("is_father_address_same_as_local", 0)
 
-        if self.education_details.all():
+        if self.education_details.filter(is_deleted=False):
             total += percent.get("education_details", 0)
 
-        if self.professional_trainings.all():
+        if self.professional_trainings.filter(is_deleted=False):
             total += percent.get("professional_trainings", 0)
 
-        if self.published_papers.all():
+        if self.published_papers.filter(is_deleted=False):
             total += percent.get("published_papers", 0)
 
-        if self.experiences.all():
+        if self.experiences.filter(is_deleted=False):
             total += percent.get("experiences", 0)
 
-        if self.neeri_relation.all():
+        if self.neeri_relation.filter(is_deleted=False):
             total += percent.get("neeri_relation", 0)
 
-        if self.references.all():
+        if self.references.filter(is_deleted=False):
             total += percent.get("references", 0)
 
-        if self.overseas_visits.all():
+        if self.overseas_visits.filter(is_deleted=False):
             total += percent.get("overseas_visits", 0)
 
-        if self.languages.all():
+        if self.languages.filter(is_deleted=False):
             total += percent.get("languages", 0)
 
         if self.other_info:
             total += percent.get("other_info", 0)
 
-        if self.documents.all():
+        if self.documents.filter(is_deleted=False):
             total += percent.get("documents", 0)
 
         return str(total)
