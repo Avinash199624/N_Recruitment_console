@@ -860,7 +860,7 @@ class ApplicantIsFresherSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-        instance.is_fresher = validated_data.get("is_fresher") or instance.is_fresher
+        instance.is_fresher = validated_data["is_fresher"]
         instance.save()
 
 
