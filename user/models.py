@@ -287,65 +287,58 @@ class UserProfile(BaseModel):
     def profile_percentage(self):
 
         percent = {
+            #profle
+            "first_name": 2,
+            "last_name": 2,
+            "mobile_no": 2,
             "gender": 2,
-            "is_fresher": 5,
-            "date_of_birth": 5,
-            "local_address": 5,
-            "permanent_address": 5,
-            "father_address": 5,
-            "date_of_birth_in_words": 2,
-            "place_of_birth": 2,
+            "date_of_birth": 2,
             "father_name": 2,
-            "father_occupation": 2,
             "religion": 2,
             "caste": 2,
-            "passport_number": 2,
-            "passport_expiry": 2,
-            "profile_photo": 5,
-            "fax_number": 1,
-            "is_indian_citizen": 1,
-            "whatsapp_id": 5,
-            "skype_id": 5,
+            "profile_photo": 2,
+            "relaxation_rule": 2,
+            #address
+            "local_address": 5,
+            "permanent_address": 5,
+            "is_permenant_address_same_as_local": 5,
+            "is_father_address_same_as_local": 5,
+            "father_address": 5,
+            #qualification
+            "education_details": 10,
+            "professional_trainings": 5,
+            "published_papers": 5,
+            #experience
+            "experiences": 10,
+            "is_fresher": 10,
+            # qualification
             "neeri_relation": 5,
-            "documents": 5,
-            "education_details": 5,
-            "experiences": 5,
             "references": 5,
             "overseas_visits": 5,
             "languages": 5,
-            "published_papers": 5,
+            "other_info": 5,
+            # documents
+            "documents": 10,
         }
 
         total = 0
+        if self.user.first_name:
+            total += percent.get("first_name", 0)
+
+        if self.user.last_name:
+            total += percent.get("last_name", 0)
+
+        if self.user.mobile_no:
+            total += percent.get("mobile_no", 0)
+
         if self.gender:
             total += percent.get("gender", 0)
-
-        if self.is_fresher:
-            total += percent.get("is_fresher", 0)
 
         if self.date_of_birth:
             total += percent.get("date_of_birth", 0)
 
-        if self.local_address:
-            total += percent.get("local_address", 0)
-
-        if self.permanent_address:
-            total += percent.get("permanent_address", 0)
-
-        if self.father_address:
-            total += percent.get("father_address", 0)
-
-        if self.date_of_birth_in_words:
-            total += percent.get("date_of_birth_in_words", 0)
-
-        if self.place_of_birth:
-            total += percent.get("place_of_birth", 0)
-
         if self.father_name:
             total += percent.get("father_name", 0)
-
-        if self.father_occupation:
-            total += percent.get("father_occupation", 0)
 
         if self.religion:
             total += percent.get("religion", 0)
@@ -353,52 +346,89 @@ class UserProfile(BaseModel):
         if self.caste:
             total += percent.get("caste", 0)
 
-        if self.passport_number:
-            total += percent.get("passport_number", 0)
-
-        if self.passport_expiry:
-            total += percent.get("passport_expiry", 0)
-
         if self.profile_photo:
             total += percent.get("profile_photo", 0)
 
-        if self.fax_number:
-            total += percent.get("fax_number", 0)
+        if self.relaxation_rule:
+            total += percent.get("relaxation_rule", 0)
 
-        if self.is_indian_citizen:
-            total += percent.get("is_indian_citizen", 0)
+        if self.local_address:
+            total += percent.get("local_address", 0)
 
-        if self.whatsapp_id:
-            total += percent.get("whatsapp_id", 0)
+        if self.permanent_address and not self.is_permenant_address_same_as_local:
+            total += percent.get("permanent_address", 0)
 
-        if self.skype_id:
-            total += percent.get("skype_id", 0)
+        if self.permanent_address and self.is_permenant_address_same_as_local:
+            total += percent.get("permanent_address", 0)
 
-        if self.neeri_relation:
-            total += percent.get("neeri_relation", 0)
+        if not self.permanent_address and self.is_permenant_address_same_as_local:
+            total += percent.get("is_permenant_address_same_as_local", 0)
 
-        if self.documents:
-            total += percent.get("documents", 0)
+        if self.father_address and not self.is_father_address_same_as_local:
+            total += percent.get("father_address", 0)
 
-        if self.education_details:
+        if self.father_address and self.is_father_address_same_as_local:
+            total += percent.get("father_address", 0)
+
+        if not self.father_address and self.is_father_address_same_as_local:
+            total += percent.get("is_father_address_same_as_local", 0)
+
+        if self.education_details.filter(is_deleted=False):
             total += percent.get("education_details", 0)
 
-        if self.experiences:
-            total += percent.get("experiences", 0)
+        if self.professional_trainings.filter(is_deleted=False):
+            total += percent.get("professional_trainings", 0)
 
-        if self.references:
-            total += percent.get("references", 0)
-
-        if self.overseas_visits:
-            total += percent.get("overseas_visits", 0)
-
-        if self.languages:
-            total += percent.get("languages", 0)
-
-        if self.published_papers:
+        if self.published_papers.filter(is_deleted=False):
             total += percent.get("published_papers", 0)
 
-        return str(total) + " %"
+        if self.experiences.filter(is_deleted=False) and not self.is_fresher:
+            total += percent.get("experiences", 0)
+
+        if self.experiences.filter(is_deleted=False) and self.is_fresher:
+            total += percent.get("experiences", 0)
+
+        if not self.experiences.filter(is_deleted=False) and self.is_fresher:
+            total += percent.get("is_fresher", 0)
+
+        if self.neeri_relation.filter(is_deleted=False):
+            total += percent.get("neeri_relation", 0)
+
+        if self.references.filter(is_deleted=False):
+            total += percent.get("references", 0)
+
+        if self.overseas_visits.filter(is_deleted=False):
+            total += percent.get("overseas_visits", 0)
+
+        if self.languages.filter(is_deleted=False):
+            total += percent.get("languages", 0)
+
+        if self.other_info:
+            total += percent.get("other_info", 0)
+
+        if self.documents.filter(is_deleted=False):
+            total += percent.get("documents", 0)
+
+        progress_bar = []
+        if self.user.first_name and self.user.last_name and self.user.mobile_no and self.gender and self.date_of_birth and self.father_name and self.religion and self.caste and self.relaxation_rule:
+            progress_bar.append("personal")
+
+        if self.neeri_relation.filter(is_deleted=False) and self.references.filter(is_deleted=False) and self.overseas_visits and self.languages.filter(is_deleted=False) and self.other_info:
+            progress_bar.append("others")
+
+        if self.education_details.filter(is_deleted=False) and self.professional_trainings.filter(is_deleted=False) and self.published_papers.filter(is_deleted=False):
+            progress_bar.append("qualifications")
+
+        if self.local_address and (self.permanent_address or self.is_permenant_address_same_as_local) and (self.is_father_address_same_as_local or self.father_address):
+            progress_bar.append("address")
+
+        if self.experiences.filter(is_deleted=False) or self.is_fresher:
+            progress_bar.append("experiences")
+
+        if self.documents.filter(is_deleted=True):
+            progress_bar.append("documents")
+
+        return progress_bar, str(total)
 
     def __str__(self):
         return self.user.email

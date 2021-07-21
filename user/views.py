@@ -1027,7 +1027,7 @@ class ManageApplicantListView(APIView):
         try:
             user_auth_instances = UserAuthentication.objects.select_related(
                 "user"
-            ).filter(user__groups__name="applicant")
+            ).filter(user__groups__name="applicant", user__is_deleted=False)
             serializer = UserAuthenticationSerializer(user_auth_instances, many=True)
             return Response(serializer.data, status=200)
         except Exception as e:
@@ -2220,11 +2220,13 @@ class ApplicantProfilePercentageView(APIView):
         id = self.kwargs["id"]
         user = User.objects.get(user_id=id)
         try:
-            percentage = user.user_profile.profile_percentage
-            return Response(data={"percentage": percentage})
+            total = user.user_profile.profile_percentage
+            percentage = total[1]
+            progress_bar = total[0]
+            return Response(data={"percentage": percentage, "progress_bar": progress_bar})
         except:
             return Response(
-                data={"messsege": "User-Profile not found", "percentage": "0"},
+                data={"message": "User-Profile not found", "percentage": "0%"},
             )
 
 
