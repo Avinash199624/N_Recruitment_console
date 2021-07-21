@@ -3,25 +3,27 @@ import uuid
 from user.models import BaseModel
 
 
-CASTE = "caste"
-PERSONAL = "personal"
-QUALIFICATION = "qualification"
-EXPERIENCE = "experience"
-PUBLISHED_PAPERS = "published papers"
-OTHERS = "others"
-
-
-DOC_TYPE_CHOICES = [
-    (CASTE, "CASTE"),
-    (PERSONAL, "PERSONAL"),
-    (QUALIFICATION, "QUALIFICATION"),
-    (EXPERIENCE, "EXPERIENCE"),
-    (PUBLISHED_PAPERS, "PUBLISHED_PAPERS"),
-    (OTHERS, "OTHERS"),
-]
-
-
 class NewDocumentMaster(BaseModel):
+    PROFILE_PHOTO = "profile_photo"
+    RESUME = "resume"
+    CASTE = "caste"
+    PERSONAL = "personal"
+    QUALIFICATION = "qualification"
+    EXPERIENCE = "experience"
+    PUBLISHED_PAPERS = "published papers"
+    OTHERS = "others"
+
+    DOC_TYPE_CHOICES = [
+        (PROFILE_PHOTO, "PROFILE_PHOTO"),
+        (RESUME, "RESUME"),
+        (CASTE, "CASTE"),
+        (PERSONAL, "PERSONAL"),
+        (QUALIFICATION, "QUALIFICATION"),
+        (EXPERIENCE, "EXPERIENCE"),
+        (PUBLISHED_PAPERS, "PUBLISHED_PAPERS"),
+        (OTHERS, "OTHERS"),
+    ]
+
     doc_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     doc_name = models.CharField(max_length=50, null=True, blank=True)
     doc_type = models.CharField(
