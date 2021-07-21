@@ -1027,7 +1027,7 @@ class ManageApplicantListView(APIView):
         try:
             user_auth_instances = UserAuthentication.objects.select_related(
                 "user"
-            ).filter(user__groups__name="applicant")
+            ).filter(user__groups__name="applicant", user__is_deleted=False)
             serializer = UserAuthenticationSerializer(user_auth_instances, many=True)
             return Response(serializer.data, status=200)
         except Exception as e:
@@ -1200,11 +1200,6 @@ class ApplicantIsFresherUpdateView(APIView):
         serializer = ApplicantIsFresherSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=user_profile, validated_data=data)
-        if user_profile.is_fresher:
-            exp = user_profile.experiences.filter()
-            for oexp in exp:
-                user_profile.experiences.remove(oexp)
-            user_profile.save()
         return Response(serializer.data)
 
 
@@ -1236,12 +1231,6 @@ class ApplicantIsAddressUpdateView(APIView):
         serializer = ApplicantIsAddressSameSerializer(user_profile, data=data)
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=user_profile, validated_data=data)
-        if user_profile.is_permenant_address_same_as_local:
-            user_profile.permanent_address = None
-            user_profile.save()
-        if user_profile.is_father_address_same_as_local:
-            user_profile.father_address = None
-            user_profile.save()
         return Response(serializer.data)
 
 
@@ -2230,8 +2219,10 @@ class ApplicantProfilePercentageView(APIView):
         id = self.kwargs["id"]
         user = User.objects.get(user_id=id)
         try:
-            percentage = user.user_profile.profile_percentage
-            return Response(data={"percentage": percentage + "%"})
+            total = user.user_profile.profile_percentage
+            percentage = total[1]
+            progress_bar = total[0]
+            return Response(data={"percentage": percentage, "progress_bar": progress_bar})
         except:
             return Response(
                 data={"message": "User-Profile not found", "percentage": "0%"},
