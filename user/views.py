@@ -1027,7 +1027,7 @@ class ManageApplicantListView(APIView):
         try:
             user_auth_instances = UserAuthentication.objects.select_related(
                 "user"
-            ).filter(user__groups__name="applicant")
+            ).filter(user__groups__name="applicant", user__is_deleted=False)
             serializer = UserAuthenticationSerializer(user_auth_instances, many=True)
             return Response(serializer.data, status=200)
         except Exception as e:
