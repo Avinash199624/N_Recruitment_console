@@ -409,7 +409,26 @@ class UserProfile(BaseModel):
         if self.documents.filter(is_deleted=False):
             total += percent.get("documents", 0)
 
-        return str(total)
+        progress_bar = []
+        if self.user.first_name and self.user.last_name and self.user.mobile_no and self.gender and self.date_of_birth and self.father_name and self.religion and self.caste and self.relaxation_rule:
+            progress_bar.append("personal")
+
+        if self.neeri_relation.filter(is_deleted=False) and self.references.filter(is_deleted=False) and self.overseas_visits and self.languages.filter(is_deleted=False) and self.other_info:
+            progress_bar.append("others")
+
+        if self.education_details.filter(is_deleted=False) and self.professional_trainings.filter(is_deleted=False) and self.published_papers.filter(is_deleted=False):
+            progress_bar.append("qualifications")
+
+        if self.local_address and (self.permanent_address or self.is_permenant_address_same_as_local) and (self.is_father_address_same_as_local or self.father_address):
+            progress_bar.append("address")
+
+        if self.experiences.filter(is_deleted=False) or self.is_fresher:
+            progress_bar.append("experiences")
+
+        if self.documents.filter(is_deleted=True):
+            progress_bar.append("documents")
+
+        return progress_bar, str(total)
 
     def __str__(self):
         return self.user.email
