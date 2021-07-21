@@ -2358,6 +2358,7 @@ class FileUpload(APIView):
 
         file = request.data["file"]
         user = request.user
+        doc_name = ""
         doc_type = self.request.GET["doc_type"]
         filename, extension = os.path.splitext(file.name)
         timestamp = int(datetime.datetime.now().timestamp())
@@ -2371,9 +2372,9 @@ class FileUpload(APIView):
                     ContentFile(file.read()),
                 )
                 temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}{path}"
-                document_master = NewDocumentMaster.objects.get(
+                document_master = NewDocumentMaster.objects.filter(
                     doc_type=NewDocumentMaster.PROFILE_PHOTO
-                )
+                ).first()
                 doc = UserDocuments.objects.create(
                     doc_file_path=temp_path, document_master=document_master
                 )
@@ -2413,20 +2414,22 @@ class FileUpload(APIView):
             job_posting.save()
 
         elif doc_type == "job_docs":
-            name = self.request.GET["name"]
-            path = f"job_posting_documents / {filename}"
+            doc_name = self.request.GET["name"]
+            path = f"job_posting_documents/{filename}"
             default_storage.save(
                 f"{settings.MEDIA_ROOT}/{path}",
                 ContentFile(file.read()),
             )
             temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}{path}"
-            doc = JobDocuments.objects.create(doc_file_path=temp_path, doc_name=name)
+            doc = JobDocuments.objects.create(
+                doc_file_path=temp_path, doc_name=doc_name
+            )
 
         return Response(
             data={
                 "messege": "File uploaded successfully",
                 "doc_file_path": doc.doc_file_path,
-                "doc_name": doc.doc_name,
+                "doc_name": doc_name or filename,
                 "doc_id": doc.doc_id,
             }
         )

@@ -1429,6 +1429,10 @@ class OverseasVisitsSerializer(serializers.ModelSerializer):
 
 
 class UserDocumentsSerializer(serializers.ModelSerializer):
+    doc_name = serializers.CharField(
+        source="document_master.doc_type", required=False, default=None
+    )
+
     class Meta:
         model = UserDocuments
         fields = (

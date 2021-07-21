@@ -547,7 +547,7 @@ class UserDocuments(BaseModel):
     )
 
     def __str__(self):
-        return self.doc_id
+        return str(self.doc_id)
 
 
 class OverseasVisits(BaseModel):
