@@ -2528,9 +2528,9 @@ class UserDocumentView(APIView):
             user_profile.documents.clear()
             for doc_info in data:
                 user_document = UserDocuments.objects.get(doc_id=doc_info["doc_id"])
-                user_document.document_master = NewDocumentMaster.objects.get(
+                user_document.document_master = NewDocumentMaster.objects.filter(
                     doc_type__iexact=doc_info["doc_name"]
-                )
+                ).last()
                 user_document.save()
                 user_profile.documents.add(user_document)
             return Response(
