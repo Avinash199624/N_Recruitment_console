@@ -1623,6 +1623,7 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
     overseas_visits = serializers.SerializerMethodField()
     languages = serializers.SerializerMethodField()
     references = serializers.SerializerMethodField()
+    resume = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -1655,8 +1656,8 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
             "overseas_visits",
             "languages",
             "references",
+            "resume",
         )
-
 
     def get_education_details(self, obj):
         edu = obj.education_details.filter(is_deleted=False)
@@ -1697,6 +1698,10 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
         edu = obj.references.filter(is_deleted=False)
         serializer = ReferencesSerializer(edu, many=True)
         return serializer.data
+
+    def get_resume(self, obj):
+        resume = obj.documents.filter(document_master__doc_type="resume") or None
+        return resume and resume[0].doc_file_path
 
 
 class MentorMasterSerializer(serializers.ModelSerializer):

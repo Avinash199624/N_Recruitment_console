@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from rest_framework import status
 
+from document.models import NewDocumentMaster
 from neeri_recruitment_portal.helpers import (
     send_otp,
     send_verification_mail,
@@ -2108,6 +2109,23 @@ class JobApplyCheckoutView(APIView):
             )
             applications = []
             user = request.user
+            previously_applied_positions = UserJobPositions.objects.filter(
+                job_posting=job_posting, user=user
+            )
+            if previously_applied_positions.exists():
+                previously_applied_positions = [
+                    position.position
+                    for position in previously_applied_positions
+                    if position in positions
+                ]
+                if previously_applied_positions:
+                    return Response(
+                        data={
+                            "success": False,
+                            "message": f"You have already applied for position(s) {previously_applied_positions}",
+                        }
+                    )
+
             if job_posting.job_type == JobPosting.Contract_Basis:
                 if user.subscription.filter(user=user, expired=False).exists():
                     for position in positions:
@@ -2200,6 +2218,10 @@ class ApplicationDocumentUpdateView(APIView):
     def post(self, request, *args, **kwargs):
         data = self.request.data
         application = UserJobPositions.objects.get(id=data["application_id"])
+        if application.applied_job_status != UserJobPositions.DOCUMENT_PENDING:
+            return Response(
+                data={"success": False, "message": "Application already submitted"}
+            )
         documents = UserDocuments.objects.filter(doc_id__in=data["documents"])
         if len(data["documents"]) != len(documents):
             return Response(
@@ -2223,7 +2245,9 @@ class ApplicantProfilePercentageView(APIView):
             total = user.user_profile.profile_percentage
             percentage = total[1]
             progress_bar = total[0]
-            return Response(data={"percentage": percentage, "progress_bar": progress_bar})
+            return Response(
+                data={"percentage": percentage, "progress_bar": progress_bar}
+            )
         except:
             return Response(
                 data={"message": "User-Profile not found", "percentage": "0%"},
@@ -2347,8 +2371,11 @@ class FileUpload(APIView):
                     ContentFile(file.read()),
                 )
                 temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}{path}"
+                document_master = NewDocumentMaster.objects.get(
+                    doc_type=NewDocumentMaster.PROFILE_PHOTO
+                )
                 doc = UserDocuments.objects.create(
-                    doc_file_path=temp_path, doc_name=filename
+                    doc_file_path=temp_path, document_master=document_master
                 )
                 user.user_profile.documents.add(doc)
                 user.user_profile.profile_photo = temp_path
@@ -2367,9 +2394,8 @@ class FileUpload(APIView):
                 f"{settings.MEDIA_ROOT}/{path}", ContentFile(file.read())
             )
             temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}{path}"
-            doc = UserDocuments.objects.create(
-                doc_file_path=temp_path, doc_name=filename
-            )
+            doc = UserDocuments.objects.create(doc_file_path=temp_path)
+            user.user_profile.documents.add(doc)
 
         elif doc_type == "office_memo":
             job_posting_id = self.request.GET["job_posting_id"]
@@ -2499,7 +2525,9 @@ class UserDocumentView(APIView):
             user_profile.documents.clear()
             for doc_info in data:
                 user_document = UserDocuments.objects.get(doc_id=doc_info["doc_id"])
-                user_document.doc_name = doc_info["doc_name"]
+                user_document.document_master = NewDocumentMaster.objects.get(
+                    doc_type__iexact=doc_info["doc_name"]
+                )
                 user_document.save()
                 user_profile.documents.add(user_document)
             return Response(
