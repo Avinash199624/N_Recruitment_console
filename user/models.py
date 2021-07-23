@@ -451,7 +451,7 @@ class UserProfile(BaseModel):
         if self.experiences.filter(is_deleted=False) or self.is_fresher:
             progress_bar.append("experiences")
 
-        if self.documents.filter(is_deleted=True):
+        if self.documents.filter(is_deleted=False):
             progress_bar.append("documents")
 
         return progress_bar, str(total)
