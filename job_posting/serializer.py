@@ -29,7 +29,9 @@ from user.serializer import UserProfilePreviewSerializer
 
 class ApplicantJobPositionsSerializer(serializers.ModelSerializer):
     notification_id = serializers.CharField(source="job_posting.notification_id")
-    date_of_closing = serializers.DateTimeField(format="%Y-%m-%d", input_formats=['%Y-%m-%d'], source="job_posting.end_date")
+    date_of_closing = serializers.DateTimeField(
+        format="%Y-%m-%d", input_formats=["%Y-%m-%d"], source="job_posting.end_date"
+    )
     description = serializers.SerializerMethodField(
         method_name="get_description", read_only=True
     )
@@ -622,33 +624,38 @@ class JobPostingSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         request = self.context["request"]
-        if request.method in ["POST", "PUT"] and not (
-            (
-                attrs["job_type"] == JobPosting.Permanent
-                and request.user.groups.filter(name="job posting (permanent)").exists()
-            )
-            or (
-                attrs["job_type"] == JobPosting.Contract_Basis
-                and request.user.groups.filter(name="job posting (temporary)").exists()
-            )
-        ):
-            raise serializers.ValidationError("User not authorized")
+        if attrs.get("job_type"):
+            if request.method in ["POST", "PUT"] and not (
+                (
+                    attrs["job_type"] == JobPosting.Permanent
+                    and request.user.groups.filter(
+                        name="job posting (permanent)"
+                    ).exists()
+                )
+                or (
+                    attrs["job_type"] == JobPosting.Contract_Basis
+                    and request.user.groups.filter(
+                        name="job posting (temporary)"
+                    ).exists()
+                )
+            ):
+                raise serializers.ValidationError("User not authorized")
 
-        elif not (
-            (
-                attrs["job_type"] == JobPosting.Permanent
-                and request.user.groups.filter(
-                    name__in=["job posting (permanent)", "applicant scrutiny"]
-                ).exists()
-            )
-            or (
-                attrs["job_type"] == JobPosting.Contract_Basis
-                and request.user.groups.filter(
-                    name__in=["job posting (temporary)", "applicant scrutiny"]
-                ).exists()
-            )
-        ):
-            raise serializers.ValidationError("User not authorized")
+            elif not (
+                (
+                    attrs["job_type"] == JobPosting.Permanent
+                    and request.user.groups.filter(
+                        name__in=["job posting (permanent)", "applicant scrutiny"]
+                    ).exists()
+                )
+                or (
+                    attrs["job_type"] == JobPosting.Contract_Basis
+                    and request.user.groups.filter(
+                        name__in=["job posting (temporary)", "applicant scrutiny"]
+                    ).exists()
+                )
+            ):
+                raise serializers.ValidationError("User not authorized")
 
         return attrs
 
@@ -966,10 +973,18 @@ class ApplicationCountForJobPositionSerializer(serializers.ModelSerializer):
 
 class UserJobPositionsSerializer(serializers.ModelSerializer):
     user_id = serializers.UUIDField(source="user.user_id", required=False)
-    user_profile = UserProfilePreviewSerializer(source="user.user_profile", required=False)
-    division = serializers.CharField(source="job_posting.division.division_name", required=False)
-    position = serializers.CharField(source="position.position_display_name", required=False)
-    job_posting_id = serializers.UUIDField(source="job_posting.job_posting_id", required=False)
+    user_profile = UserProfilePreviewSerializer(
+        source="user.user_profile", required=False
+    )
+    division = serializers.CharField(
+        source="job_posting.division.division_name", required=False
+    )
+    position = serializers.CharField(
+        source="position.position_display_name", required=False
+    )
+    job_posting_id = serializers.UUIDField(
+        source="job_posting.job_posting_id", required=False
+    )
     application_id = serializers.IntegerField(source="id")
 
     class Meta:

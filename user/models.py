@@ -127,7 +127,9 @@ class User(AbstractUser, BaseModel):
         return setattr(self, email_field_name, new_mail)
 
     def get_full_name(self):
-        return " ".join(name for name in [self.first_name, self.middle_name, self.last_name] if name)
+        return " ".join(
+            name for name in [self.first_name, self.middle_name, self.last_name] if name
+        )
 
 
 class UserProfile(BaseModel):
@@ -287,7 +289,7 @@ class UserProfile(BaseModel):
     def profile_percentage(self):
 
         percent = {
-            #profle
+            # profle
             "first_name": 2,
             "last_name": 2,
             "mobile_no": 2,
@@ -298,17 +300,17 @@ class UserProfile(BaseModel):
             "caste": 2,
             "profile_photo": 2,
             "relaxation_rule": 2,
-            #address
+            # address
             "local_address": 5,
             "permanent_address": 5,
             "is_permenant_address_same_as_local": 5,
             "is_father_address_same_as_local": 5,
             "father_address": 5,
-            #qualification
+            # qualification
             "education_details": 10,
             "professional_trainings": 5,
             "published_papers": 5,
-            #experience
+            # experience
             "experiences": 10,
             "is_fresher": 10,
             # qualification
@@ -410,22 +412,46 @@ class UserProfile(BaseModel):
             total += percent.get("documents", 0)
 
         progress_bar = []
-        if self.user.first_name and self.user.last_name and self.user.mobile_no and self.gender and self.date_of_birth and self.father_name and self.religion and self.caste and self.relaxation_rule:
+        if (
+            self.user.first_name
+            and self.user.last_name
+            and self.user.mobile_no
+            and self.gender
+            and self.date_of_birth
+            and self.father_name
+            and self.religion
+            and self.caste
+            and self.relaxation_rule
+        ):
             progress_bar.append("personal")
 
-        if self.neeri_relation.filter(is_deleted=False) and self.references.filter(is_deleted=False) and self.overseas_visits and self.languages.filter(is_deleted=False) and self.other_info:
+        if (
+            self.neeri_relation.filter(is_deleted=False)
+            and self.references.filter(is_deleted=False)
+            and self.overseas_visits
+            and self.languages.filter(is_deleted=False)
+            and self.other_info
+        ):
             progress_bar.append("others")
 
-        if self.education_details.filter(is_deleted=False) and self.professional_trainings.filter(is_deleted=False) and self.published_papers.filter(is_deleted=False):
+        if (
+            self.education_details.filter(is_deleted=False)
+            and self.professional_trainings.filter(is_deleted=False)
+            and self.published_papers.filter(is_deleted=False)
+        ):
             progress_bar.append("qualifications")
 
-        if self.local_address and (self.permanent_address or self.is_permenant_address_same_as_local) and (self.is_father_address_same_as_local or self.father_address):
+        if (
+            self.local_address
+            and (self.permanent_address or self.is_permenant_address_same_as_local)
+            and (self.is_father_address_same_as_local or self.father_address)
+        ):
             progress_bar.append("address")
 
         if self.experiences.filter(is_deleted=False) or self.is_fresher:
             progress_bar.append("experiences")
 
-        if self.documents.filter(is_deleted=True):
+        if self.documents.filter(is_deleted=False):
             progress_bar.append("documents")
 
         return progress_bar, str(total)
@@ -513,13 +539,15 @@ class Location(BaseModel):
 
 class UserDocuments(BaseModel):
     doc_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    document_master = models.ForeignKey(
+        "document.NewDocumentMaster", null=True, blank=True, on_delete=models.CASCADE
+    )
     doc_file_path = models.CharField(
         max_length=200, null=True, blank=True, help_text="path to document"
     )
-    doc_name = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
-        return self.doc_name
+        return str(self.doc_id)
 
 
 class OverseasVisits(BaseModel):

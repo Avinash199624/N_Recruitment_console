@@ -64,7 +64,7 @@ class UserExperienceDetailsAdmin(admin.ModelAdmin):
 
 @register(UserDocuments)
 class UserDocumentsAdmin(admin.ModelAdmin):
-    list_display = ["doc_id", "doc_file_path", "doc_name"]
+    list_display = ["doc_id", "doc_file_path"]
 
 
 @register(UserLanguages)
