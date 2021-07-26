@@ -726,7 +726,7 @@ class JobPostingSerializer(serializers.ModelSerializer):
                         min_age=position_mapping.get("min_age"),
                         max_age=position_mapping.get("max_age"),
                         monthly_emolements=position_mapping.get("monthly_emolements"),
-                        allowance=position_mapping["allowance"],
+                        allowance=position_mapping.get("allowance"),
                         extra_note=position_mapping["extra_note"],
                         number_of_vacancies=position_mapping["number_of_vacancies"],
                         grade=position_mapping.get("grade"),
