@@ -2512,9 +2512,7 @@ class UserDocumentView(APIView):
                 data={"message": "User Profile does not exist"},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        documents = user.user_profile.documents.all().distinct(
-            "document_master__doc_type"
-        )
+        documents = user.user_profile.documents.all()
         serializer = UserDocumentsSerializer(documents, many=True)
         return Response(serializer.data)
 
