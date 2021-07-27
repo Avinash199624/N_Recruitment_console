@@ -135,10 +135,12 @@ class User(AbstractUser, BaseModel):
 class UserProfile(BaseModel):
     GENDER_MALE = "male"
     GENDER_FEMALE = "female"
+    OTHERS = "others"
 
     GENDER_CHOICES = [
         (GENDER_MALE, "Male"),
         (GENDER_FEMALE, "Female"),
+        (OTHERS, "Others"),
     ]
 
     NOT_DECIDED = "not_decided"
@@ -463,10 +465,12 @@ class UserProfile(BaseModel):
 class NeeriUserProfile(BaseModel):
     GENDER_MALE = "male"
     GENDER_FEMALE = "female"
+    OTHERS = "others"
 
     GENDER_CHOICES = [
         (GENDER_MALE, "Male"),
         (GENDER_FEMALE, "Female"),
+        (OTHERS, "Others"),
     ]
 
     SC = "sc"
