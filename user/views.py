@@ -2375,7 +2375,9 @@ class FileUpload(APIView):
                 document_master = NewDocumentMaster.objects.filter(
                     doc_type=NewDocumentMaster.PROFILE_PHOTO
                 ).first()
-                user.user_profile.documents.filter(document_master=document_master).delete()
+                user.user_profile.documents.filter(
+                    document_master=document_master
+                ).delete()
                 doc = UserDocuments.objects.create(
                     doc_file_path=temp_path, document_master=document_master
                 )
@@ -2510,7 +2512,9 @@ class UserDocumentView(APIView):
                 data={"message": "User Profile does not exist"},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        documents = user.user_profile.documents.all().distinct("document_master__doc_type")
+        documents = user.user_profile.documents.all().distinct(
+            "document_master__doc_type"
+        )
         serializer = UserDocumentsSerializer(documents, many=True)
         return Response(serializer.data)
 
