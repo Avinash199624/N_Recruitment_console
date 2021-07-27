@@ -5,7 +5,7 @@ from user.models import BaseModel
 
 class NewDocumentMaster(BaseModel):
     PAN = "pan"
-    AADHAR = "aadhar",
+    AADHAR = "aadhar"
     VOTER_ID = "voter_id"
     PROFILE_PHOTO = "profile_photo"
     RESUME = "resume"
@@ -16,7 +16,7 @@ class NewDocumentMaster(BaseModel):
     PUBLISHED_PAPERS = "published papers"
     OTHERS = "others"
 
-    DOC_TYPE_CHOICES = [
+    DOC_TYPE_CHOICES = (
         (PAN, "PAN"),
         (AADHAR, "AADHAR"),
         (VOTER_ID, "VOTER_ID"),
@@ -28,7 +28,7 @@ class NewDocumentMaster(BaseModel):
         (EXPERIENCE, "EXPERIENCE"),
         (PUBLISHED_PAPERS, "PUBLISHED_PAPERS"),
         (OTHERS, "OTHERS"),
-    ]
+    )
 
     doc_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     doc_name = models.CharField(max_length=50, null=True, blank=True)
