@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='newdocumentmaster',
             name='doc_type',
-            field=models.CharField(blank=True, choices=[('profile_photo', 'PROFILE_PHOTO'), ('resume', 'RESUME'), ('caste', 'CASTE'), ('personal', 'PERSONAL'), ('qualification', 'QUALIFICATION'), ('experience', 'EXPERIENCE'), ('published papers', 'PUBLISHED_PAPERS'), ('others', 'OTHERS')], max_length=30, null=True),
+            field=models.CharField(blank=True, choices=[('pan', 'PAN'), ('aadhar', 'AADHAR'), ('voter_id', 'VOTER_ID'), ('profile_photo', 'PROFILE_PHOTO'), ('resume', 'RESUME'), ('caste', 'CASTE'), ('personal', 'PERSONAL'), ('qualification', 'QUALIFICATION'), ('experience', 'EXPERIENCE'), ('published papers', 'PUBLISHED_PAPERS'), ('others', 'OTHERS')], max_length=30, null=True),
         ),
     ]

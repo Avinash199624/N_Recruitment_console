@@ -2116,7 +2116,7 @@ class JobApplyCheckoutView(APIView):
                 previously_applied_positions = [
                     position.position
                     for position in previously_applied_positions
-                    if position in positions
+                    if position.position in positions
                 ]
                 if previously_applied_positions:
                     return Response(
@@ -2155,7 +2155,7 @@ class JobApplyCheckoutView(APIView):
                         "fee": subscription_fee,
                     }
                 )
-            else:
+            elif job_posting.job_type == JobPosting.Permanent:
                 user_profile = user.user_profile
                 relaxation_rule = user_profile.relaxation_rule
                 age_on_relaxation = user_profile.age - (
@@ -2366,7 +2366,7 @@ class FileUpload(APIView):
         if doc_type == "profile_photo":
             allowed_extensions = ["jpg", "jpeg", "png"]
             if extension.lower() in allowed_extensions:
-                path = f"applicant_documents/{user.user_id}/{filename}"
+                path = f"applicant_documents/{user.user_id}/profile_photo.{extension.lower()}"
                 default_storage.save(
                     f"{settings.MEDIA_ROOT}/{path}",
                     ContentFile(file.read()),
@@ -2375,6 +2375,9 @@ class FileUpload(APIView):
                 document_master = NewDocumentMaster.objects.filter(
                     doc_type=NewDocumentMaster.PROFILE_PHOTO
                 ).first()
+                user.user_profile.documents.filter(
+                    document_master=document_master
+                ).delete()
                 doc = UserDocuments.objects.create(
                     doc_file_path=temp_path, document_master=document_master
                 )
