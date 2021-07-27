@@ -516,7 +516,7 @@ class NeeriUserProfile(BaseModel):
 
 class Location(BaseModel):
     address1 = models.CharField(max_length=200, blank=True)
-    address2 = models.CharField(max_length=200, blank=True)
+    address2 = models.CharField(max_length=200, null=True, blank=True)
     address3 = models.CharField(max_length=200, null=True, blank=True)
     city = models.CharField(max_length=200, null=True, blank=True)
     state = models.CharField(max_length=200, null=True, blank=True)
@@ -528,7 +528,7 @@ class Location(BaseModel):
         return u" ".join(
             [
                 self.address1,
-                self.address2,
+                self.address2 or "",
                 self.address3 or "",
                 self.city or "",
                 self.postcode or "",

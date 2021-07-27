@@ -74,9 +74,9 @@ class LocationSerializer(serializers.ModelSerializer):
 
         instance.address1 = validated_data.get("address1") or instance.address1
 
-        instance.address2 = validated_data.get("address2") or instance.address2
+        instance.address2 = validated_data.get("address2")
 
-        instance.address3 = validated_data.get("address3") or instance.address3
+        instance.address3 = validated_data.get("address3")
 
         instance.city = validated_data.get("city") or instance.city
 
