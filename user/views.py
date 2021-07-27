@@ -2122,7 +2122,7 @@ class JobApplyCheckoutView(APIView):
                     return Response(
                         data={
                             "success": False,
-                            "message": f"You have already applied for position(s) {previously_applied_positions}",
+                            "message": f"You have already applied for selected position(s)",
                         }
                     )
 
