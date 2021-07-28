@@ -152,6 +152,7 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
 
         if datetime.datetime.now() >= attempts.account_lock_expiry:
             attempts.is_locked = False
+            attempts.wrong_login_attempt = 0
             attempts.save()
         if not check_pwd:
             print(
@@ -328,6 +329,7 @@ class UserRegistrationView(APIView):
             UserAuthentication.objects.create(
                 user=user, email_token=user_email_token, mobile_otp=user_mobile_otp
             )
+            UserProfile.objects.create(user=user)
             print("user.is_active---------->", user.is_active)
             if user:
                 user.groups.add(Group.objects.get(name="applicant"))
