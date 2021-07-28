@@ -61,7 +61,7 @@ def send_password_mail(email, password):
                                                   action_type__comm_action_type='CHANGE PASSWORD',
                                                   is_active=True).first()
     subject = template.subject
-    message = template.body + f' {password}.\n' + BASE_DEV_URL + f'/admin/'
+    message = template.body + f' {password}.\n' + BASE_QA_URL + f'/admin/'
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email]
     send_mail(
