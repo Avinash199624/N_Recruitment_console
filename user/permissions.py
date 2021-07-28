@@ -29,7 +29,7 @@ class ApplicantScrutiny(BasePermission):
         )
 
 
-class Management(BasePermission):
+class ManagementPermission(BasePermission):
     def has_permission(self, request, view):
         return (
             request.user.is_authenticated

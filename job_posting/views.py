@@ -33,6 +33,7 @@ from user.permissions import (
     ApplicantScrutiny,
     ApplicantPermission,
     MasterDataPermission,
+    ManagementPermission,
 )
 from job_posting.serializer import (
     DepartmentSerializer,
@@ -511,6 +512,7 @@ class JobPostingListView(ListAPIView):
         PermanentJobPostingPermission
         | TemporaryJobPostingPermission
         | ApplicantScrutiny
+        | ManagementPermission
     ]
     queryset = (
         JobPosting.objects.prefetch_related("job_posting_applicants")
@@ -617,17 +619,26 @@ class ApproveRejectApplicantView(RetrieveUpdateAPIView):
                 data["applied_job_status"],
             )
 
-            if data["applied_job_status"] == "rejected" and applicant.applied_job_status:
+            if (
+                data["applied_job_status"] == "rejected"
+                and applicant.applied_job_status
+            ):
                 serializer = UserJobPositionsSerializer(applicant, data=data)
                 serializer.is_valid(raise_exception=True)  # approve/reject/draft
                 serializer.update(applicant, validated_data=data)
                 return Response(serializer.data, status=200)
-            elif data["applied_job_status"] == "accepted" and applicant.applied_job_status:
+            elif (
+                data["applied_job_status"] == "accepted"
+                and applicant.applied_job_status
+            ):
                 serializer = UserJobPositionsSerializer(applicant, data=data)
                 serializer.is_valid(raise_exception=True)  # approve/reject/draft
                 serializer.update(applicant, validated_data=data)
                 return Response(serializer.data, status=200)
-            elif data["applied_job_status"] == "awaiting review" and applicant.applied_job_status:
+            elif (
+                data["applied_job_status"] == "awaiting review"
+                and applicant.applied_job_status
+            ):
                 serializer = UserJobPositionsSerializer(applicant, data=data)
                 serializer.is_valid(raise_exception=True)  # approve/reject/draft
                 serializer.update(applicant, validated_data=data)

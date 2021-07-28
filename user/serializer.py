@@ -747,27 +747,21 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
             validated_data.get("date_of_birth_in_words")
             or instance.date_of_birth_in_words
         )
-        instance.place_of_birth = (
-            validated_data.get("place_of_birth") or instance.place_of_birth
-        )
+        instance.place_of_birth = validated_data.get("place_of_birth")
         instance.father_name = validated_data.get("father_name") or instance.father_name
-        instance.father_occupation = (
-            validated_data.get("father_occupation") or instance.father_occupation
-        )
+        instance.father_occupation = validated_data.get("father_occupation")
         instance.religion = validated_data.get("religion") or instance.religion
         instance.caste = validated_data.get("caste") or instance.caste
-        instance.passport_number = (
-            validated_data.get("passport_number") or instance.passport_number
-        )
+        instance.passport_number = validated_data.get("passport_number")
         instance.passport_expiry = (
             validated_data.get("passport_expiry") or instance.passport_expiry
         )
         instance.profile_photo = (
             validated_data.get("profile_photo") or instance.profile_photo
         )
-        instance.whatsapp_id = validated_data.get("whatsapp_id") or instance.whatsapp_id
-        instance.skype_id = validated_data.get("skype_id") or instance.skype_id
-        instance.fax_number = validated_data.get("fax_number") or instance.fax_number
+        instance.whatsapp_id = validated_data.get("whatsapp_id")
+        instance.skype_id = validated_data.get("skype_id")
+        instance.fax_number = validated_data.get("fax_number")
         instance.is_indian_citizen = (
             validated_data.get("is_indian_citizen") or instance.is_indian_citizen
         )
@@ -778,9 +772,7 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         instance.user.last_name = (
             validated_data.get("last_name") or instance.user.last_name
         )
-        instance.user.middle_name = (
-            validated_data.get("middle_name") or instance.user.middle_name
-        )
+        instance.user.middle_name = validated_data.get("middle_name")
         instance.is_fresher = validated_data["is_fresher"]
         instance.is_indian_citizen = validated_data["is_indian_citizen"]
         instance.user.save()
