@@ -2141,21 +2141,12 @@ class JobApplyCheckoutView(APIView):
 
             user_profile = user.user_profile
             relaxation_rule = user_profile.relaxation_rule
-            plus_age_on_relaxation = user_profile.age + (
-                (relaxation_rule and relaxation_rule.age_relaxation) or 0
-            )
-            negative_age_on_relaxation = user_profile.age - (
-                (relaxation_rule and relaxation_rule.age_relaxation) or 0
-            )
+            age_relaxation = (relaxation_rule and relaxation_rule.age_relaxation) or 0
             for position in positions:
                 if not (
-                    (position.min_age <= plus_age_on_relaxation <= position.max_age)
-                    or (
-                        position.min_age
-                        <= negative_age_on_relaxation
-                        <= position.max_age
-                    )
+                    0 < (position.min_age - user_profile.age) <= age_relaxation
                     or (position.min_age <= user_profile.age <= position.max_age)
+                    or 0 < (user_profile.age - position.max_age) <= age_relaxation
                 ):
                     return Response(
                         data={
