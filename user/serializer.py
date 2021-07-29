@@ -703,7 +703,9 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(source="user.last_name")
     first_name = serializers.CharField(source="user.first_name")
     relaxation_rule = RelaxationMasterSerializer()
-
+    passport_expiry = serializers.DateField(
+        format="%Y-%m-%d", input_formats=["%Y-%m-%d"],
+    )
     class Meta:
         model = UserProfile
         fields = (
@@ -753,9 +755,7 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
         instance.religion = validated_data.get("religion") or instance.religion
         instance.caste = validated_data.get("caste") or instance.caste
         instance.passport_number = validated_data.get("passport_number")
-        instance.passport_expiry = (
-            validated_data.get("passport_expiry") or instance.passport_expiry
-        )
+        instance.passport_expiry = validated_data.get("passport_expiry")
         instance.profile_photo = (
             validated_data.get("profile_photo") or instance.profile_photo
         )
