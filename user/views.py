@@ -2141,12 +2141,20 @@ class JobApplyCheckoutView(APIView):
 
             user_profile = user.user_profile
             relaxation_rule = user_profile.relaxation_rule
-            age_on_relaxation = user_profile.age - (
+            plus_age_on_relaxation = user_profile.age + (
+                (relaxation_rule and relaxation_rule.age_relaxation) or 0
+            )
+            negative_age_on_relaxation = user_profile.age - (
                 (relaxation_rule and relaxation_rule.age_relaxation) or 0
             )
             for position in positions:
                 if not (
-                    (position.min_age <= age_on_relaxation <= position.max_age)
+                    (position.min_age <= plus_age_on_relaxation <= position.max_age)
+                    or (
+                        position.min_age
+                        <= negative_age_on_relaxation
+                        <= position.max_age
+                    )
                     or (position.min_age <= user_profile.age <= position.max_age)
                 ):
                     return Response(
@@ -2527,6 +2535,16 @@ class UserDocumentView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         documents = user.user_profile.documents.all()
+        if request.GET.get("positions"):
+            doc_types = set()
+            positions = PositionQualificationMapping.objects.filter(
+                id__in=request.GET["positions"].split(",")
+            )
+            for position in positions:
+                for document in position.documents_required.all():
+                    doc_types.add(document.doc_type)
+
+            documents = documents.filter(doc_type__in=list(doc_types))
         serializer = UserDocumentsSerializer(documents, many=True)
         return Response(serializer.data)
 
@@ -2546,7 +2564,7 @@ class UserDocumentView(APIView):
             for doc_info in data:
                 user_document = UserDocuments.objects.get(doc_id=doc_info["doc_id"])
                 user_document.document_master = NewDocumentMaster.objects.filter(
-                    doc_type__iexact=doc_info["doc_name"]
+                    doc_type__iexact=doc_info["doc_name"], is_deleted=False
                 ).last()
                 user_document.save()
                 user_profile.documents.add(user_document)
