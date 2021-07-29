@@ -522,6 +522,14 @@ class JobPostingListView(ListAPIView):
     serializer_class = JobPostingSerializer
     filterset_fields = ["job_type", "status"]
 
+    def get_queryset(self):
+        user = self.get_serializer_context()["request"].user
+        if hasattr(user, "neeri_user_profile"):
+            zones = user.neeri_user_profile.zonal.all()
+            divisions = user.neeri_user_profile.division.all()
+            return self.queryset.filter(zonal_lab__in=zones, division__in=divisions)
+        return self.queryset
+
 
 class PublicJobPostingView(ListAPIView):
     permission_classes = (AllowAny,)
