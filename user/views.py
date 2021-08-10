@@ -2124,7 +2124,7 @@ class JobApplyCheckoutView(APIView):
             user = request.user
             previously_applied_positions = UserJobPositions.objects.filter(
                 job_posting=job_posting, user=user
-            )
+            ).exclude(applied_job_status=UserJobPositions.DOCUMENT_PENDING)
             if previously_applied_positions.exists():
                 previously_applied_positions = [
                     position.position
