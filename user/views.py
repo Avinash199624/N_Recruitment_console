@@ -2188,25 +2188,24 @@ class JobApplyCheckoutView(APIView):
                 fee = FeeMaster.objects.get(category=JobPosting.Permanent).fee - (
                     (relaxation_rule and relaxation_rule.fee_relaxation) or 0
                 ) * len(positions)
-                if fee == 0:
-                    for position in positions:
-                        application, _ = UserJobPositions.objects.get_or_create(
-                            user=user,
-                            position=position,
-                            job_posting=job_posting,
-                            defaults={
-                                "applied_job_status": UserJobPositions.DOCUMENT_PENDING
-                            },
-                        )
-                        applications.append(application.id)
-                    return Response(
-                        data={
-                            "success": True,
-                            "message": "Job application successful",
-                            "applications": applications,
-                        }
+                for position in positions:
+                    application, _ = UserJobPositions.objects.get_or_create(
+                        user=user,
+                        position=position,
+                        job_posting=job_posting,
+                        defaults={
+                            "applied_job_status": UserJobPositions.DOCUMENT_PENDING
+                        },
                     )
-                return Response(data={"success": True, "fee": fee})
+                    applications.append(application.id)
+                return Response(
+                    data={
+                        "success": True,
+                        "message": "Job application successful",
+                        "applications": applications,
+                        "fee": fee,
+                    }
+                )
         except Exception as e:
             return Response(data={"success": False, "message": str(e)})
 
@@ -2527,6 +2526,7 @@ class UserDocumentView(APIView):
             )
         documents = user.user_profile.documents.all()
         if request.GET.get("positions"):
+            response_data = []
             doc_types = set()
             positions = PositionQualificationMapping.objects.filter(
                 id__in=request.GET["positions"].split(",")
@@ -2535,7 +2535,30 @@ class UserDocumentView(APIView):
                 for document in position.documents_required.all():
                     doc_types.add(document.doc_type)
 
-            documents = documents.filter(doc_type__in=list(doc_types))
+            for doc_type in doc_types:
+                applicant_uploaded_doc = next(
+                    (
+                        document
+                        for document in documents
+                        if document.document_master.doc_type == doc_type
+                    ),
+                    None,
+                )
+                response_data.append(
+                    {
+                        "doc_id": applicant_uploaded_doc
+                        and applicant_uploaded_doc.doc_id,
+                        "doc_file_path": applicant_uploaded_doc
+                        and applicant_uploaded_doc.doc_file_path,
+                        "doc_name": (
+                            applicant_uploaded_doc
+                            and applicant_uploaded_doc.document_master.doc_type
+                        )
+                        or doc_type,
+                    }
+                )
+            return Response(data=response_data)
+
         serializer = UserDocumentsSerializer(documents, many=True)
         return Response(serializer.data)
 

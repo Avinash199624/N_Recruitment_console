@@ -706,6 +706,7 @@ class ApplicantUserPersonalInformationSerializer(serializers.ModelSerializer):
     passport_expiry = serializers.DateField(
         format="%Y-%m-%d", input_formats=["%Y-%m-%d"],
     )
+
     class Meta:
         model = UserProfile
         fields = (
