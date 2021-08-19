@@ -2384,16 +2384,6 @@ class FileUpload(APIView):
                     ContentFile(file.read()),
                 )
                 temp_path = f"{settings.BASE_URL}{settings.MEDIA_URL}{path}"
-                document_master = NewDocumentMaster.objects.filter(
-                    doc_type=NewDocumentMaster.PROFILE_PHOTO
-                ).first()
-                user.user_profile.documents.filter(
-                    document_master=document_master
-                ).delete()
-                doc = UserDocuments.objects.create(
-                    doc_file_path=temp_path, document_master=document_master
-                )
-                user.user_profile.documents.add(doc)
                 user.user_profile.profile_photo = temp_path
                 user.user_profile.save()
             else:
@@ -2540,7 +2530,8 @@ class UserDocumentView(APIView):
                     (
                         document
                         for document in documents
-                        if document.document_master.doc_type == doc_type
+                        if document.document_master
+                        and document.document_master.doc_type == doc_type
                     ),
                     None,
                 )
@@ -2578,7 +2569,7 @@ class UserDocumentView(APIView):
             for doc_info in data:
                 user_document = UserDocuments.objects.get(doc_id=doc_info["doc_id"])
                 user_document.document_master = NewDocumentMaster.objects.filter(
-                    doc_type__iexact=doc_info["doc_name"], is_deleted=False
+                    doc_name__iexact=doc_info["doc_name"], is_deleted=False
                 ).last()
                 user_document.save()
                 user_profile.documents.add(user_document)

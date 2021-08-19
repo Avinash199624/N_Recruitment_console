@@ -1697,7 +1697,7 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def get_resume(self, obj):
-        resume = obj.documents.filter(document_master__doc_type="resume") or None
+        resume = obj.documents.filter(document_master__doc_name__iexact="resume") or None
         return resume and resume[0].doc_file_path
 
 

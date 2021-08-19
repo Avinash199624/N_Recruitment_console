@@ -4,11 +4,6 @@ from user.models import BaseModel
 
 
 class NewDocumentMaster(BaseModel):
-    PAN = "pan"
-    AADHAR = "aadhar"
-    VOTER_ID = "voter_id"
-    PROFILE_PHOTO = "profile_photo"
-    RESUME = "resume"
     CASTE = "caste"
     PERSONAL = "personal"
     QUALIFICATION = "qualification"
@@ -17,11 +12,6 @@ class NewDocumentMaster(BaseModel):
     OTHERS = "others"
 
     DOC_TYPE_CHOICES = (
-        (PAN, "PAN"),
-        (AADHAR, "AADHAR"),
-        (VOTER_ID, "VOTER_ID"),
-        (PROFILE_PHOTO, "PROFILE_PHOTO"),
-        (RESUME, "RESUME"),
         (CASTE, "CASTE"),
         (PERSONAL, "PERSONAL"),
         (QUALIFICATION, "QUALIFICATION"),
