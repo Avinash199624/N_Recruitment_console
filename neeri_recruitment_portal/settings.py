@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'document',
     'communication_template',
     'job_posting',
+    'django_crontab',
 ]
 
 
@@ -243,3 +244,9 @@ CORS_ORIGIN_REGEX_WHITELIST = config(
 BASE_URL = env('BASE_URL')
 BASE_DEV_URL = env('BASE_DEV_URL')
 BASE_QA_URL = env('BASE_QA_URL')
+
+"""Job post will publish by every mid-night"""
+
+CRONJOBS = [
+    ('0 0 * * *', 'job_posting.tasks.change_job_posting_status')
+]
