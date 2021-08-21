@@ -2590,16 +2590,17 @@ class DownloadApplicantsView(APIView):
         data = request.data
         user_profiles = UserProfile.objects.filter(user__user_id__in=data)
         documents = [
-            user.documents.filter(doc_name="resume").first() for user in user_profiles
+            user.documents.filter(document_master__doc_name__iexact="resume").first() for user in user_profiles
         ]
-        with ZipFile("applicants_profiles.zip", "w") as applicants_profile_zip:
+        with ZipFile("applicant_profiles.zip", "w") as applicant_profiles_zip:
             for doc in documents:
                 if doc and doc.doc_file_path:
                     file_obj = requests.get(doc.doc_file_path)
-                    applicants_profile_zip.writestr(
+                    applicant_profiles_zip.writestr(
                         os.path.basename(doc.doc_file_path), file_obj.content
                     )
-        return FileResponse(applicants_profile_zip)
+        zip_file = open("applicant_profiles.zip", "rb")
+        return FileResponse(zip_file)
 
 
 class ProfileDetailView(RetrieveAPIView):
