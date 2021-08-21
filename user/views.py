@@ -2594,7 +2594,7 @@ class DownloadResumeView(APIView):
         ]
         with ZipFile("applicants_profiles.zip", "w") as applicants_profile_zip:
             for doc in documents:
-                if doc.doc_file_path:
+                if doc and doc.doc_file_path:
                     file_obj = requests.get(doc.doc_file_path)
                     applicants_profile_zip.writestr(
                         os.path.basename(doc.doc_file_path), file_obj.content
