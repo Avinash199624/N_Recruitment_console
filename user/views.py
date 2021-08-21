@@ -1,7 +1,9 @@
 import datetime
 import random
 import uuid
+from zipfile import ZipFile
 
+import requests
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import Group
 from django.db.transaction import atomic
@@ -9,7 +11,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 
 from rest_framework.views import APIView
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 from rest_framework import status
 
 from document.models import NewDocumentMaster
@@ -2517,21 +2519,21 @@ class UserDocumentView(APIView):
         documents = user.user_profile.documents.all()
         if request.GET.get("positions"):
             response_data = []
-            doc_types = set()
+            doc_names = set()
             positions = PositionQualificationMapping.objects.filter(
                 id__in=request.GET["positions"].split(",")
             )
             for position in positions:
                 for document in position.documents_required.all():
-                    doc_types.add(document.doc_type)
+                    doc_names.add(document.doc_name)
 
-            for doc_type in doc_types:
+            for doc_name in doc_names:
                 applicant_uploaded_doc = next(
                     (
                         document
                         for document in documents
                         if document.document_master
-                        and document.document_master.doc_type == doc_type
+                        and document.document_master.doc_name == doc_name
                     ),
                     None,
                 )
@@ -2543,9 +2545,9 @@ class UserDocumentView(APIView):
                         and applicant_uploaded_doc.doc_file_path,
                         "doc_name": (
                             applicant_uploaded_doc
-                            and applicant_uploaded_doc.document_master.doc_type
+                            and applicant_uploaded_doc.document_master.doc_name
                         )
-                        or doc_type,
+                        or doc_name,
                     }
                 )
             return Response(data=response_data)
@@ -2581,6 +2583,23 @@ class UserDocumentView(APIView):
                 data={"message": f"Error adding documents ({str(e)})"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+class DownloadResumeView(APIView):
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        user_profiles = UserProfile.objects.filter(user__user_id__in=data)
+        documents = [
+            user.documents.filter(doc_name="resume").first() for user in user_profiles
+        ]
+        with ZipFile("applicants_profiles.zip", "w") as applicants_profile_zip:
+            for doc in documents:
+                if doc.doc_file_path:
+                    file_obj = requests.get(doc.doc_file_path)
+                    applicants_profile_zip.writestr(
+                        os.path.basename(doc.doc_file_path), file_obj.content
+                    )
+        return FileResponse(applicants_profile_zip)
 
 
 class ProfileDetailView(RetrieveAPIView):
