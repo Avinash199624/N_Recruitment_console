@@ -28,6 +28,7 @@ from user.views import (
     ApplicantAppliedJobDetailView,
     JobApplyCheckoutView,
     ApplicationDocumentUpdateView,
+    DownloadApplicantsView,
 )
 from user.views import (
     LoginView,
@@ -427,6 +428,11 @@ urlpatterns = [
         "public/compare_applicants_for_job/",
         CompareApplicantListView.as_view(),
         name="compare-applicants-for-job",
+    ),
+    path(
+        "download/applicants/",
+        DownloadApplicantsView.as_view(),
+        name="download-applicants",
     ),
     path("public/role_master/", RoleMasterView.as_view(), name="role-master-list"),
     path("mentor/", MentorMasterListView.as_view(), name="mentor-list"),

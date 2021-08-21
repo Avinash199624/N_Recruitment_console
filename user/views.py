@@ -2585,7 +2585,7 @@ class UserDocumentView(APIView):
             )
 
 
-class DownloadResumeView(APIView):
+class DownloadApplicantsView(APIView):
     def post(self, request, *args, **kwargs):
         data = request.data
         user_profiles = UserProfile.objects.filter(user__user_id__in=data)
