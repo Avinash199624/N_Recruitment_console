@@ -20,7 +20,7 @@ from job_posting.models import (
     PermanentPositionMaster,
     NewPositionMaster,
     QualificationJobHistoryMaster,
-    FeeMaster,
+    FeeMaster, RejectionReason,
 )
 
 
@@ -169,3 +169,7 @@ class TemporaryPositionMasterAdmin(admin.ModelAdmin):
 @register(FeeMaster)
 class FeeAdmin(admin.ModelAdmin):
     pass
+
+@register(RejectionReason)
+class RejectionReasonAdmin(admin.ModelAdmin):
+    list_display = ["rejection_id", "rejection_reason"]

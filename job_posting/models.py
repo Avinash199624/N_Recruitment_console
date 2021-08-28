@@ -592,3 +592,12 @@ class FeeMaster(models.Model):
 
     def __str__(self):
         return self.category
+
+
+class RejectionReason(BaseModel):
+    rejection_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    rejection_reason = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return self.rejection_reason
+
