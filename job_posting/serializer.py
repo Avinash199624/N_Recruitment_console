@@ -4,7 +4,7 @@ from job_posting.models import (
     NewPositionMaster,
     PermanentPositionMaster,
     TemporaryPositionMaster,
-    QualificationJobHistoryMaster,
+    QualificationJobHistoryMaster, RejectionReason,
 )
 from rest_framework import serializers
 from job_posting.models import (
@@ -1879,3 +1879,13 @@ class NewPositionMasterSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance.position_id
+
+
+class RejectionReasonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RejectionReason
+        fields = (
+            "rejection_id",
+            "rejection_reason",
+        )
+
