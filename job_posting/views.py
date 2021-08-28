@@ -27,6 +27,7 @@ from job_posting.models import (
     TemporaryPositionMaster,
     QualificationJobHistoryMaster,
 )
+from neeri_recruitment_portal.helpers import send_verification_mail, send_update_jobpost_mail
 from user.permissions import (
     PermanentJobPostingPermission,
     TemporaryJobPostingPermission,
@@ -456,9 +457,14 @@ class JobPostingDetailView(RetrieveUpdateAPIView):
         data = self.request.data
         job_posting_id = self.kwargs["id"]
         job_posting = JobPosting.objects.get(job_posting_id=job_posting_id)
+        job_post_name = job_posting.notification_title
+        job_post_type = job_posting.job_type
         serializer = JobPostingSerializer(
             job_posting, data=data, context={"request": request}
         )
+        email = request.user.email
+
+        send_update_jobpost_mail(email, job_post_name, job_post_type)
         if serializer.is_valid():
             return Response(
                 data=serializer.update(job_posting, validated_data=data), status=200
@@ -861,6 +867,7 @@ class PermanentPositionMasterViews(APIView):
             print("info after------->", info)
 
             serializer = PermanentPositionMasterSerializer(info)
+
             print("serializer ------->", serializer.data)
 
             return Response(serializer.data, status=200)

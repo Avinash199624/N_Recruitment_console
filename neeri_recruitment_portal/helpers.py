@@ -44,6 +44,26 @@ def send_verification_mail(email, email_token):
     return None
 
 
+def send_update_jobpost_mail(email, job_post_name, job_post_type):
+    """need to changes template containts"""
+    template = CommunicationMaster.objects.filter(comm_type__communication_type='EMAIL',
+                                                  action_type__comm_action_type='UPDATED JOBPOST', is_active=True).first()
+    subject = template.subject
+    message = template.body + "\n" + BASE_QA_URL + f'/updated_jobpost/{job_post_name}/{job_post_type}/\n\n' \
+                                                   f'Regards,\nNEERI Recruitment Team'
+    email_from = settings.EMAIL_HOST_USER
+    recipient_list = [email]
+    send_mail(
+        subject,
+        message,
+        email_from,
+        recipient_list,
+        fail_silently=False
+    )
+    print("email sent")
+    return None
+
+
 
 def send_forget_password_mail(email , token ):
     template = CommunicationMaster.objects.filter(comm_type__communication_type='EMAIL',
