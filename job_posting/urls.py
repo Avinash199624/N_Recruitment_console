@@ -44,7 +44,7 @@ from job_posting.views import (
     PublicJobPostingFilterListView,
     PublicJobPostingSearchListView,
     ApproveRejectApplicantView,
-    ApplicationCountByJobPositions, RejectionReasonViews,
+    ApplicationCountByJobPositions, RejectionReasonViews, RejectApplicantsView,
 )
 
 urlpatterns = [
@@ -292,5 +292,10 @@ urlpatterns = [
         "rejection_reason/<uuid:id>/",
         RejectionReasonViews.as_view(),
         name="rejection-reason-master",
+    ),
+    path(
+        "reject/applicants/",
+        RejectApplicantsView.as_view(),
+        name="reject-applicants",
     ),
 ]

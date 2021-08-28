@@ -1021,3 +1021,26 @@ class RejectionReasonViews(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.update(instance=applicant, validated_data=data)
         return Response(serializer.data, status=200)
+
+
+class RejectApplicantsView(APIView):
+    def put(self, request, *args, **kwargs):
+        # import ipdb
+        # ipdb.set_trace()
+        data = request.data
+
+        print("data-------------->", data)
+        for applicant_data in data:
+            print("applicant_data-------------->", applicant_data)
+
+            user_applications = UserJobPositions.objects.filter(id=applicant_data["id"])
+            for applicant in user_applications:
+                applicant.applied_job_status = UserJobPositions.REJECTED
+                applicant.reason_for_reject = applicant_data["reason_for_reject"]
+                reject_master = RejectionReason.objects.get(rejection_id=applicant_data["reject"])
+                print("reject_master-------------->", reject_master)
+                applicant.reject = reject_master
+                applicant.save()
+
+        return Response(data={"message": "successfully rejected"}, status=200)
+

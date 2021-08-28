@@ -436,6 +436,14 @@ class UserJobPositions(BaseModel):
         on_delete=models.SET_NULL,
         related_name="appeal",
     )
+    reject = models.ForeignKey(
+        "RejectionReason",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="reject",
+    )
+    reason_for_reject = models.TextField(blank=True, null=True)
     reason_to_appeal = models.TextField(blank=True, null=True)
     date_of_application = models.DateField(auto_now_add=True)
     date_of_closing = models.DateField(
