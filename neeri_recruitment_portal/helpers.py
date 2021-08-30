@@ -1,6 +1,9 @@
 import http.client
 from django.core.mail import send_mail
+from rest_framework import request
+
 from communication_template.models import CommunicationMaster
+from job_posting.models import JobPosting
 from neeri_recruitment_portal import settings
 from neeri_recruitment_portal.settings import BASE_URL, BASE_QA_URL
 
@@ -33,6 +36,34 @@ def send_verification_mail(email, email_token):
                                                    f'Regards,\nNEERI Recruitment Team'
     email_from = settings.EMAIL_HOST_USER
     recipient_list = [email]
+    send_mail(
+        subject,
+        message,
+        email_from,
+        recipient_list,
+        fail_silently=False
+    )
+    print("email sent")
+    return None
+
+
+def send_update_jobpost_mail(email, user_name, job_posting):
+
+    """Send mail to job-pist editable-user and management role users """
+    template = CommunicationMaster.objects.filter(comm_type__communication_type='EMAIL',
+                                                  action_type__comm_action_type='UPDATED JOBPOST', is_active=True).first()
+    subject = template.subject
+    job_post = JobPosting.objects.get(job_posting_id=job_posting.job_posting_id)
+    if job_post:
+        notification_id = job_posting.notification_id
+        notification_title = job_posting.notification_title
+        publication_date = job_posting.publication_date
+        end_date = job_posting.end_date
+        job_type = job_posting.job_type
+    message = "Dear "+str(user_name)+"\n"+"\n"+template.body +"\n"+"\n"+"Notification ID : "+str(notification_id)+"\n"+"Notification Title : "+str(notification_title)+"\n"+"Notification Type : "+str(job_type)+"\n"+"Start Date : "+str(publication_date)+"\n"+"End Date : "+str(end_date)+"\n"+"\n"\
+                                                                                +"\n"+"You can also view the updated job post using link below :"+"\n"+"\n"+BASE_QA_URL + f'/update_jobpost/{job_post}/\n\n'+f'Kindly Regards,\nNEERI Recruitment Team'
+    email_from = settings.EMAIL_HOST_USER
+    recipient_list = email
     send_mail(
         subject,
         message,
