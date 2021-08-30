@@ -445,8 +445,7 @@ class JobPostingCreateView(CreateAPIView):
 
 
 class JobPostingDetailView(RetrieveUpdateAPIView):
-    permission_classes = (AllowAny,)
-    #permission_classes = [PermanentJobPostingPermission | TemporaryJobPostingPermission]
+    permission_classes = [PermanentJobPostingPermission | TemporaryJobPostingPermission]
     queryset = JobPosting.objects.prefetch_related("job_posting_applicants").filter(
         is_deleted=False
     )
