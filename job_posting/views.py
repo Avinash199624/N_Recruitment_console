@@ -28,6 +28,7 @@ from job_posting.models import (
     QualificationJobHistoryMaster,
 )
 from neeri_recruitment_portal.helpers import send_verification_mail, send_update_jobpost_mail
+from user.models import User
 from user.permissions import (
     PermanentJobPostingPermission,
     TemporaryJobPostingPermission,
@@ -444,7 +445,8 @@ class JobPostingCreateView(CreateAPIView):
 
 
 class JobPostingDetailView(RetrieveUpdateAPIView):
-    permission_classes = [PermanentJobPostingPermission | TemporaryJobPostingPermission]
+    permission_classes = (AllowAny,)
+    #permission_classes = [PermanentJobPostingPermission | TemporaryJobPostingPermission]
     queryset = JobPosting.objects.prefetch_related("job_posting_applicants").filter(
         is_deleted=False
     )
@@ -454,17 +456,24 @@ class JobPostingDetailView(RetrieveUpdateAPIView):
 
     @atomic
     def put(self, request, *args, **kwargs):
+        # import ipdb;ipdb.set_trace()
         data = self.request.data
         job_posting_id = self.kwargs["id"]
         job_posting = JobPosting.objects.get(job_posting_id=job_posting_id)
-        job_post_name = job_posting.notification_title
-        job_post_type = job_posting.job_type
         serializer = JobPostingSerializer(
             job_posting, data=data, context={"request": request}
         )
-        email = request.user.email
-
-        send_update_jobpost_mail(email, job_post_name, job_post_type)
+        try:
+            if [user.groups.filter(name__iexact="management").exists() for user in User.objects.all()]:
+                applicant_user_email_list = [user.email for user in User.objects.all() if user.groups.filter(name__iexact="management")]
+                email = [request.user.email]+list(applicant_user_email_list)
+                user_name = request.user.username
+            else:
+                email = request.user.email
+                user_name = request.user.username
+        except JobPosting.DoesNotExist:
+            email = None
+        send_update_jobpost_mail(email, user_name, job_posting)
         if serializer.is_valid():
             return Response(
                 data=serializer.update(job_posting, validated_data=data), status=200
