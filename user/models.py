@@ -866,3 +866,14 @@ class Subscription(BaseModel):
 
     def __str__(self):
         return self.user.email
+
+
+class FellowshipMaster(BaseModel):
+
+    entrance_examination = models.CharField(max_length=100, null=True, blank=True)
+    score = models.PositiveIntegerField(default=0, null=True, blank=True)
+    scoring_unit = models.CharField(max_length=100, null=True, blank=True)
+    passing_year = models.CharField(max_length=50, null=True, blank=True)
+
+    def __str__(self):
+        return self.entrance_examination
