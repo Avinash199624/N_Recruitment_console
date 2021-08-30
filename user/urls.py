@@ -28,7 +28,7 @@ from user.views import (
     ApplicantAppliedJobDetailView,
     JobApplyCheckoutView,
     ApplicationDocumentUpdateView,
-    DownloadApplicantsView,
+    DownloadApplicantsView, FellowshipMasterViews,
 )
 from user.views import (
     LoginView,
@@ -456,4 +456,15 @@ urlpatterns = [
     path(
         "relaxation/<uuid:id>/", RelaxationMasterListView.as_view(), name="relaxation"
     ),
+
+    path(
+            "fellow-ships/",
+            FellowshipMasterViews.as_view(),
+            name="fellow-ships-list-and-create",
+        ),
+    path(
+            "fellow-ships/<int:id>/",
+            FellowshipMasterViews.as_view(),
+            name="fellow-ships-master",
+        ),
 ]

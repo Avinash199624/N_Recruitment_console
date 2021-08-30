@@ -20,7 +20,7 @@ from user.models import (
     RelaxationMaster,
     RelaxationCategoryMaster,
     UserAuthentication,
-    Subscription,
+    Subscription, FellowshipMaster,
 )
 
 
@@ -91,6 +91,15 @@ class OverseasVisitsAdmin(admin.ModelAdmin):
         "purpose_of_visit",
     ]
 
+
+@register(FellowshipMaster)
+class FellowshipMasterAdmin(admin.ModelAdmin):
+    list_display = [
+        "entrance_examination",
+        "score",
+        "scoring_unit",
+        "passing_year",
+    ]
 
 @register(PublishedPapers)
 class PublishedPapersAdmin(admin.ModelAdmin):
