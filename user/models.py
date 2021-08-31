@@ -274,6 +274,14 @@ class UserProfile(BaseModel):
     )
     is_fresher = models.BooleanField(blank=True, null=True, default=False)
 
+    fellow_ships = models.ManyToManyField(
+        "user.FellowshipMaster",
+        blank=True,
+        null=True,
+        related_name="fellow_ships",
+    )
+
+
     @property
     def age(self):
         today = datetime.date.today()
@@ -309,7 +317,8 @@ class UserProfile(BaseModel):
             "is_father_address_same_as_local": 5,
             "father_address": 5,
             # qualification
-            "education_details": 10,
+            "education_details": 5,
+            "fellow_ships": 5,
             "professional_trainings": 5,
             "published_papers": 5,
             # experience
@@ -413,6 +422,9 @@ class UserProfile(BaseModel):
         if self.documents.filter(is_deleted=False):
             total += percent.get("documents", 0)
 
+        if self.fellow_ships.filter(is_deleted=False):
+            total += percent.get("fellow_ships", 0)
+
         progress_bar = []
         if (
             self.user.first_name
@@ -438,6 +450,7 @@ class UserProfile(BaseModel):
 
         if (
             self.education_details.filter(is_deleted=False)
+            and self.fellow_ships.filter(is_deleted=False)
             and self.professional_trainings.filter(is_deleted=False)
             and self.published_papers.filter(is_deleted=False)
         ):
@@ -869,10 +882,29 @@ class Subscription(BaseModel):
 
 
 class FellowshipMaster(BaseModel):
+    GATE = "gate"
+    NET = "net"
+    SET = "set"
 
-    entrance_examination = models.CharField(max_length=100, null=True, blank=True)
-    score = models.PositiveIntegerField(default=0, null=True, blank=True)
-    scoring_unit = models.CharField(max_length=100, null=True, blank=True)
+    EXAM_LEVEL_CHOICES = [
+        (GATE, "GATE"),
+        (NET, "NET"),
+        (SET, "SET"),
+    ]
+
+    PERCENTAGE = "%"
+    CLASS = "class"
+    DIVISION = "division"
+
+    SCORE_UNIT_CHOICES = [
+        (PERCENTAGE, "%"),
+        (CLASS, "class"),
+        (DIVISION, "division"),
+    ]
+
+    entrance_examination = models.CharField(max_length=100, choices=EXAM_LEVEL_CHOICES, null=True, blank=True)
+    score = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    scoring_unit = models.CharField(max_length=50, choices=SCORE_UNIT_CHOICES, null=True, blank=True)
     passing_year = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self):
