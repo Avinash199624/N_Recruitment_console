@@ -25,7 +25,7 @@ from job_posting.models import (
     NewPositionMaster,
     PermanentPositionMaster,
     TemporaryPositionMaster,
-    QualificationJobHistoryMaster,
+    QualificationJobHistoryMaster, RejectionReason,
 )
 from neeri_recruitment_portal.helpers import send_verification_mail, send_update_jobpost_mail
 from user.models import User
@@ -57,7 +57,7 @@ from job_posting.serializer import (
     TemporaryPositionMasterSerializer,
     ProjectRequirementApprovalStatusSerializer,
     QualificationJobHistoryMasterSerializer,
-    PublicJobPostSerializer,
+    PublicJobPostSerializer, RejectionReasonSerializer,
 )
 
 from rest_framework.response import Response
@@ -994,3 +994,67 @@ class TemporaryPositionMasterViews(APIView):
             return Response(serializer.data, status=200)
         except Exception as e:
             return Response(data={"errors": str(e)})
+
+
+class RejectionReasonViews(APIView):
+    def post(self, request, *args, **kwargs):
+        data = self.request.data
+        serializer = RejectionReasonSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=200)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            rejection_id = self.kwargs["id"]
+            applicant = RejectionReason.objects.get(rejection_id=rejection_id, is_deleted=False)
+            serializer = RejectionReasonSerializer(applicant)
+            return Response(serializer.data, status=200)
+        except:
+            applicants = RejectionReason.objects.filter(is_deleted=False)
+            serializer = RejectionReasonSerializer(applicants, many=True)
+            return Response(serializer.data, status=200)
+
+    def delete(self, request, *args, **kwargs):
+        try:
+            rejection_id = self.kwargs["id"]
+            applicant = RejectionReason.objects.get(rejection_id=rejection_id)
+            applicant.is_deleted = True
+            applicant.save()
+            return Response(
+                data={"message": "Record Deleted Successfully(Soft Delete)."},
+                status=200,
+            )
+        except:
+            return Response(data={"message": "Details Not Found."}, status=401)
+
+    def put(self, request, *args, **kwargs):
+        rejection_id = self.kwargs["id"]
+        applicant = RejectionReason.objects.get(rejection_id=rejection_id)
+        data = self.request.data
+        serializer = RejectionReasonSerializer(applicant, data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=applicant, validated_data=data)
+        return Response(serializer.data, status=200)
+
+
+class RejectApplicantsView(APIView):
+    def put(self, request, *args, **kwargs):
+        # import ipdb
+        # ipdb.set_trace()
+        data = request.data
+
+        print("data-------------->", data)
+        for job_id in data['user_job_id']:
+            print("job_id-------------->", job_id)
+            user_applications = UserJobPositions.objects.filter(id=job_id['id'])
+            for applicant in user_applications:
+                applicant.applied_job_status = UserJobPositions.REJECTED
+                applicant.reason_for_reject = data["reason_for_reject"]
+                reject_master = RejectionReason.objects.get(rejection_id=data["reject"])
+                print("reject_master-------------->", reject_master)
+                applicant.reject = reject_master
+                applicant.save()
+
+        return Response(data={"message": "successfully rejected"}, status=200)
+

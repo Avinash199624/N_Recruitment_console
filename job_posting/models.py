@@ -436,6 +436,14 @@ class UserJobPositions(BaseModel):
         on_delete=models.SET_NULL,
         related_name="appeal",
     )
+    reject = models.ForeignKey(
+        "RejectionReason",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="reject",
+    )
+    reason_for_reject = models.TextField(blank=True, null=True)
     reason_to_appeal = models.TextField(blank=True, null=True)
     date_of_application = models.DateField(auto_now_add=True)
     date_of_closing = models.DateField(
@@ -592,3 +600,12 @@ class FeeMaster(models.Model):
 
     def __str__(self):
         return self.category
+
+
+class RejectionReason(BaseModel):
+    rejection_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    rejection_reason = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return self.rejection_reason
+
