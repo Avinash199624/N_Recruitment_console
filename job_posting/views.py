@@ -1045,14 +1045,13 @@ class RejectApplicantsView(APIView):
         data = request.data
 
         print("data-------------->", data)
-        for applicant_data in data:
-            print("applicant_data-------------->", applicant_data)
-
-            user_applications = UserJobPositions.objects.filter(id=applicant_data["id"])
+        for job_id in data['user_job_id']:
+            print("job_id-------------->", job_id)
+            user_applications = UserJobPositions.objects.filter(id=job_id['id'])
             for applicant in user_applications:
                 applicant.applied_job_status = UserJobPositions.REJECTED
-                applicant.reason_for_reject = applicant_data["reason_for_reject"]
-                reject_master = RejectionReason.objects.get(rejection_id=applicant_data["reject"])
+                applicant.reason_for_reject = data["reason_for_reject"]
+                reject_master = RejectionReason.objects.get(rejection_id=data["reject"])
                 print("reject_master-------------->", reject_master)
                 applicant.reject = reject_master
                 applicant.save()
