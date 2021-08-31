@@ -488,7 +488,7 @@ class UserProfile(BaseModel):
         return progress_bar, str(total)
 
     def __str__(self):
-        return str(self.user)
+        return self.user.email
 
 
 class NeeriUserProfile(BaseModel):
