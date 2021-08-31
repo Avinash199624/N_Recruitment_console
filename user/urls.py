@@ -28,7 +28,8 @@ from user.views import (
     ApplicantAppliedJobDetailView,
     JobApplyCheckoutView,
     ApplicationDocumentUpdateView,
-    DownloadApplicantsView, FellowshipMasterViews,
+    DownloadApplicantsView, ApplicantFellowShipsListView, ApplicantFellowShipsCreateView,
+    ApplicantFellowShipsUpdateView, ApplicantFellowShipsDeleteView,
 )
 from user.views import (
     LoginView,
@@ -458,13 +459,23 @@ urlpatterns = [
     ),
 
     path(
-            "fellow-ships/",
-            FellowshipMasterViews.as_view(),
-            name="fellow-ships-list-and-create",
-        ),
+        "public/applicant_fellow_ships/<uuid:id>/",
+        ApplicantFellowShipsListView.as_view(),
+        name="applicant-fellow-ships",
+    ),
     path(
-            "fellow-ships/<int:id>/",
-            FellowshipMasterViews.as_view(),
-            name="fellow-ships-master",
-        ),
+        "public/applicant_fellow_ships_create/<uuid:id>/",
+        ApplicantFellowShipsCreateView.as_view(),
+        name="applicant-fellow-ships-create",
+    ),
+    path(
+        "public/applicant_fellow_ships_update/<uuid:id>/",
+        ApplicantFellowShipsUpdateView.as_view(),
+        name="applicant-fellow-ships-update",
+    ),
+    path(
+        "public/applicant_fellow_ships_delete/<uuid:id>/",
+        ApplicantFellowShipsDeleteView.as_view(),
+        name="applicant-fellow-ships-delete",
+    ),
 ]

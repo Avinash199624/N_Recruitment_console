@@ -1140,6 +1140,55 @@ class UserExperienceDetailsSerializer(serializers.ModelSerializer):
         instance.save()
 
 
+class FellowshipMasterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FellowshipMaster
+        fields = (
+            "id",
+            "entrance_examination",
+            "score",
+            "scoring_unit",
+            "passing_year",
+
+        )
+
+
+    def save(self, validated_data):
+
+        user_fellowship = FellowshipMaster.objects.create(
+            entrance_examination=validated_data["entrance_examination"]
+            if "entrance_examination" in validated_data
+            else None,
+            score=validated_data["score"] if "score" in validated_data else None,
+            scoring_unit=validated_data["scoring_unit"] if "scoring_unit" in validated_data else None,
+            passing_year=validated_data["passing_year"] if "passing_year" in validated_data else None,
+        )
+
+        return user_fellowship.id
+
+    def update(self, instance, validated_data):
+
+        instance.entrance_examination = (
+            validated_data["entrance_examination"]
+            if validated_data["entrance_examination"]
+            else instance.entrance_examination
+        )
+
+        instance.score = (
+            validated_data["score"] if validated_data["score"] else instance.score
+        )
+
+        instance.scoring_unit = (
+            validated_data["scoring_unit"] if validated_data["scoring_unit"] else instance.scoring_unit
+        )
+
+        instance.passing_year = (
+            validated_data["passing_year"] if validated_data["passing_year"] else instance.passing_year
+        )
+
+        instance.save()
+
+
 class NeeriRelationSerializer(serializers.ModelSerializer):
     class Meta:
         model = NeeriRelation
@@ -1621,6 +1670,7 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
     languages = serializers.SerializerMethodField()
     references = serializers.SerializerMethodField()
     resume = serializers.SerializerMethodField()
+    fellow_ships = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
@@ -1648,6 +1698,7 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
             "professional_trainings",
             "published_papers",
             "experiences",
+            "fellow_ships",
             "other_info",
             "neeri_relation",
             "overseas_visits",
@@ -1674,6 +1725,11 @@ class UserProfilePreviewSerializer(serializers.ModelSerializer):
     def get_experiences(self, obj):
         edu = obj.experiences.filter(is_deleted=False)
         serializer = UserExperienceDetailsSerializer(edu, many=True)
+        return serializer.data
+
+    def get_fellow_ships(self, obj):
+        fellow = obj.fellow_ships.filter(is_deleted=False)
+        serializer = FellowshipMasterSerializer(fellow, many=True)
         return serializer.data
 
     def get_neeri_relation(self, obj):
@@ -1834,14 +1890,3 @@ class TraineeSerializer(serializers.ModelSerializer):
             return None
 
 
-class FellowshipMasterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FellowshipMaster
-        fields = (
-            "id",
-            "entrance_examination",
-            "score",
-            "scoring_unit",
-            "passing_year",
-
-        )
