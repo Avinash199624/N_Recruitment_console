@@ -1845,3 +1845,39 @@ class FellowshipMasterSerializer(serializers.ModelSerializer):
             "passing_year",
 
         )
+
+
+    def save(self, validated_data):
+
+        user_fellowship = FellowshipMaster.objects.create(
+            entrance_examination=validated_data["entrance_examination"]
+            if "entrance_examination" in validated_data
+            else None,
+            score=validated_data["score"] if "score" in validated_data else None,
+            scoring_unit=validated_data["scoring_unit"] if "scoring_unit" in validated_data else None,
+            passing_year=validated_data["passing_year"] if "passing_year" in validated_data else None,
+        )
+
+        return user_fellowship.id
+
+    def update(self, instance, validated_data):
+
+        instance.entrance_examination = (
+            validated_data["entrance_examination"]
+            if validated_data["entrance_examination"]
+            else instance.entrance_examination
+        )
+
+        instance.score = (
+            validated_data["score"] if validated_data["score"] else instance.score
+        )
+
+        instance.scoring_unit = (
+            validated_data["scoring_unit"] if validated_data["scoring_unit"] else instance.scoring_unit
+        )
+
+        instance.passing_year = (
+            validated_data["passing_year"] if validated_data["passing_year"] else instance.passing_year
+        )
+
+        instance.save()
