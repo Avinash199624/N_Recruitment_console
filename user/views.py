@@ -2853,50 +2853,84 @@ class RelaxationCategoryMasterListView(APIView):
 
 
 
-class FellowshipMasterViews(APIView):
+class ApplicantFellowShipsListView(APIView):
 
-    permission_classes = (AllowAny,)
+    def get(self, request, *args, **kwargs):
+        id = self.kwargs["id"]
+        user = User.objects.get(user_id=id)
+        try:
+            if user.user_profile.fellow_ships.filter(is_deleted=False):
+                fellowShips = user.user_profile.fellow_ships.filter(is_deleted=False)
+                serializer = FellowshipMasterSerializer(fellowShips, many=True)
+                return Response(serializer.data)
+            else:
+                return Response(
+                    data={
+                        "message": "User FellowShip not found",
+                        "isEmpty": "true",
+                        },
+                    )
+
+        except:
+            return Response(
+                data={"message": "User Experiences not found", "isEmpty": "true"},
+            )
+
+
+class ApplicantFellowShipsUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs["id"]
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        fellowships = user.user_profile.fellow_ships.filter(is_deleted=False)
+        for fellow_data in data:
+            fellowship = user.user_profile.fellow_ships.get(id=fellow_data["id"])
+            serializer = FellowshipMasterSerializer(
+                fellowship, data=fellow_data
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.update(instance=fellowship, validated_data=fellow_data)
+        serializer = FellowshipMasterSerializer(fellowships, many=True)
+        return Response(serializer.data)
+
+
+class ApplicantFellowShipsCreateView(APIView):
 
     def post(self, request, *args, **kwargs):
 
+        id = self.kwargs["id"]
         data = self.request.data
-        serializer = FellowshipMasterSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=200)
+        user = User.objects.get(user_id=id)
+        for fellow_data in data:
+            serializer = FellowshipMasterSerializer(data=fellow_data)
+            serializer.is_valid(raise_exception=True)
+            result = serializer.save(validated_data=fellow_data)
+            fellowship = FellowshipMaster.objects.get(id=result)
+            user.user_profile.fellow_ships.add(fellowship)
+            user.user_profile.save()
+        fellow_ships = user.user_profile.fellow_ships.filter(is_deleted=False)
+        serializer = FellowshipMasterSerializer(fellow_ships, many=True)
+        return Response(serializer.data)
 
-    def get(self, request, *args, **kwargs):
 
-        try:
-            fellowship_id = self.kwargs["id"]
-            fellow = FellowshipMaster.objects.get(id=fellowship_id, is_deleted=False)
-            serializer = FellowshipMasterSerializer(fellow)
-            return Response(serializer.data, status=200)
-        except:
-            fellows = FellowshipMaster.objects.filter(is_deleted=False)
-            serializer = FellowshipMasterSerializer(fellows, many=True)
-            return Response(serializer.data, status=200)
+class ApplicantFellowShipsDeleteView(APIView):
 
     def delete(self, request, *args, **kwargs):
 
+        id = self.kwargs["id"]
+        user = User.objects.get(user_id=id)
+        data = request.data
         try:
-            fellowship_id = self.kwargs["id"]
-            fellow = FellowshipMaster.objects.get(id=fellowship_id)
-            fellow.is_deleted = True
-            fellow.save()
+            fellowship = user.user_profile.fellow_ships.get(id=data["id"])
+            fellowship.is_deleted = True
+            fellowship.save()
             return Response(
-                data={"message": "Record Deleted Successfully(Soft Delete)."},
-                status=200,
+                data={"message": "Record Deleted Successfully."},
             )
         except:
-            return Response(data={"message": "Details Not Found."}, status=401)
+            return Response(
+                data={"message": "Details Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
-    def put(self, request, *args, **kwargs):
-
-        fellowship_id = self.kwargs["id"]
-        fellow = FellowshipMaster.objects.get(id=fellowship_id)
-        data = self.request.data
-        serializer = FellowshipMasterSerializer(fellow, data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.update(instance=fellow, validated_data=data)
-        return Response(serializer.data, status=200)
