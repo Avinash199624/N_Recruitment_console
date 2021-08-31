@@ -143,6 +143,22 @@ class UserProfile(BaseModel):
         (OTHERS, "Others"),
     ]
 
+    HINDUISM = "hinduism"
+    BUDDHISM = "buddhism"
+    SIKHISM = "sikhism"
+    ISLAM = "islam"
+    CHRISTIANITY = "christianity"
+    OTHER = "other"
+
+    RELIGION_CHOICES = [
+        (HINDUISM, "HINDUISM"),
+        (BUDDHISM, "BUDDHISM"),
+        (SIKHISM, "SIKHISM"),
+        (ISLAM, "ISLAM"),
+        (CHRISTIANITY, "CHRISTIANITY"),
+        (OTHER, "OTHER"),
+    ]
+
     NOT_DECIDED = "not_decided"
     ACCEPTED = "accepted"
     REJECTED = "rejected"
@@ -213,7 +229,7 @@ class UserProfile(BaseModel):
         related_name="father_address",
     )
     father_occupation = models.CharField(max_length=30, null=True, blank=True)
-    religion = models.CharField(max_length=30, null=True, blank=True)
+    religion = models.CharField(max_length=30, choices=RELIGION_CHOICES, null=True, blank=True)
     caste = models.CharField(
         max_length=30, choices=CASTE_CHOICES, null=True, blank=True
     )
@@ -472,7 +488,7 @@ class UserProfile(BaseModel):
         return progress_bar, str(total)
 
     def __str__(self):
-        return self.user.email
+        return str(self.user)
 
 
 class NeeriUserProfile(BaseModel):
