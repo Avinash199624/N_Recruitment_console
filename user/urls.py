@@ -28,7 +28,7 @@ from user.views import (
     ApplicantAppliedJobDetailView,
     JobApplyCheckoutView,
     ApplicationDocumentUpdateView,
-    DownloadApplicantsView, FellowshipMasterViews, ApplicantFellowShipsListView, ApplicantFellowShipsCreateView,
+    DownloadApplicantsView, ApplicantFellowShipsListView, ApplicantFellowShipsCreateView,
     ApplicantFellowShipsUpdateView, ApplicantFellowShipsDeleteView,
 )
 from user.views import (
