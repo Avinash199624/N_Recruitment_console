@@ -26,7 +26,7 @@ from user.models import (
     Trainee,
     RelaxationCategoryMaster,
     RelaxationMaster,
-    UserAuthentication,
+    UserAuthentication, FellowshipMaster,
 )
 
 
@@ -1832,3 +1832,16 @@ class TraineeSerializer(serializers.ModelSerializer):
             return instance.trainee_id
         else:
             return None
+
+
+class FellowshipMasterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FellowshipMaster
+        fields = (
+            "id",
+            "entrance_examination",
+            "score",
+            "scoring_unit",
+            "passing_year",
+
+        )

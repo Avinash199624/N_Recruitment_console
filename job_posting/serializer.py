@@ -1,3 +1,5 @@
+from datetime import date
+
 from job_posting.models import (
     JobPostingRequirementPositions,
     AppealMaster,
@@ -987,6 +989,10 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
     )
     application_id = serializers.IntegerField(source="id")
 
+    age_of_applicant = serializers.SerializerMethodField(
+        method_name="get_age_of_applicant", read_only=True
+    )
+
     class Meta:
         model = UserJobPositions
         fields = (
@@ -998,7 +1004,19 @@ class UserJobPositionsSerializer(serializers.ModelSerializer):
             "job_posting_id",
             "position",
             "date_of_application",
+            "age_of_applicant",
         )
+
+    def get_age_of_applicant(self, obj):
+        today = date.today()
+        print("today--------------->", today)
+        years = today.year - obj.user.user_profile.date_of_birth.year
+        months = today.month - obj.user.user_profile.date_of_birth.month
+        days = today.day - obj.user.user_profile.date_of_birth.day
+        age_of_applicant = str(years) + " Years " + str(months) + " Months " + str(days) + " Days"
+        print("today--------------->", age_of_applicant)
+
+        return age_of_applicant
 
     def update(self, instance, validated_data):
         instance.applied_job_status = (
