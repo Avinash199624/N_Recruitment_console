@@ -2933,29 +2933,33 @@ class ApplicantFellowShipsDeleteView(APIView):
             )
 
 
-class ApplicantReligionMasterListView(APIView):
+class ReligionMasterListView(APIView):
     #permission_classes = (AllowAny,)
 
     def get(self, request, *args, **kwargs):
-
-        id = self.kwargs["id"]
-        user = User.objects.get(user_id=id)
         try:
-            if user.user_profile.religion:
-                religion = user.user_profile.religion
-                serializer = ReligionMasterSerializer(religion)
-                return Response(serializer.data)
-            else:
-                return Response(
-                    data={
-                        "message": "User religion not found",
-                        "isEmpty": "true",
-                    },
-                )
+            religions = ReligionMaster.objects.filter(is_deleted=False)
+            serializer = ReligionMasterSerializer(religions, many=True)
+            return Response(serializer.data)
 
         except:
             return Response(
-                data={"message": "User religion not found", "isEmpty": "true"},
+                data={"message": "Religion list not found", "isEmpty": "true"},
+            )
+
+class ReligionMasterDetailView(APIView):
+    #permission_classes = (AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            id = self.kwargs["id"]
+            religions = ReligionMaster.objects.get(religion_id=id)
+            serializer = ReligionMasterSerializer(religions)
+            return Response(serializer.data)
+
+        except:
+            return Response(
+                data={"message": "Religion list not found", "isEmpty": "true"},
             )
 
 
@@ -2978,34 +2982,33 @@ class ApplicantReligionMasterUpdateView(APIView):
         return Response(serializer.data)
 
 
-class ApplicantReligionMasterCreateView(APIView):
-    #permission_classes = (AllowAny,)
+class ReligionMasterCreateView(APIView):
+    permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
+        import ipdb;ipdb.set_trace()
 
-        id = self.kwargs["id"]
+
         data = self.request.data
-        user = User.objects.get(user_id=id)
         fellow_data = data
         serializer = ReligionMasterSerializer(data=fellow_data)
         serializer.is_valid(raise_exception=True)
         result = serializer.save(validated_data=fellow_data)
         fellowship = ReligionMaster.objects.get(religion_id=result)
-        user.user_profile.save()
         serializer = ReligionMasterSerializer(fellowship)
         return Response(serializer.data)
 
 
-class ApplicantReligionMasterDeleteView(APIView):
-    #permission_classes = (AllowAny,)
+class ReligionMasterDeleteView(APIView):
+    permission_classes = (AllowAny,)
 
     def delete(self, request, *args, **kwargs):
 
         id = self.kwargs["id"]
-        user = User.objects.get(user_id=id)
+        religion = ReligionMaster.objects.get(religion_id=id)
         data = request.data
         try:
-            religion = user.user_profile.religion
+
             religion.is_deleted = True
             religion.save()
             return Response(
@@ -3016,3 +3019,22 @@ class ApplicantReligionMasterDeleteView(APIView):
                 data={"message": "Details Not Found."},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+
+class ReligionMasterUpdateView(APIView):
+    #permission_classes = (AllowAny,)
+
+    def put(self, request, *args, **kwargs):
+
+        id = self.kwargs["id"]
+        data = self.request.data
+
+        fellow_data = data
+        religion = ReligionMaster.objects.get(religion_id=id)
+        serializer = ReligionMasterSerializer(
+            religion, data=fellow_data
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=religion, validated_data=fellow_data)
+        serializer = ReligionMasterSerializer(religion)
+        return Response(serializer.data)
+

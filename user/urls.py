@@ -29,8 +29,9 @@ from user.views import (
     JobApplyCheckoutView,
     ApplicationDocumentUpdateView,
     DownloadApplicantsView, ApplicantFellowShipsListView, ApplicantFellowShipsCreateView,
-    ApplicantFellowShipsUpdateView, ApplicantFellowShipsDeleteView, ApplicantReligionMasterListView,
-    ApplicantReligionMasterUpdateView, ApplicantReligionMasterCreateView, ApplicantReligionMasterDeleteView,
+    ApplicantFellowShipsUpdateView, ApplicantFellowShipsDeleteView, ReligionMasterListView,
+    ApplicantReligionMasterUpdateView, ReligionMasterCreateView,
+    ReligionMasterDeleteView, ReligionMasterUpdateView, ReligionMasterDetailView,
 )
 from user.views import (
     LoginView,
@@ -481,15 +482,20 @@ urlpatterns = [
     ),
 
 
-path(
-        "public/applicant_religion/<uuid:id>/",
-        ApplicantReligionMasterListView.as_view(),
+    path(
+        "public/applicant_religions/",
+        ReligionMasterListView.as_view(),
         name="applicant-religion",
     ),
     path(
-        "public/applicant_religion_create/<uuid:id>/",
-        ApplicantReligionMasterCreateView.as_view(),
-        name="applicant-religion-create",
+        "public/applicant_religions/<uuid:id>",
+        ReligionMasterDetailView.as_view(),
+        name="religion-detail",
+    ),
+    path(
+        "public/religion_create/",
+        ReligionMasterCreateView.as_view(),
+        name="religion-create",
     ),
     path(
         "public/applicant_religion_update/<uuid:id>/",
@@ -497,8 +503,13 @@ path(
         name="applicant-religion-update",
     ),
     path(
-        "public/applicant_religion_delete/<uuid:id>/",
-        ApplicantReligionMasterDeleteView.as_view(),
-        name="applicant-religion-delete",
+        "public/religion_delete/<uuid:id>/",
+        ReligionMasterDeleteView.as_view(),
+        name="religion-delete",
     ),
+    path(
+        "public/religion_update/<uuid:id>/",
+        ReligionMasterUpdateView.as_view(),
+        name="religion-update",
+    )
 ]
