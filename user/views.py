@@ -2983,10 +2983,9 @@ class ApplicantReligionMasterUpdateView(APIView):
 
 
 class ReligionMasterCreateView(APIView):
-    permission_classes = (AllowAny,)
+    #permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        import ipdb;ipdb.set_trace()
 
 
         data = self.request.data
