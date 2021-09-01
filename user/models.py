@@ -143,21 +143,6 @@ class UserProfile(BaseModel):
         (OTHERS, "Others"),
     ]
 
-    HINDUISM = "hinduism"
-    BUDDHISM = "buddhism"
-    SIKHISM = "sikhism"
-    ISLAM = "islam"
-    CHRISTIANITY = "christianity"
-    OTHER = "other"
-
-    RELIGION_CHOICES = [
-        (HINDUISM, "HINDUISM"),
-        (BUDDHISM, "BUDDHISM"),
-        (SIKHISM, "SIKHISM"),
-        (ISLAM, "ISLAM"),
-        (CHRISTIANITY, "CHRISTIANITY"),
-        (OTHER, "OTHER"),
-    ]
 
     NOT_DECIDED = "not_decided"
     ACCEPTED = "accepted"
@@ -229,7 +214,13 @@ class UserProfile(BaseModel):
         related_name="father_address",
     )
     father_occupation = models.CharField(max_length=30, null=True, blank=True)
-    religion = models.CharField(max_length=30, choices=RELIGION_CHOICES, null=True, blank=True)
+    religion = models.ForeignKey(
+        "user.ReligionMaster",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="user_religion",
+    )
     caste = models.CharField(
         max_length=30, choices=CASTE_CHOICES, null=True, blank=True
     )
@@ -925,3 +916,11 @@ class FellowshipMaster(BaseModel):
 
     def __str__(self):
         return self.entrance_examination
+
+
+class ReligionMaster(BaseModel):
+    religion_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    religion_name = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return self.religion_name

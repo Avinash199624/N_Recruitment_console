@@ -41,7 +41,7 @@ from user.models import (
     Trainee,
     RelaxationMaster,
     RelaxationCategoryMaster,
-    UserAuthentication, FellowshipMaster,
+    UserAuthentication, FellowshipMaster, ReligionMaster,
 )
 from job_posting.models import (
     UserJobPositions,
@@ -77,7 +77,7 @@ from user.serializer import (
     ApplicantIsFresherSerializer,
     UserDocumentsSerializer,
     ApplicantIsAddressSameSerializer,
-    UserAuthenticationSerializer, FellowshipMasterSerializer,
+    UserAuthenticationSerializer, FellowshipMasterSerializer, ReligionMasterSerializer,
 )
 from job_posting.serializer import (
     ApplicantJobPositionsSerializer,
@@ -208,9 +208,9 @@ class LoginView(KnoxLoginView, LoginResponseViewMixin):
         authentication = UserAuthentication.objects.get(user=user)
 
         if (
-            not getattr(user, "is_active", None)
-            and not authentication.mobile_verified
-            and not authentication.email_verified
+                not getattr(user, "is_active", None)
+                and not authentication.mobile_verified
+                and not authentication.email_verified
         ):
             raise AuthenticationFailed(
                 INACTIVE_EMAIL_MOBILE_ERROR, code="account_disabled"
@@ -1348,8 +1348,8 @@ class ApplicantAddressView(APIView):
             if address_type == "local_address" and user.user_profile.local_address:
                 location = user.user_profile.local_address
             elif (
-                address_type == "permanent_address"
-                and user.user_profile.permanent_address
+                    address_type == "permanent_address"
+                    and user.user_profile.permanent_address
             ):
                 location = user.user_profile.permanent_address
             elif address_type == "father_address" and user.user_profile.father_address:
@@ -1386,8 +1386,8 @@ class ApplicantAddressUpdateView(APIView):
                     "is_permenant_address_same_as_local"
                 ]
                 if (
-                    is_permenant_address_same_as_local is True
-                    or is_permenant_address_same_as_local == "true"
+                        is_permenant_address_same_as_local is True
+                        or is_permenant_address_same_as_local == "true"
                 ):
                     user.user_profile.permanent_address = (
                         user.user_profile.local_address
@@ -1414,8 +1414,8 @@ class ApplicantAddressUpdateView(APIView):
                     "is_father_address_same_as_local"
                 ]
                 if (
-                    is_father_address_same_as_local is True
-                    or is_father_address_same_as_local == "true"
+                        is_father_address_same_as_local is True
+                        or is_father_address_same_as_local == "true"
                 ):
                     user.user_profile.father_address = user.user_profile.local_address
                     user.user_profile.is_father_address_same_as_local = True
@@ -1462,9 +1462,9 @@ class ApplicantAddressCreateView(APIView):
                 "is_permenant_address_same_as_local"
             ]
             if (
-                address_type == "permanent_address"
-                and is_permenant_address_same_as_local is True
-                or is_permenant_address_same_as_local == "true"
+                    address_type == "permanent_address"
+                    and is_permenant_address_same_as_local is True
+                    or is_permenant_address_same_as_local == "true"
             ):
                 permanent_address = user.user_profile.local_address
                 user.user_profile.permanent_address = permanent_address
@@ -1486,9 +1486,9 @@ class ApplicantAddressCreateView(APIView):
                 "is_father_address_same_as_local"
             ]
             if (
-                address_type == "father_address"
-                and is_father_address_same_as_local is True
-                or is_father_address_same_as_local == "true"
+                    address_type == "father_address"
+                    and is_father_address_same_as_local is True
+                    or is_father_address_same_as_local == "true"
             ):
                 father_address = user.user_profile.local_address
                 user.user_profile.father_address = father_address
@@ -2146,9 +2146,9 @@ class JobApplyCheckoutView(APIView):
             age_relaxation = (relaxation_rule and relaxation_rule.age_relaxation) or 0
             for position in positions:
                 if not (
-                    0 < (position.min_age - user_profile.age) <= age_relaxation
-                    or (position.min_age <= user_profile.age <= position.max_age)
-                    or 0 < (user_profile.age - position.max_age) <= age_relaxation
+                        0 < (position.min_age - user_profile.age) <= age_relaxation
+                        or (position.min_age <= user_profile.age <= position.max_age)
+                        or 0 < (user_profile.age - position.max_age) <= age_relaxation
                 ):
                     return Response(
                         data={
@@ -2188,7 +2188,7 @@ class JobApplyCheckoutView(APIView):
                 )
             elif job_posting.job_type == JobPosting.Permanent:
                 fee = FeeMaster.objects.get(category=JobPosting.Permanent).fee - (
-                    (relaxation_rule and relaxation_rule.fee_relaxation) or 0
+                        (relaxation_rule and relaxation_rule.fee_relaxation) or 0
                 ) * len(positions)
                 for position in positions:
                     application, _ = UserJobPositions.objects.get_or_create(
@@ -2274,10 +2274,10 @@ class ProfessionalTrainingListView(APIView):
         user = User.objects.get(user_id=id)
         try:
             if (
-                user.user_profile.professional_trainings.filter(
-                    is_deleted=False
-                ).count()
-                > 0
+                    user.user_profile.professional_trainings.filter(
+                        is_deleted=False
+                    ).count()
+                    > 0
             ):
                 professional_trainings = (
                     user.user_profile.professional_trainings.filter(is_deleted=False)
@@ -2533,21 +2533,21 @@ class UserDocumentView(APIView):
                         document
                         for document in documents
                         if document.document_master
-                        and document.document_master.doc_name == doc_name
+                           and document.document_master.doc_name == doc_name
                     ),
                     None,
                 )
                 response_data.append(
                     {
                         "doc_id": applicant_uploaded_doc
-                        and applicant_uploaded_doc.doc_id,
+                                  and applicant_uploaded_doc.doc_id,
                         "doc_file_path": applicant_uploaded_doc
-                        and applicant_uploaded_doc.doc_file_path,
+                                         and applicant_uploaded_doc.doc_file_path,
                         "doc_name": (
-                            applicant_uploaded_doc
-                            and applicant_uploaded_doc.document_master.doc_name
-                        )
-                        or doc_name,
+                                            applicant_uploaded_doc
+                                            and applicant_uploaded_doc.document_master.doc_name
+                                    )
+                                    or doc_name,
                     }
                 )
             return Response(data=response_data)
@@ -2643,7 +2643,7 @@ class MentorMasterListView(APIView):
         try:
             mentor_id = self.kwargs["id"]
             if MentorMaster.objects.filter(
-                mentor_id=mentor_id, is_deleted=False
+                    mentor_id=mentor_id, is_deleted=False
             ).exists():
                 mentor = MentorMaster.objects.get(mentor_id=mentor_id, is_deleted=False)
                 serializer = MentorMasterSerializer(mentor)
@@ -2779,7 +2779,7 @@ class RelaxationMasterListView(APIView):
         try:
             relaxation_rule_id = self.kwargs["id"]
             if RelaxationMaster.objects.filter(
-                relaxation_rule_id=relaxation_rule_id, is_deleted=False
+                    relaxation_rule_id=relaxation_rule_id, is_deleted=False
             ).exists():
                 relax = RelaxationMaster.objects.get(
                     relaxation_rule_id=relaxation_rule_id, is_deleted=False
@@ -2817,7 +2817,7 @@ class RelaxationCategoryMasterListView(APIView):
         try:
             mentor_id = self.kwargs["id"]
             if RelaxationCategoryMaster.objects.filter(
-                relaxation_cat_id=mentor_id, is_deleted=False
+                    relaxation_cat_id=mentor_id, is_deleted=False
             ).exists():
                 relax = RelaxationCategoryMaster.objects.get(
                     relaxation_cat_id=mentor_id, is_deleted=False
@@ -2852,7 +2852,6 @@ class RelaxationCategoryMasterListView(APIView):
             )
 
 
-
 class ApplicantFellowShipsListView(APIView):
 
     def get(self, request, *args, **kwargs):
@@ -2868,8 +2867,8 @@ class ApplicantFellowShipsListView(APIView):
                     data={
                         "message": "User FellowShip not found",
                         "isEmpty": "true",
-                        },
-                    )
+                    },
+                )
 
         except:
             return Response(
@@ -2898,7 +2897,6 @@ class ApplicantFellowShipsUpdateView(APIView):
 class ApplicantFellowShipsCreateView(APIView):
 
     def post(self, request, *args, **kwargs):
-
         id = self.kwargs["id"]
         data = self.request.data
         user = User.objects.get(user_id=id)
@@ -2934,3 +2932,87 @@ class ApplicantFellowShipsDeleteView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
+
+class ApplicantReligionMasterListView(APIView):
+    #permission_classes = (AllowAny,)
+
+    def get(self, request, *args, **kwargs):
+
+        id = self.kwargs["id"]
+        user = User.objects.get(user_id=id)
+        try:
+            if user.user_profile.religion:
+                religion = user.user_profile.religion
+                serializer = ReligionMasterSerializer(religion)
+                return Response(serializer.data)
+            else:
+                return Response(
+                    data={
+                        "message": "User religion not found",
+                        "isEmpty": "true",
+                    },
+                )
+
+        except:
+            return Response(
+                data={"message": "User religion not found", "isEmpty": "true"},
+            )
+
+
+class ApplicantReligionMasterUpdateView(APIView):
+    #permission_classes = (AllowAny,)
+
+    def put(self, request, *args, **kwargs):
+        id = self.kwargs["id"]
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        # religion = user.user_profile.religion
+        fellow_data = data
+        user_religion = user.user_profile.religion
+        serializer = ReligionMasterSerializer(
+            user_religion, data=fellow_data
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.update(instance=user_religion, validated_data=fellow_data)
+        serializer = ReligionMasterSerializer(user_religion)
+        return Response(serializer.data)
+
+
+class ApplicantReligionMasterCreateView(APIView):
+    #permission_classes = (AllowAny,)
+
+    def post(self, request, *args, **kwargs):
+
+        id = self.kwargs["id"]
+        data = self.request.data
+        user = User.objects.get(user_id=id)
+        fellow_data = data
+        serializer = ReligionMasterSerializer(data=fellow_data)
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save(validated_data=fellow_data)
+        fellowship = ReligionMaster.objects.get(religion_id=result)
+        user.user_profile.save()
+        serializer = ReligionMasterSerializer(fellowship)
+        return Response(serializer.data)
+
+
+class ApplicantReligionMasterDeleteView(APIView):
+    #permission_classes = (AllowAny,)
+
+    def delete(self, request, *args, **kwargs):
+
+        id = self.kwargs["id"]
+        user = User.objects.get(user_id=id)
+        data = request.data
+        try:
+            religion = user.user_profile.religion
+            religion.is_deleted = True
+            religion.save()
+            return Response(
+                data={"message": "Record Deleted Successfully."},
+            )
+        except:
+            return Response(
+                data={"message": "Details Not Found."},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
