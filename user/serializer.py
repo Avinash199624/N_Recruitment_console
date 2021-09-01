@@ -26,7 +26,7 @@ from user.models import (
     Trainee,
     RelaxationCategoryMaster,
     RelaxationMaster,
-    UserAuthentication, FellowshipMaster,
+    UserAuthentication, FellowshipMaster, ReligionMaster,
 )
 
 
@@ -1186,6 +1186,38 @@ class FellowshipMasterSerializer(serializers.ModelSerializer):
             validated_data["passing_year"] if validated_data["passing_year"] else instance.passing_year
         )
 
+        instance.save()
+
+
+class ReligionMasterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReligionMaster
+        fields = (
+            "religion_id",
+            "religion_name",
+
+        )
+
+
+    def save(self, validated_data):
+
+
+        user_religion = ReligionMaster.objects.create(
+            religion_name=validated_data["religion_name"]
+            if "religion_name" in validated_data
+            else None,
+        )
+
+        return user_religion.religion_id
+
+    def update(self, instance, validated_data):
+
+
+        instance.religion_name = (
+            validated_data["religion_name"]
+            if validated_data["religion_name"]
+            else instance.religion_name
+        )
         instance.save()
 
 

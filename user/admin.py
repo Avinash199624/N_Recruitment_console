@@ -20,7 +20,7 @@ from user.models import (
     RelaxationMaster,
     RelaxationCategoryMaster,
     UserAuthentication,
-    Subscription, FellowshipMaster,
+    Subscription, FellowshipMaster, ReligionMaster,
 )
 
 
@@ -99,6 +99,13 @@ class FellowshipMasterAdmin(admin.ModelAdmin):
         "score",
         "scoring_unit",
         "passing_year",
+    ]
+
+@register(ReligionMaster)
+class ReligionMasterAdmin(admin.ModelAdmin):
+    list_display = [
+        "religion_id",
+        "religion_name",
     ]
 
 @register(PublishedPapers)
