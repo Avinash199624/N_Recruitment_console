@@ -214,12 +214,12 @@ class UserProfile(BaseModel):
         related_name="father_address",
     )
     father_occupation = models.CharField(max_length=30, null=True, blank=True)
-    religion = models.ForeignKey(
+    user_religion = models.ForeignKey(
         "user.ReligionMaster",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        related_name="user_religion",
+        related_name="u_religion",
     )
     caste = models.CharField(
         max_length=30, choices=CASTE_CHOICES, null=True, blank=True
